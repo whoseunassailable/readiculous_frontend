@@ -1,10 +1,9 @@
-Certainly! Here's a comprehensive `README.md` file tailored for the [readiculous\_frontend](https://github.com/whoseunassailable/readiculous_frontend) project:
 
 ---
 
 # 📚 Readiculous Frontend
 
-**Readiculous Frontend** is the Flutter-based frontend application for the Readiculous project. It provides a cross-platform user interface for the Readiculous ecosystem, aiming to deliver a seamless reading experience across devices.
+**Readiculous Frontend** is the Flutter-based frontend application for the Readiculous project. It provides a cross-platform user interface for the Readiculous ecosystem. This application aims to help librarians to shelve books based on the recommendation of the people nearby.
 
 ## 🚀 Features
 
@@ -142,5 +141,3 @@ Please ensure your code adheres to the project's coding standards and passes all
 This project is licensed under the [MIT License](LICENSE).
 
 ---
-
-Feel free to customize this `README.md` further to suit the specific needs and features of your project.
