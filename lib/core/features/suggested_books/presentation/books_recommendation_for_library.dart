@@ -60,15 +60,15 @@ class _BookRecommendationPageForLibraryState
 
           final responseData = snap.data!;
           final suggestions =
-              responseData['suggestions'] as Map<String, dynamic>? ?? {};
+              responseData['recommendations'] as List<dynamic>? ?? [];
 
           // Collect all non-empty book lists from genres
-          final allBooks = <Map<String, dynamic>>[];
-          suggestions.forEach((genre, books) {
-            if (books is List && books.isNotEmpty) {
-              allBooks.addAll(books.cast<Map<String, dynamic>>());
-            }
-          });
+          final allBooks = suggestions.cast<Map<String, dynamic>>();
+          // suggestions.forEach((genre, books) {
+          //   if (books is List && books.isNotEmpty) {
+          //     allBooks.addAll(books.cast<Map<String, dynamic>>());
+          //   }
+          // });
 
           if (allBooks.isEmpty) {
             return const Center(
@@ -98,8 +98,10 @@ class _BookRecommendationPageForLibraryState
     );
   }
 
-  String _formatGenre(String? genre) {
-    if (genre == null) return 'Unknown Genre';
-    return genre.replaceAll(',', ', ');
+  String _formatGenre(String? genre, {int maxGenres = 3}) {
+    if (genre == null || genre.trim().isEmpty) return 'Unknown Genre';
+    final genreList = genre.split(',').map((g) => g.trim()).toList();
+    final trimmed = genreList.take(maxGenres).join(', ');
+    return trimmed;
   }
 }

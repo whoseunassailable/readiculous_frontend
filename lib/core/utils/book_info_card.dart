@@ -33,7 +33,7 @@ class BookInfoCard extends StatelessWidget {
     final chipHeight = height * 0.12;
 
     return Container(
-      height: height,
+      height: height * 1.2,
       width: width,
       padding: EdgeInsets.all(width * 0.04),
       margin: EdgeInsets.symmetric(vertical: height * 0.04),

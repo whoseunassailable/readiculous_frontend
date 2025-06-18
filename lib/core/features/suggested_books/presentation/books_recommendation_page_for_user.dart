@@ -85,7 +85,7 @@ class _BookRecommendationPageForUserState
                   width: w * 0.9,
                   title: book['title'] as String,
                   author: book['author'] as String,
-                  genre: book['genre'] as String,
+                  genre: _formatGenre(book['genre'] as String),
                   rating: (book['rating'] as num).toDouble(),
                 );
               },
@@ -94,5 +94,12 @@ class _BookRecommendationPageForUserState
         },
       ),
     );
+  }
+
+  String _formatGenre(String? genre, {int maxGenres = 9}) {
+    if (genre == null || genre.trim().isEmpty) return 'Unknown Genre';
+    final genreList = genre.split(',').map((g) => g.trim()).toList();
+    final trimmed = genreList.take(maxGenres).join(', ');
+    return trimmed;
   }
 }
