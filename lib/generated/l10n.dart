@@ -50,6 +50,16 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
+  /// `READICULOUS`
+  String get readiculous {
+    return Intl.message(
+      'READICULOUS',
+      name: 'readiculous',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `UNIQUEST`
   String get uniquest {
     return Intl.message(
