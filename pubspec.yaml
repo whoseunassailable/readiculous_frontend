@@ -41,6 +41,7 @@ flutter:
   generate: true
   assets:
     - assets/images/
+    - assets/icons/
 
 
   # Remove the l10n configuration here
@@ -48,3 +49,5 @@ flutter:
 flutter_intl:
   enabled: true
   main_locale: en
+  arb_dir: lib/l10n
+  output_dir: lib/generated

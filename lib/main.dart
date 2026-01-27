@@ -3,6 +3,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'generated/l10n.dart';
 import 'l10n/app_localizations.dart';
 import 'core/routing/routing.dart';
 
@@ -38,14 +39,13 @@ class MyApp extends ConsumerWidget {
         // useMaterial3: true,
       ),
       localizationsDelegates: const [
-        AppLocalizations.delegate,
+        S.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('en', 'US'),
-      ],
+      supportedLocales: S.delegate.supportedLocales,
+      // locale: const Locale('en', 'US'), // optional override
     );
   }
 }

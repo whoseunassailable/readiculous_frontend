@@ -24,8 +24,11 @@ class MessageLookup extends MessageLookupByLibrary {
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "account": MessageLookupByLibrary.simpleMessage("Account"),
         "australia": MessageLookupByLibrary.simpleMessage("Australia"),
+        "basedOnCollectedReaderData": MessageLookupByLibrary.simpleMessage(
+            "Based on Collected Reader Data"),
         "basedOnYour": MessageLookupByLibrary.simpleMessage(
             "Based on your scores, here are universities tailored just for you. Start exploring your future today!"),
+        "booksToStock": MessageLookupByLibrary.simpleMessage("Books to Stock"),
         "budgetRange": MessageLookupByLibrary.simpleMessage("Budget Range"),
         "chooseYourLanguage":
             MessageLookupByLibrary.simpleMessage("Choose Your Language"),
@@ -98,6 +101,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "inputYourTOEFLScore":
             MessageLookupByLibrary.simpleMessage("Input your TOEFL score"),
         "lastName": MessageLookupByLibrary.simpleMessage("Last Name"),
+        "libraryPulse": MessageLookupByLibrary.simpleMessage("Library Pulse"),
         "login": MessageLookupByLibrary.simpleMessage("Login"),
         "loginFailed": MessageLookupByLibrary.simpleMessage(
             "Login failed. Please try again."),
@@ -141,6 +145,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("300 - 319"),
         "three_twenty_to_three_forty":
             MessageLookupByLibrary.simpleMessage("320 - 340"),
+        "trendingGenres":
+            MessageLookupByLibrary.simpleMessage("Trending Genres"),
         "two_sixty_to_three_hundred":
             MessageLookupByLibrary.simpleMessage("260 - 300"),
         "typeYourScore":
@@ -175,6 +181,8 @@ class MessageLookup extends MessageLookupByLibrary {
                 "What is your intended major or program of interest?"),
         "whatIsYourPreferredLevelOfStudy": MessageLookupByLibrary.simpleMessage(
             "What is your preferred level of study?"),
+        "whatReadersWant": MessageLookupByLibrary.simpleMessage(
+            "What readers nearby want right now"),
         "whichCountriesDoYouPreferToStudyIn":
             MessageLookupByLibrary.simpleMessage(
                 "Which countries do you prefer to study in?"),

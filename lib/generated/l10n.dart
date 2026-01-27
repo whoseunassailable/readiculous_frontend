@@ -1109,6 +1109,56 @@ class S {
       args: [],
     );
   }
+
+  /// `Library Pulse`
+  String get libraryPulse {
+    return Intl.message(
+      'Library Pulse',
+      name: 'libraryPulse',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `What readers nearby want right now`
+  String get whatReadersWant {
+    return Intl.message(
+      'What readers nearby want right now',
+      name: 'whatReadersWant',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trending Genres`
+  String get trendingGenres {
+    return Intl.message(
+      'Trending Genres',
+      name: 'trendingGenres',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Books to Stock`
+  String get booksToStock {
+    return Intl.message(
+      'Books to Stock',
+      name: 'booksToStock',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Based on Collected Reader Data`
+  String get basedOnCollectedReaderData {
+    return Intl.message(
+      'Based on Collected Reader Data',
+      name: 'basedOnCollectedReaderData',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

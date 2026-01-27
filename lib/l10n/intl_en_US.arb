@@ -1,4 +1,5 @@
 {
+  "@@locale": "en_US",
   "uniquest": "UNIQUEST",
   "yourJourneyToFindPerfectUniversity": "Your Journey to Find Perfect University",
   "signUp": "Sign Up",
@@ -124,5 +125,10 @@
   "findRecommendedBooksForYourLibrary": "Find\nRecommended \nBooks For Library",
   "whichGenresDoYouPrefer": "Which Genres do you prefer?",
   "pleaseEnterValidLocation": "Please Enter Valid Location",
-  "location": "Location"
+  "location": "Location",
+  "libraryPulse": "Library Pulse",
+  "whatReadersWant": "What readers nearby want right now",
+  "trendingGenres": "Trending Genres",
+  "booksToStock": "Books to Stock",
+  "basedOnCollectedReaderData": "Based on Collected Reader Data"
 }
