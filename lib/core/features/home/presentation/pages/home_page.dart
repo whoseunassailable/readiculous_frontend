@@ -7,7 +7,6 @@ import '../../../../../generated/l10n.dart';
 import '../../../../constants/app_colors.dart';
 import '../../../../constants/routes.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
-import '../../../../widgets/genre_chip.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

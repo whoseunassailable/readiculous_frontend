@@ -3,10 +3,10 @@ import 'package:flutter/cupertino.dart';
 import '../../../../../generated/l10n.dart';
 
 class PageHeader extends StatelessWidget {
-  double height;
-  double width;
+  final double height;
+  final double width;
 
-  PageHeader({super.key, required this.height, required this.width});
+  const PageHeader({super.key, required this.height, required this.width});
 
   @override
   Widget build(BuildContext context) {

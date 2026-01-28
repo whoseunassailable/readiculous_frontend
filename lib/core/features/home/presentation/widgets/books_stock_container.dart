@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:readiculous_frontend/core/features/home/presentation/widgets/fetch_book_data.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
-import '../../../../widgets/genre_chip.dart';
 
 class BooksStockContainer extends StatefulWidget {
   final double height;
@@ -44,26 +44,12 @@ class _BooksStockContainerState extends State<BooksStockContainer> {
               height: widget.height / 12,
             ),
             SizedBox(width: widget.width / 40),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  S.of(context).theNameOfTheWind,
-                  style: TextStyle(
-                      fontSize: widget.height / 50,
-                      fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  S.of(context).patrickRothfus,
-                  style: TextStyle(fontSize: widget.height / 60),
-                ),
-                const GenreChip(
-                  genreText: 'Fantasy',
-                  textColor: Colors.white,
-                  bgColor: Colors.black,
-                ),
-              ],
+            FetchBookData(
+              height: widget.height,
+              width: widget.width,
+              nameOfBook: S.of(context).theNameOfTheWind,
+              bookAuthor: S.of(context).patrickRothfus,
+              primaryGenre: S.of(context).fantasy,
             ),
             SizedBox(width: widget.width / 40),
             SizedBox(

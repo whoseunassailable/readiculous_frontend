@@ -1,7 +1,5 @@
 import 'package:flutter/cupertino.dart';
 
-import '../../../../../generated/l10n.dart';
-
 class HeadingWithLogo extends StatelessWidget {
   final double height;
   final double width;
