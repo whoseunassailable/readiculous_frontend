@@ -1159,6 +1159,26 @@ class S {
       args: [],
     );
   }
+
+  /// `The Name of the Wind`
+  String get theNameOfTheWind {
+    return Intl.message(
+      'The Name of the Wind',
+      name: 'theNameOfTheWind',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Patrick Rothfus`
+  String get patrickRothfus {
+    return Intl.message(
+      'Patrick Rothfus',
+      name: 'patrickRothfus',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

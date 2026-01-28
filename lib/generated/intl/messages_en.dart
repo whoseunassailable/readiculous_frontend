@@ -141,6 +141,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "sixty_to_eighty": MessageLookupByLibrary.simpleMessage("60 - 80"),
         "termsAndConditions":
             MessageLookupByLibrary.simpleMessage("Terms and Conditions"),
+        "theNameOfTheWind":
+            MessageLookupByLibrary.simpleMessage("The Name of the Wind"),
         "three_hundred_to_three_hundred_nineteen":
             MessageLookupByLibrary.simpleMessage("300 - 319"),
         "three_twenty_to_three_forty":

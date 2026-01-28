@@ -6,7 +6,7 @@ import '../../../constants/app_colors.dart';
 import '../../../constants/routes.dart';
 import '../../../utils/appbar.dart';
 import '../../../widgets/searched_university_name_container.dart';
-import '../../home/presentation/home_page.dart';
+import '../../home/presentation/pages/home_page.dart';
 import '../../services/api_service.dart';
 
 class SearchedUniversities extends StatefulWidget {

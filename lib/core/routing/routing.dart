@@ -4,7 +4,7 @@ import '../constants/routes.dart';
 import '../features/admission_percent_calculator/presentation/admission_percent_calculator_screen.dart';
 import '../features/authentication/presentation/login_page.dart';
 import '../features/authentication/presentation/register_page.dart';
-import '../features/home/presentation/home_page.dart';
+import '../features/home/presentation/pages/home_page.dart';
 import '../features/settings/presentation/logout_page.dart';
 import '../features/settings/presentation/profile_page.dart';
 import '../features/settings/presentation/update_info_page.dart';
