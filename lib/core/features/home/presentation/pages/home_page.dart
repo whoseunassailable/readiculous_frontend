@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:readiculous_frontend/core/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/heading_with_logo.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/mini_heading.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/page_header.dart';
@@ -81,69 +82,7 @@ class _HomePageState extends State<HomePage> {
             ),
             MiniHeading(height: height, width: width),
             SizedBox(height: height / 60),
-            Container(
-              height: height * 0.42,
-              width: width * 0.8,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: const Color(0xFFB8743A),
-                  width: 5,
-                ),
-                image: const DecorationImage(
-                  image: AssetImage('assets/images/container_for_books.png'),
-                  fit: BoxFit.fitHeight,
-                ),
-              ),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Image.asset(
-                      "assets/icons/blue_book_icon.png",
-                      height: height / 12,
-                    ),
-                    SizedBox(width: width / 40),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          S.of(context).theNameOfTheWind,
-                          style: TextStyle(
-                              fontSize: height / 50,
-                              fontWeight: FontWeight.w600),
-                        ),
-                        Text(
-                          S.of(context).patrickRothfus,
-                          style: TextStyle(
-                            fontSize: height / 60,
-                          ),
-                        ),
-                        const GenreChip(
-                          genreText: 'Fantasy',
-                          textColor: Colors.white,
-                          bgColor: Colors.black,
-                        ),
-                      ],
-                    ),
-                    SizedBox(width: width / 40),
-                    SizedBox(
-                      width: width / 6.5,
-                      height: height / 20,
-                      child: CrayonGenreChip(
-                          label: 'Add',
-                          selected: false,
-                          onTap: () => {},
-                          color: Colors.white),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            BooksStockContainer(height: height, width: width),
           ],
         ),
       ),
