@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../generated/l10n.dart';
 import '../../../../widgets/genre_chip.dart';
 
 class FetchBookData extends StatefulWidget {
@@ -31,16 +30,16 @@ class _FetchBookDataState extends State<FetchBookData> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          S.of(context).theNameOfTheWind,
+          widget.nameOfBook,
           style: TextStyle(
               fontSize: widget.height / 50, fontWeight: FontWeight.w600),
         ),
         Text(
-          S.of(context).patrickRothfus,
+          widget.bookAuthor,
           style: TextStyle(fontSize: widget.height / 60),
         ),
-        const GenreChip(
-          genreText: 'Fantasy',
+        GenreChip(
+          genreText: widget.primaryGenre,
           textColor: Colors.white,
           bgColor: Colors.black,
         ),
