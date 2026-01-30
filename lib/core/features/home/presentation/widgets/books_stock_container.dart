@@ -48,8 +48,6 @@ class BooksStockContainer extends ConsumerWidget {
                   height: height / 12,
                 ),
                 SizedBox(width: width / 40),
-
-                // This replaces "Cubit builder" style: loading/error/data
                 featuredBookAsync.when(
                   loading: () => SizedBox(
                     width: width * 0.45,
@@ -81,7 +79,9 @@ class BooksStockContainer extends ConsumerWidget {
                           width: width / 6.5,
                           height: height / 20,
                           child: CrayonGenreChip(
-                            label: inStock ? 'In Library' : 'Add',
+                            label: inStock
+                                ? S.of(context).alreadyInDb
+                                : S.of(context).add,
                             selected: inStock,
                             onTap: () {
                               final controller =
@@ -92,7 +92,7 @@ class BooksStockContainer extends ConsumerWidget {
                                 controller.addBook(book);
                               }
                             },
-                            color: Colors.white,
+                            color: inStock ? Colors.greenAccent : Colors.red,
                           ),
                         ),
                       ],

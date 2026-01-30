@@ -121,8 +121,9 @@ class ViewBookDetails extends ConsumerWidget {
                     padding: EdgeInsets.symmetric(horizontal: height / 20),
                     child: const Divider(color: Colors.brown, thickness: 2),
                   ),
-                  Spacer(),
-                  Padding(
+                  const Spacer(),
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: width / 4),
                     padding: EdgeInsets.only(bottom: height / 30),
                     child: Center(
                       child: CrayonGenreChip(
@@ -133,7 +134,8 @@ class ViewBookDetails extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  Padding(
+                  Container(
+                    margin: EdgeInsets.symmetric(horizontal: width / 4),
                     padding: EdgeInsets.only(bottom: height / 30),
                     child: Center(
                       child: CrayonGenreChip(

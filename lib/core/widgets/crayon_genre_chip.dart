@@ -59,7 +59,8 @@ class CrayonGenreChip extends StatelessWidget {
               ],
             ),
             child: Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (selected && showCheckmark) ...[
                   const Icon(Icons.check, size: 18, color: Colors.black),

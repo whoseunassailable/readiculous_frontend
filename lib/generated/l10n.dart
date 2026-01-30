@@ -1269,6 +1269,26 @@ class S {
       args: [],
     );
   }
+
+  /// `Already in DB`
+  String get alreadyInDb {
+    return Intl.message(
+      'Already in DB',
+      name: 'alreadyInDb',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add`
+  String get add {
+    return Intl.message(
+      'Add',
+      name: 'add',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
