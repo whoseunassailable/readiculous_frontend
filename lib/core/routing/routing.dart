@@ -5,16 +5,12 @@ import '../features/admission_percent_calculator/presentation/admission_percent_
 import '../features/authentication/presentation/login_page.dart';
 import '../features/authentication/presentation/register_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/library_database/presentation/view_book_details.dart';
 import '../features/settings/presentation/logout_page.dart';
 import '../features/settings/presentation/profile_page.dart';
-import '../features/settings/presentation/update_info_page.dart';
 import '../features/suggested_books/presentation/books_recommendation_for_library.dart';
 import '../features/suggested_books/presentation/books_recommendation_page_for_user.dart';
-import '../features/suggested_books/presentation/gmat_page.dart';
-import '../features/suggested_books/presentation/ielts_page.dart';
 import '../features/suggested_books/presentation/preferred_genre.dart';
-import '../features/suggested_books/presentation/questionnaire_page.dart';
-import '../features/suggested_books/presentation/search_universities.dart';
 
 // GoRouter configuration
 class Routing {
@@ -36,16 +32,11 @@ class Routing {
         name: RouteNames.registerPage,
         builder: (context, state) => const RegisterPage(),
       ),
-      // Wishlisted Universities Screen
+      // View book details page
       GoRoute(
-        path: '/wishlisted_universities_page',
-        name: RouteNames.searchedUniversities,
-        builder: (context, state) => const SearchedUniversities(),
-      ),
-      GoRoute(
-        path: '/ielts_page',
-        name: RouteNames.ieltsPage,
-        builder: (context, state) => const IeltsPage(),
+        path: '/view_book_details',
+        name: RouteNames.viewBookDetailsPage,
+        builder: (context, state) => const ViewBookDetails(),
       ),
       // GoRoute(
       //   path: '/toefl_page',
@@ -57,16 +48,6 @@ class Routing {
       //   name: RouteNames.grePage,
       //   builder: (context, state) => const GrePage(),
       // ),
-      GoRoute(
-        path: '/gmat_page',
-        name: RouteNames.gmatPage,
-        builder: (context, state) => const GmatPage(),
-      ),
-      GoRoute(
-        path: '/questionnaire_page',
-        name: RouteNames.questionnairePage,
-        builder: (context, state) => const QuestionnairePage(),
-      ),
       GoRoute(
         path: '/preferred_location',
         name: RouteNames.preferredGenre,
@@ -86,16 +67,6 @@ class Routing {
         path: '/profile_page',
         name: RouteNames.profilePage,
         builder: (context, state) => const ProfilePage(),
-      ),
-      GoRoute(
-        path: '/admission_percent_calculator_page',
-        name: RouteNames.admissionPercentCalculatorPage,
-        builder: (context, state) => const AdmissionPercentCalculatorPage(),
-      ),
-      GoRoute(
-        path: '/update_info_page',
-        name: RouteNames.updateInfoPage,
-        builder: (context, state) => const UpdateInfoPage(),
       ),
       GoRoute(
         path: '/logout_page',

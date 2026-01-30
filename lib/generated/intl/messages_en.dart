@@ -23,15 +23,20 @@ class MessageLookup extends MessageLookupByLibrary {
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "account": MessageLookupByLibrary.simpleMessage("Account"),
+        "addBook": MessageLookupByLibrary.simpleMessage("Add Book"),
         "australia": MessageLookupByLibrary.simpleMessage("Australia"),
         "basedOnCollectedReaderData": MessageLookupByLibrary.simpleMessage(
             "Based on Collected Reader Data"),
         "basedOnYour": MessageLookupByLibrary.simpleMessage(
             "Based on your scores, here are universities tailored just for you. Start exploring your future today!"),
+        "bookDescription": MessageLookupByLibrary.simpleMessage(
+            "This fantasy epic has surged in popularity. especially among readers who enjoy immersive world-building and richly developed characters. Recent activity shows a spike in holds and requests for this title."),
+        "bookDetails": MessageLookupByLibrary.simpleMessage("Book Details"),
         "booksToStock": MessageLookupByLibrary.simpleMessage("Books to Stock"),
         "budgetRange": MessageLookupByLibrary.simpleMessage("Budget Range"),
         "chooseYourLanguage":
             MessageLookupByLibrary.simpleMessage("Choose Your Language"),
+        "close": MessageLookupByLibrary.simpleMessage("Close"),
         "compareScores": MessageLookupByLibrary.simpleMessage("Compare Scores"),
         "confirmPassword":
             MessageLookupByLibrary.simpleMessage("Confirm Password"),
@@ -49,6 +54,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "email": MessageLookupByLibrary.simpleMessage("Email"),
         "enterYourPhoneNumber":
             MessageLookupByLibrary.simpleMessage("Enter your phone number"),
+        "fantasy": MessageLookupByLibrary.simpleMessage("Fantasy"),
         "features": MessageLookupByLibrary.simpleMessage("Features"),
         "fieldOfStudy": MessageLookupByLibrary.simpleMessage("Field of Study"),
         "findByGMATScore":
@@ -102,6 +108,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Input your TOEFL score"),
         "lastName": MessageLookupByLibrary.simpleMessage("Last Name"),
         "libraryPulse": MessageLookupByLibrary.simpleMessage("Library Pulse"),
+        "logOut": MessageLookupByLibrary.simpleMessage("Log out"),
         "login": MessageLookupByLibrary.simpleMessage("Login"),
         "loginFailed": MessageLookupByLibrary.simpleMessage(
             "Login failed. Please try again."),
@@ -111,12 +118,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "patrickRothfus":
+            MessageLookupByLibrary.simpleMessage("Patrick Rothfus"),
         "phd": MessageLookupByLibrary.simpleMessage("PhD"),
         "phoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
         "pleaseCheckYourEmail":
             MessageLookupByLibrary.simpleMessage("Please Check Your Email!"),
         "preferredStudyLevel":
             MessageLookupByLibrary.simpleMessage("Preferred Study Level"),
+        "profile": MessageLookupByLibrary.simpleMessage("Profile"),
         "readiculous": MessageLookupByLibrary.simpleMessage("READICULOUS"),
         "register": MessageLookupByLibrary.simpleMessage("Register"),
         "registerAccount":
@@ -162,6 +172,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "user": MessageLookupByLibrary.simpleMessage("User"),
         "username": MessageLookupByLibrary.simpleMessage("Username"),
         "verify": MessageLookupByLibrary.simpleMessage("Verify"),
+        "viewDatabase": MessageLookupByLibrary.simpleMessage("View Database"),
         "welcomeBack": MessageLookupByLibrary.simpleMessage("Welcome Back"),
         "welcomeMessage":
             MessageLookupByLibrary.simpleMessage("Welcome Message"),
@@ -189,6 +200,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "whichCountriesDoYouPreferToStudyIn":
             MessageLookupByLibrary.simpleMessage(
                 "Which countries do you prefer to study in?"),
+        "whyItIsRecommended":
+            MessageLookupByLibrary.simpleMessage("Why It\'s recommended"),
         "wishlistedUniversities":
             MessageLookupByLibrary.simpleMessage("Wishlisted \nUniversities"),
         "yes": MessageLookupByLibrary.simpleMessage("Yes"),

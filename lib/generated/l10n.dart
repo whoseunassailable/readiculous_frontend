@@ -1189,6 +1189,86 @@ class S {
       args: [],
     );
   }
+
+  /// `Profile`
+  String get profile {
+    return Intl.message(
+      'Profile',
+      name: 'profile',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Log out`
+  String get logOut {
+    return Intl.message(
+      'Log out',
+      name: 'logOut',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add Book`
+  String get addBook {
+    return Intl.message(
+      'Add Book',
+      name: 'addBook',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `View Database`
+  String get viewDatabase {
+    return Intl.message(
+      'View Database',
+      name: 'viewDatabase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Book Details`
+  String get bookDetails {
+    return Intl.message(
+      'Book Details',
+      name: 'bookDetails',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Why It's recommended`
+  String get whyItIsRecommended {
+    return Intl.message(
+      'Why It\'s recommended',
+      name: 'whyItIsRecommended',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This fantasy epic has surged in popularity. especially among readers who enjoy immersive world-building and richly developed characters. Recent activity shows a spike in holds and requests for this title.`
+  String get bookDescription {
+    return Intl.message(
+      'This fantasy epic has surged in popularity. especially among readers who enjoy immersive world-building and richly developed characters. Recent activity shows a spike in holds and requests for this title.',
+      name: 'bookDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Close`
+  String get close {
+    return Intl.message(
+      'Close',
+      name: 'close',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

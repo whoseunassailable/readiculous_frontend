@@ -12,7 +12,7 @@ class PageHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        SizedBox(height: height / 7.5),
+        SizedBox(height: height / 8.3),
         Row(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,

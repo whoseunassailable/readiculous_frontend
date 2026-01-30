@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../../../generated/l10n.dart';
+import '../../../../constants/routes.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 import '../../application/controllers/stock_controller.dart';
 import '../../application/providers/home_providers.dart';
@@ -33,64 +36,102 @@ class BooksStockContainer extends ConsumerWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.asset(
-              "assets/icons/blue_book_icon.png",
-              height: height / 12,
-            ),
-            SizedBox(width: width / 40),
-
-            // This replaces "Cubit builder" style: loading/error/data
-            featuredBookAsync.when(
-              loading: () => SizedBox(
-                width: width * 0.45,
-                child: const Padding(
-                  padding: EdgeInsets.only(top: 10),
-                  child: LinearProgressIndicator(),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Image.asset(
+                  "assets/icons/blue_book_icon.png",
+                  height: height / 12,
                 ),
-              ),
-              error: (e, st) => SizedBox(
-                width: width * 0.45,
-                child: Text('Failed: $e'),
-              ),
-              data: (book) {
-                final inStock =
-                    ref.watch(stockControllerProvider).contains(book.id);
+                SizedBox(width: width / 40),
 
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FetchBookData(
-                      height: height,
-                      width: width,
-                      primaryGenre: book.primaryGenre,
-                      nameOfBook: book.title,
-                      bookAuthor: book.author,
+                // This replaces "Cubit builder" style: loading/error/data
+                featuredBookAsync.when(
+                  loading: () => SizedBox(
+                    width: width * 0.45,
+                    child: const Padding(
+                      padding: EdgeInsets.only(top: 10),
+                      child: LinearProgressIndicator(),
                     ),
-                    SizedBox(width: width / 40),
-                    SizedBox(
-                      width: width / 6.5,
-                      height: height / 20,
-                      child: CrayonGenreChip(
-                        label: inStock ? 'Added' : 'Add',
-                        selected: inStock,
-                        onTap: () {
-                          final controller =
-                              ref.read(stockControllerProvider.notifier);
-                          if (inStock) {
-                            controller.removeBook(book);
-                          } else {
-                            controller.addBook(book);
-                          }
-                        },
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                );
-              },
+                  ),
+                  error: (e, st) => SizedBox(
+                    width: width * 0.45,
+                    child: Text('Failed: $e'),
+                  ),
+                  data: (book) {
+                    final inStock =
+                        ref.watch(stockControllerProvider).contains(book.id);
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        FetchBookData(
+                          height: height,
+                          width: width,
+                          primaryGenre: book.primaryGenre,
+                          nameOfBook: book.title,
+                          bookAuthor: book.author,
+                        ),
+                        SizedBox(width: width / 40),
+                        SizedBox(
+                          width: width / 6.5,
+                          height: height / 20,
+                          child: CrayonGenreChip(
+                            label: inStock ? 'In Library' : 'Add',
+                            selected: inStock,
+                            onTap: () {
+                              final controller =
+                                  ref.read(stockControllerProvider.notifier);
+                              if (inStock) {
+                                controller.removeBook(book);
+                              } else {
+                                controller.addBook(book);
+                              }
+                            },
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+            const Divider(color: Colors.brown, thickness: 2),
+            const Spacer(),
+            // --- BOTTOM BUTTONS ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: width * 0.32,
+                  height: height / 18,
+                  child: CrayonGenreChip(
+                    label: S.of(context).addBook,
+                    selected: false,
+                    onTap: () {
+                      context.pushNamed(RouteNames.viewBookDetailsPage);
+                    },
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(
+                  width: width * 0.32,
+                  height: height / 18,
+                  child: CrayonGenreChip(
+                    label: S.of(context).viewDatabase,
+                    selected: false,
+                    onTap: () {
+                      // View Database action
+                    },
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/heading_with_logo.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/mini_heading.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/page_header.dart';
 import '../../../../../generated/l10n.dart';
-import '../../../../constants/app_colors.dart';
 import '../../../../constants/routes.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 
@@ -16,7 +16,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
   final genres = const ["Fantasy", "Mystery", "Sci-Fi", "Romance", "History"];
   Set<String> selectedGenres = {"Fantasy"};
   final genreColors = <String, Color>{
@@ -40,7 +39,6 @@ class _HomePageState extends State<HomePage> {
     double width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: AppColors.bgColorForHomePage,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -55,7 +53,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.max,
           children: [
             PageHeader(height: height, width: width),
-            SizedBox(height: height / 30),
+            SizedBox(height: height / 25),
             HeadingWithLogo(
               height: height,
               width: width,
@@ -85,35 +83,46 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       ),
-      // bottomNavigationBar: BottomNavigationBar(
-      //   currentIndex: _selectedIndex,
-      //   onTap: (index) {
-      //     // Navigate to the selected page
-      //     setState(() {
-      //       _selectedIndex = index;
-      //     });
-      //     context.pushNamed(_pages[index]);
-      //   }, //
-      //   backgroundColor: const Color(0xFFF3A436),
-      //   selectedItemColor: Colors.black,
-      //   unselectedItemColor: Colors.black,
-      //   type: BottomNavigationBarType
-      //       .fixed, // Allows more than 3 items in the nav bar
-      //   items: const <BottomNavigationBarItem>[
-      //     BottomNavigationBarItem(
-      //       icon: Icon(MaterialCommunityIcons.account),
-      //       label: 'Profile',
-      //     ),
-      //     // BottomNavigationBarItem(
-      //     //   icon: Icon(Icons.edit),
-      //     //   label: 'Update Info',
-      //     // ),
-      //     BottomNavigationBarItem(
-      //       icon: Icon(MaterialCommunityIcons.logout, color: Colors.black),
-      //       label: 'Log out',
-      //     ),
-      //   ],
-      // ),
+      bottomNavigationBar: Container(
+        height: height * 0.09,
+        width: width,
+        alignment: Alignment.bottomCenter,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            fit: BoxFit.fitHeight,
+            image: AssetImage('assets/images/bottom_nav_bg.png'),
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    GestureDetector(
+                        child: Icon(MaterialCommunityIcons.face_man_profile)),
+                    Text(S.of(context).profile),
+                  ],
+                ),
+                Column(
+                  children: [
+                    GestureDetector(child: Icon(MaterialCommunityIcons.logout)),
+                    Text(S.of(context).logOut),
+                  ],
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
     );
   }
 }
