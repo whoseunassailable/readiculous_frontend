@@ -3,6 +3,7 @@ class RouteNames {
   static const registerPage = 'register_page';
   static const homePage = 'home_page';
   static const viewBookDetailsPage = 'view_book_details';
+  static const viewDatabase = 'view_database';
   static const preferredGenre = 'preferred_genre';
   static const profilePage = 'profile_page';
   static const updateInfoPage = 'update_info_page';

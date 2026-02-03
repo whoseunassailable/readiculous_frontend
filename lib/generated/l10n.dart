@@ -1289,6 +1289,66 @@ class S {
       args: [],
     );
   }
+
+  /// `Browse the list of books currently in your database`
+  String get browseTheListOfBooksCurrentlyInYourDatabase {
+    return Intl.message(
+      'Browse the list of books currently in your database',
+      name: 'browseTheListOfBooksCurrentlyInYourDatabase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Library Database`
+  String get libraryDatabase {
+    return Intl.message(
+      'Library Database',
+      name: 'libraryDatabase',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All Genres`
+  String get allGenres {
+    return Intl.message(
+      'All Genres',
+      name: 'allGenres',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search`
+  String get search {
+    return Intl.message(
+      'Search',
+      name: 'search',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `In Stock`
+  String get inStock {
+    return Intl.message(
+      'In Stock',
+      name: 'inStock',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete Books`
+  String get deleteBooks {
+    return Intl.message(
+      'Delete Books',
+      name: 'deleteBooks',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

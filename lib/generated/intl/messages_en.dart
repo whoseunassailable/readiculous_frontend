@@ -25,6 +25,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "account": MessageLookupByLibrary.simpleMessage("Account"),
         "add": MessageLookupByLibrary.simpleMessage("Add"),
         "addBook": MessageLookupByLibrary.simpleMessage("Add Book"),
+        "allGenres": MessageLookupByLibrary.simpleMessage("All Genres"),
         "alreadyInDb": MessageLookupByLibrary.simpleMessage("Already in DB"),
         "australia": MessageLookupByLibrary.simpleMessage("Australia"),
         "basedOnCollectedReaderData": MessageLookupByLibrary.simpleMessage(
@@ -35,6 +36,9 @@ class MessageLookup extends MessageLookupByLibrary {
             "This fantasy epic has surged in popularity. especially among readers who enjoy immersive world-building and richly developed characters. Recent activity shows a spike in holds and requests for this title."),
         "bookDetails": MessageLookupByLibrary.simpleMessage("Book Details"),
         "booksToStock": MessageLookupByLibrary.simpleMessage("Books to Stock"),
+        "browseTheListOfBooksCurrentlyInYourDatabase":
+            MessageLookupByLibrary.simpleMessage(
+                "Browse the list of books currently in your database"),
         "budgetRange": MessageLookupByLibrary.simpleMessage("Budget Range"),
         "chooseYourLanguage":
             MessageLookupByLibrary.simpleMessage("Choose Your Language"),
@@ -45,6 +49,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "countryPreferences":
             MessageLookupByLibrary.simpleMessage("Country Preferences"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
+        "deleteBooks": MessageLookupByLibrary.simpleMessage("Delete Books"),
         "didntReceiveCode":
             MessageLookupByLibrary.simpleMessage("Didnt receive code?"),
         "dob": MessageLookupByLibrary.simpleMessage("DOB - 1999/08/15"),
@@ -98,6 +103,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "hundred_to_one_twenty":
             MessageLookupByLibrary.simpleMessage("100 - 120"),
         "ieltsScore": MessageLookupByLibrary.simpleMessage("IELTS Score"),
+        "inStock": MessageLookupByLibrary.simpleMessage("In Stock"),
         "inputYourGMATScore":
             MessageLookupByLibrary.simpleMessage("Input your GMAT score"),
         "inputYourGREScore":
@@ -109,6 +115,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "inputYourTOEFLScore":
             MessageLookupByLibrary.simpleMessage("Input your TOEFL score"),
         "lastName": MessageLookupByLibrary.simpleMessage("Last Name"),
+        "libraryDatabase":
+            MessageLookupByLibrary.simpleMessage("Library Database"),
         "libraryPulse": MessageLookupByLibrary.simpleMessage("Library Pulse"),
         "logOut": MessageLookupByLibrary.simpleMessage("Log out"),
         "login": MessageLookupByLibrary.simpleMessage("Login"),
@@ -136,6 +144,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rememberMeNextTime":
             MessageLookupByLibrary.simpleMessage("Remember me next time?"),
         "requestAgain": MessageLookupByLibrary.simpleMessage("Request again"),
+        "search": MessageLookupByLibrary.simpleMessage("Search"),
         "select": MessageLookupByLibrary.simpleMessage("Select"),
         "sendCode": MessageLookupByLibrary.simpleMessage("Send Code"),
         "settings": MessageLookupByLibrary.simpleMessage("Settings"),

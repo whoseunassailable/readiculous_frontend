@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
 import '../../../../../generated/l10n.dart';
 import '../../../../constants/routes.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
@@ -12,11 +11,13 @@ import 'fetch_book_data.dart';
 class BooksStockContainer extends ConsumerWidget {
   final double height;
   final double width;
+  final bool homePage;
 
   const BooksStockContainer({
     super.key,
     required this.height,
     required this.width,
+    required this.homePage,
   });
 
   @override
@@ -24,7 +25,7 @@ class BooksStockContainer extends ConsumerWidget {
     final featuredBookAsync = ref.watch(featuredBookProvider);
 
     return Container(
-      height: height * 0.42,
+      height: homePage ? height * 0.42 : height * 0.5,
       width: width * 0.8,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
@@ -79,9 +80,13 @@ class BooksStockContainer extends ConsumerWidget {
                           width: width / 6.5,
                           height: height / 20,
                           child: CrayonGenreChip(
-                            label: inStock
-                                ? S.of(context).alreadyInDb
-                                : S.of(context).add,
+                            label: homePage
+                                ? (inStock
+                                    ? S.of(context).alreadyInDb
+                                    : S.of(context).add)
+                                : (inStock
+                                    ? S.of(context).inStock
+                                    : S.of(context).add),
                             selected: inStock,
                             onTap: () {
                               final controller =
@@ -111,11 +116,12 @@ class BooksStockContainer extends ConsumerWidget {
                   width: width * 0.32,
                   height: height / 18,
                   child: CrayonGenreChip(
-                    label: S.of(context).addBook,
+                    label:
+                        homePage ? S.of(context).addBook : S.of(context).home,
                     selected: false,
-                    onTap: () {
-                      context.pushNamed(RouteNames.viewBookDetailsPage);
-                    },
+                    onTap: () => homePage
+                        ? context.pushNamed(RouteNames.viewBookDetailsPage)
+                        : context.goNamed(RouteNames.homePage),
                     color: Colors.white,
                   ),
                 ),
@@ -123,11 +129,11 @@ class BooksStockContainer extends ConsumerWidget {
                   width: width * 0.32,
                   height: height / 18,
                   child: CrayonGenreChip(
-                    label: S.of(context).viewDatabase,
+                    label: homePage
+                        ? S.of(context).viewDatabase
+                        : S.of(context).deleteBooks,
                     selected: false,
-                    onTap: () {
-                      // View Database action
-                    },
+                    onTap: () => context.pushNamed(RouteNames.viewDatabase),
                     color: Colors.white,
                   ),
                 ),

@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/routes.dart';
-import '../features/admission_percent_calculator/presentation/admission_percent_calculator_screen.dart';
 import '../features/authentication/presentation/login_page.dart';
 import '../features/authentication/presentation/register_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
-import '../features/library_database/presentation/view_book_details.dart';
+import '../features/library_database/presentation/pages/view_book_details.dart';
+import '../features/library_database/presentation/pages/view_database.dart';
 import '../features/settings/presentation/logout_page.dart';
 import '../features/settings/presentation/profile_page.dart';
 import '../features/suggested_books/presentation/books_recommendation_for_library.dart';
@@ -37,6 +37,11 @@ class Routing {
         path: '/view_book_details',
         name: RouteNames.viewBookDetailsPage,
         builder: (context, state) => const ViewBookDetails(),
+      ),
+      GoRoute(
+        path: '/view_database',
+        name: RouteNames.viewDatabase,
+        builder: (context, state) => const ViewDatabase(),
       ),
       // GoRoute(
       //   path: '/toefl_page',

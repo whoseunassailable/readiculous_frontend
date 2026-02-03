@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/bottom_navigation_for_home_page.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/heading_with_logo.dart';
@@ -26,13 +25,6 @@ class _HomePageState extends State<HomePage> {
     "Romance": const Color(0xFFFFC7C2), // peach/pink
     "History": const Color(0xFFE8D2B0), // tan
   };
-
-  // List of widgets for each tab
-  final List<String> _pages = [
-    RouteNames.profilePage,
-    // RouteNames.updateInfoPage,
-    RouteNames.logoutPage,
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +72,11 @@ class _HomePageState extends State<HomePage> {
             ),
             MiniHeading(height: height, width: width),
             SizedBox(height: height / 60),
-            BooksStockContainer(height: height, width: width),
+            BooksStockContainer(
+              height: height,
+              width: width,
+              homePage: true,
+            ),
           ],
         ),
       ),

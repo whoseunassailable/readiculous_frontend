@@ -123,5 +123,11 @@
   "bookDescription": "This fantasy epic has surged in popularity. especially among readers who enjoy immersive world-building and richly developed characters. Recent activity shows a spike in holds and requests for this title.",
   "close": "Close",
   "alreadyInDb": "Already in DB",
-  "add": "Add"
+  "add": "Add",
+  "browseTheListOfBooksCurrentlyInYourDatabase": "Browse the list of books currently in your database",
+  "libraryDatabase": "Library Database",
+  "allGenres": "All Genres",
+  "search": "Search",
+  "inStock": "In Stock",
+  "deleteBooks": "Delete Books"
 }
