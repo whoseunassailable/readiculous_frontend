@@ -1349,6 +1349,16 @@ class S {
       args: [],
     );
   }
+
+  /// `Profile Information`
+  String get profileInformation {
+    return Intl.message(
+      'Profile Information',
+      name: 'profileInformation',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

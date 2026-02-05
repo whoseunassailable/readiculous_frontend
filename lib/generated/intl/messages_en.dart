@@ -137,6 +137,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "preferredStudyLevel":
             MessageLookupByLibrary.simpleMessage("Preferred Study Level"),
         "profile": MessageLookupByLibrary.simpleMessage("Profile"),
+        "profileInformation":
+            MessageLookupByLibrary.simpleMessage("Profile Information"),
         "readiculous": MessageLookupByLibrary.simpleMessage("READICULOUS"),
         "register": MessageLookupByLibrary.simpleMessage("Register"),
         "registerAccount":

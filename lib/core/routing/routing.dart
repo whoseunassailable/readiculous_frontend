@@ -6,8 +6,8 @@ import '../features/authentication/presentation/register_page.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/library_database/presentation/pages/view_book_details.dart';
 import '../features/library_database/presentation/pages/view_database.dart';
-import '../features/settings/presentation/logout_page.dart';
-import '../features/settings/presentation/profile_page.dart';
+import '../features/settings/presentation/pages/logout_page.dart';
+import '../features/settings/presentation/pages/profile_page.dart';
 import '../features/suggested_books/presentation/books_recommendation_for_library.dart';
 import '../features/suggested_books/presentation/books_recommendation_page_for_user.dart';
 import '../features/suggested_books/presentation/preferred_genre.dart';
@@ -43,16 +43,6 @@ class Routing {
         name: RouteNames.viewDatabase,
         builder: (context, state) => const ViewDatabase(),
       ),
-      // GoRoute(
-      //   path: '/toefl_page',
-      //   name: RouteNames.toeflPage,
-      //   builder: (context, state) => const ToeflPage(),
-      // ),
-      // GoRoute(
-      //   path: '/gre_page',
-      //   name: RouteNames.grePage,
-      //   builder: (context, state) => const GrePage(),
-      // ),
       GoRoute(
         path: '/preferred_location',
         name: RouteNames.preferredGenre,

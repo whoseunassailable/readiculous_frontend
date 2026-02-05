@@ -129,5 +129,6 @@
   "allGenres": "All Genres",
   "search": "Search",
   "inStock": "In Stock",
-  "deleteBooks": "Delete Books"
+  "deleteBooks": "Delete Books",
+  "profileInformation": "Profile Information"
 }

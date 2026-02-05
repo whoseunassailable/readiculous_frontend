@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../../../l10n/app_localizations.dart';
-import '../../../constants/routes.dart';
-import '../../services/auth_service.dart';
+import '../../../../../l10n/app_localizations.dart';
+import '../../../../constants/routes.dart';
+import '../../../services/auth_service.dart';
 
 class LogoutPage extends StatelessWidget {
   const LogoutPage({Key? key}) : super(key: key);

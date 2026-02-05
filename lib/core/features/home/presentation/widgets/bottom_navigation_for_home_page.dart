@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:go_router/go_router.dart';
+import 'package:readiculous_frontend/core/constants/routes.dart';
 
 import '../../../../../generated/l10n.dart';
 
@@ -43,8 +45,9 @@ class _BottomNavigationForHomePageState
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   GestureDetector(
-                      child:
-                          const Icon(MaterialCommunityIcons.face_man_profile)),
+                    child: const Icon(MaterialCommunityIcons.face_man_profile),
+                    onTap: () => context.pushNamed(RouteNames.profilePage),
+                  ),
                   Text(S.of(context).profile),
                 ],
               ),
