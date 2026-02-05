@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:readiculous_frontend/core/constants/routes.dart';
+import 'package:readiculous_frontend/core/features/home/presentation/widgets/log_out_page_dialog.dart';
 
 import '../../../../../generated/l10n.dart';
 
@@ -54,7 +56,17 @@ class _BottomNavigationForHomePageState
               Column(
                 children: [
                   GestureDetector(
-                      child: const Icon(MaterialCommunityIcons.logout)),
+                    child: const Icon(MaterialCommunityIcons.logout),
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => LogOutPageDialog(
+                          height: height,
+                          width: width,
+                        ),
+                      );
+                    },
+                  ),
                   Text(S.of(context).logOut),
                 ],
               ),

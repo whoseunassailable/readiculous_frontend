@@ -27,6 +27,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "addBook": MessageLookupByLibrary.simpleMessage("Add Book"),
         "allGenres": MessageLookupByLibrary.simpleMessage("All Genres"),
         "alreadyInDb": MessageLookupByLibrary.simpleMessage("Already in DB"),
+        "anyUnsavedChangesWillBeLost": MessageLookupByLibrary.simpleMessage(
+            "Any unsaved changes will be lost."),
+        "areYouSureYouWantToLogOut": MessageLookupByLibrary.simpleMessage(
+            "Are you sure you want to log out?"),
         "australia": MessageLookupByLibrary.simpleMessage("Australia"),
         "basedOnCollectedReaderData": MessageLookupByLibrary.simpleMessage(
             "Based on Collected Reader Data"),
@@ -40,6 +44,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage(
                 "Browse the list of books currently in your database"),
         "budgetRange": MessageLookupByLibrary.simpleMessage("Budget Range"),
+        "changePassword":
+            MessageLookupByLibrary.simpleMessage("Change Password"),
         "chooseYourLanguage":
             MessageLookupByLibrary.simpleMessage("Choose Your Language"),
         "close": MessageLookupByLibrary.simpleMessage("Close"),
@@ -56,6 +62,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "done": MessageLookupByLibrary.simpleMessage("Done"),
         "dontHaveAnAccount":
             MessageLookupByLibrary.simpleMessage("Dont have an account?"),
+        "editProfile": MessageLookupByLibrary.simpleMessage("Edit Profile"),
         "eight_to_nine": MessageLookupByLibrary.simpleMessage("8.0 - 9.0"),
         "eighty_to_hundred": MessageLookupByLibrary.simpleMessage("80 - 100"),
         "email": MessageLookupByLibrary.simpleMessage("Email"),

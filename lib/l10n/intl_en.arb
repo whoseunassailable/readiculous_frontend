@@ -130,5 +130,9 @@
   "search": "Search",
   "inStock": "In Stock",
   "deleteBooks": "Delete Books",
-  "profileInformation": "Profile Information"
+  "profileInformation": "Profile Information",
+  "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
+  "anyUnsavedChangesWillBeLost": "Any unsaved changes will be lost.",
+  "editProfile": "Edit Profile",
+  "changePassword": "Change Password"
 }
