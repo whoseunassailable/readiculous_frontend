@@ -18,7 +18,7 @@ class CrayonButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width / 3,
+      width: MediaQuery.of(context).size.width / 2.5,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         boxShadow: CrayonStyles.handShadow(),

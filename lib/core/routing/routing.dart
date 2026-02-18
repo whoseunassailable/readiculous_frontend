@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/routes.dart';
 import '../features/authentication/presentation/login_page.dart';
 import '../features/authentication/presentation/register_page.dart';
+import '../features/books/pages/add_book.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/library_database/presentation/pages/view_book_details.dart';
 import '../features/library_database/presentation/pages/view_database.dart';
@@ -32,6 +33,11 @@ class Routing {
         path: '/register_page',
         name: RouteNames.registerPage,
         builder: (context, state) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: '/add_book_details',
+        name: RouteNames.addBook,
+        builder: (context, state) => const AddBook(),
       ),
       // View book details page
       GoRoute(

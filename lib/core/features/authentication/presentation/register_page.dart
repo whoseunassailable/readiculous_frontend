@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../../l10n/app_localizations.dart';
+import '../../../../generated/l10n.dart';
 import '../../../constants/app_colors.dart';
 import '../../../constants/app_font_size.dart';
 import '../../../constants/routes.dart';
@@ -56,7 +57,7 @@ class _RegisterPageState extends State<RegisterPage> {
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => animatedMessage.animatedWelcome(
         context: context,
-        textMessage: AppLocalizations.of(context).welcomeMessage,
+        textMessage: S.of(context).welcomeMessage,
         onUpdate: (text) => setState(() => animatedWelcomeMessage = text),
       ),
     );
@@ -82,7 +83,6 @@ class _RegisterPageState extends State<RegisterPage> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: AppColors.darkYellow,
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -145,8 +145,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!isEmailValid) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message:
-                          AppLocalizations.of(context).pleaseEnterValidEmail,
+                      message: S.of(context).pleaseEnterValidEmail,
                       focusNode: emailFocus,
                     );
                     return;
@@ -155,8 +154,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!isNameValid) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message:
-                          AppLocalizations.of(context).pleaseEnterValidName,
+                      message: S.of(context).pleaseEnterValidName,
                       focusNode: nameFocus,
                     );
                     return;
@@ -165,7 +163,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!isDobValid) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message: AppLocalizations.of(context).pleaseEnterValidDOB,
+                      message: S.of(context).pleaseEnterValidDOB,
                       focusNode: dobFocus,
                     );
                     return;
@@ -174,8 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!isPhoneValid) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message: AppLocalizations.of(context)
-                          .pleaseEnterValidPhoneNumber,
+                      message: S.of(context).pleaseEnterValidPhoneNumber,
                       focusNode: phoneNumberFocus,
                     );
                     return;
@@ -184,8 +181,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!isLocationValid) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message:
-                          AppLocalizations.of(context).pleaseEnterValidLocation,
+                      message: S.of(context).pleaseEnterValidLocation,
                       focusNode: locationFocus,
                     );
                     return;
@@ -194,8 +190,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!isPasswordValid) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message:
-                          AppLocalizations.of(context).pleaseEnterValidPassword,
+                      message: S.of(context).pleaseEnterValidPassword,
                       focusNode: passwordFocus,
                     );
                     return;
@@ -204,8 +199,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!validPassword) {
                     displaySnackbar.showErrorWithFocus(
                       context: context,
-                      message: AppLocalizations.of(context)
-                          .passwordAndConfirmPasswordDoNotMatch,
+                      message:
+                          S.of(context).passwordAndConfirmPasswordDoNotMatch,
                       focusNode: passwordFocus,
                     );
                     return;
@@ -267,7 +262,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     focusNode: emailFocus,
                   );
                 },
-                text: AppLocalizations.of(context).signUp,
+                text: S.of(context).signUp,
               ),
             ),
           ],
@@ -281,13 +276,13 @@ class _RegisterPageState extends State<RegisterPage> {
     required double width,
   }) {
     List<String> listOfTextFormFields = [
-      AppLocalizations.of(context).email,
-      AppLocalizations.of(context).name,
-      AppLocalizations.of(context).dob,
-      AppLocalizations.of(context).phoneNumber,
-      AppLocalizations.of(context).location,
-      AppLocalizations.of(context).password,
-      AppLocalizations.of(context).confirmPassword,
+      S.of(context).email,
+      S.of(context).name,
+      S.of(context).dob,
+      S.of(context).phoneNumber,
+      S.of(context).location,
+      S.of(context).password,
+      S.of(context).confirmPassword,
     ];
 
     List<TextEditingController> listOfTextEditingControllers = [

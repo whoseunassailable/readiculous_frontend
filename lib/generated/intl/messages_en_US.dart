@@ -102,6 +102,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Input your TOEFL score"),
         "lastName": MessageLookupByLibrary.simpleMessage("Last Name"),
         "libraryPulse": MessageLookupByLibrary.simpleMessage("Library Pulse"),
+        "location": MessageLookupByLibrary.simpleMessage("Location"),
         "login": MessageLookupByLibrary.simpleMessage("Login"),
         "loginFailed": MessageLookupByLibrary.simpleMessage(
             "Login failed. Please try again."),
@@ -111,10 +112,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "passwordAndConfirmPasswordDoNotMatch":
+            MessageLookupByLibrary.simpleMessage(
+                "Password and Confirm Password do not match"),
         "phd": MessageLookupByLibrary.simpleMessage("PhD"),
         "phoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
         "pleaseCheckYourEmail":
             MessageLookupByLibrary.simpleMessage("Please Check Your Email!"),
+        "pleaseEnterValidDOB": MessageLookupByLibrary.simpleMessage(
+            "Please enter a valid Date of Birth"),
+        "pleaseEnterValidEmail":
+            MessageLookupByLibrary.simpleMessage("Please enter a valid Email"),
+        "pleaseEnterValidLocation":
+            MessageLookupByLibrary.simpleMessage("Please Enter Valid Location"),
+        "pleaseEnterValidName":
+            MessageLookupByLibrary.simpleMessage("Please enter a valid Name"),
+        "pleaseEnterValidPassword": MessageLookupByLibrary.simpleMessage(
+            "Password must be at least 8 characters with uppercase, lowercase, number, and special character"),
+        "pleaseEnterValidPhoneNumber": MessageLookupByLibrary.simpleMessage(
+            "Please enter a valid Phone Number"),
         "preferredStudyLevel":
             MessageLookupByLibrary.simpleMessage("Preferred Study Level"),
         "readiculous": MessageLookupByLibrary.simpleMessage("READICULOUS"),

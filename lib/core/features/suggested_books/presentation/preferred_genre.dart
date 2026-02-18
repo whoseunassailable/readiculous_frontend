@@ -90,7 +90,7 @@ class _PreferredGenreState extends State<PreferredGenre> {
                 .toList();
 
             await apiService.updateStudent(
-              studentId: userId,
+              userId: userId,
               createUserGenreModel: CreateUserGenreModel(
                 userId: userId,
                 genreIds: selectedGenreIds,

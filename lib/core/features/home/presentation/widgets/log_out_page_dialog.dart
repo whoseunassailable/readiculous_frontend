@@ -60,7 +60,11 @@ class LogOutPageDialog extends StatelessWidget {
                       child: const Icon(
                         MaterialCommunityIcons.close_circle,
                       ),
-                      onTap: () => Navigator.pop(context),
+                      onTap: () async {
+                        final authService = AuthService();
+                        await authService.clearStudentDetails();
+                        context.goNamed(RouteNames.loginPage);
+                      },
                     ),
                   ],
                 ),

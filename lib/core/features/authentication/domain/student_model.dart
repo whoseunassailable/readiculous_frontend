@@ -1,5 +1,5 @@
 class StudentModel {
-  String? studentId; // Nullable
+  String? userId; // Nullable
   String firstName;
   String lastName;
   String email;
@@ -9,7 +9,7 @@ class StudentModel {
   String location; // New required field
 
   StudentModel({
-    this.studentId,
+    this.userId,
     required this.firstName,
     required this.lastName,
     required this.email,
@@ -20,7 +20,7 @@ class StudentModel {
   });
 
   StudentModel copyWith({
-    String? studentId,
+    String? userId,
     String? firstName,
     String? lastName,
     String? email,
@@ -30,7 +30,7 @@ class StudentModel {
     String? location, // Add in copyWith
   }) =>
       StudentModel(
-        studentId: studentId ?? this.studentId,
+        userId: userId ?? this.userId,
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         email: email ?? this.email,
@@ -41,7 +41,7 @@ class StudentModel {
       );
 
   factory StudentModel.fromJson(Map<String, dynamic> json) => StudentModel(
-        studentId: json["student_id"]?.toString(),
+        userId: json["student_id"]?.toString(),
         firstName: json["first_name"] ?? "",
         lastName: json["last_name"] ?? "",
         email: json["email"] ?? "",
@@ -52,7 +52,7 @@ class StudentModel {
       );
 
   Map<String, dynamic> toJson() => {
-        if (studentId != null) "student_id": studentId,
+        if (userId != null) "student_id": userId,
         "first_name": firstName,
         "last_name": lastName,
         "email": email,

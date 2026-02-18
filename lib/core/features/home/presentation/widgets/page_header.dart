@@ -22,7 +22,7 @@ class PageHeader extends StatelessWidget {
               'assets/icons/library_pulse_icon.png',
               height: height / 25,
             ),
-            SizedBox(width: width / 15),
+            SizedBox(width: width / 25),
             Text(
               S.of(context).libraryPulse,
               style:
@@ -35,7 +35,7 @@ class PageHeader extends StatelessWidget {
             SizedBox(width: width / 6),
             Text(
               S.of(context).whatReadersWant,
-              style: TextStyle(fontSize: height / 45),
+              style: TextStyle(fontSize: height / 60),
             ),
           ],
         ),

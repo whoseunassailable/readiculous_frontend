@@ -131,7 +131,7 @@ class ApiService {
 
 // Update a student's details dynamically
   Future<Response> updateStudent({
-    required String studentId,
+    required String userId,
     required CreateUserGenreModel createUserGenreModel,
   }) async {
     try {
@@ -155,9 +155,9 @@ class ApiService {
   }
 
   // Delete a student
-  Future<Response> deleteStudent(String studentId) async {
+  Future<Response> deleteStudent(String userId) async {
     try {
-      Response response = await _dio.delete('/students/$studentId');
+      Response response = await _dio.delete('/students/$userId');
       return response;
     } catch (e) {
       throw Exception('Failed to delete student: $e');

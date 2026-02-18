@@ -5,7 +5,6 @@ import 'package:readiculous_frontend/core/features/home/presentation/widgets/hea
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/mini_heading.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/page_header.dart';
 import '../../../../../generated/l10n.dart';
-import '../../../../constants/routes.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 
 class HomePage extends StatefulWidget {

@@ -69,7 +69,7 @@ class CrayonGenreChip extends StatelessWidget {
                 Text(
                   label,
                   style: GoogleFonts.patrickHand(
-                    fontSize: 18,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Colors.black.withOpacity(0.90),
                   ),

@@ -1399,6 +1399,166 @@ class S {
       args: [],
     );
   }
+
+  /// `Title`
+  String get title {
+    return Intl.message(
+      'Title',
+      name: 'title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Author`
+  String get author {
+    return Intl.message(
+      'Author',
+      name: 'author',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Genre`
+  String get genre {
+    return Intl.message(
+      'Genre',
+      name: 'genre',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add Genre`
+  String get addGenre {
+    return Intl.message(
+      'Add Genre',
+      name: 'addGenre',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get save {
+    return Intl.message(
+      'Save',
+      name: 'save',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get cancel {
+    return Intl.message(
+      'Cancel',
+      name: 'cancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Location`
+  String get location {
+    return Intl.message(
+      'Location',
+      name: 'location',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter Book Title`
+  String get enterBookTitle {
+    return Intl.message(
+      'Enter Book Title',
+      name: 'enterBookTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Enter Author's Name`
+  String get enterAuthorsName {
+    return Intl.message(
+      'Enter Author\'s Name',
+      name: 'enterAuthorsName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter valid email`
+  String get pleaseEnterValidEmail {
+    return Intl.message(
+      'Please enter valid email',
+      name: 'pleaseEnterValidEmail',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter valid name`
+  String get pleaseEnterValidName {
+    return Intl.message(
+      'Please enter valid name',
+      name: 'pleaseEnterValidName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter valid DOB`
+  String get pleaseEnterValidDOB {
+    return Intl.message(
+      'Please enter valid DOB',
+      name: 'pleaseEnterValidDOB',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter valid phone number`
+  String get pleaseEnterValidPhoneNumber {
+    return Intl.message(
+      'Please enter valid phone number',
+      name: 'pleaseEnterValidPhoneNumber',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please Enter Valid Location`
+  String get pleaseEnterValidLocation {
+    return Intl.message(
+      'Please Enter Valid Location',
+      name: 'pleaseEnterValidLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter valid Password`
+  String get pleaseEnterValidPassword {
+    return Intl.message(
+      'Please enter valid Password',
+      name: 'pleaseEnterValidPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Password and confirm password do not match`
+  String get passwordAndConfirmPasswordDoNotMatch {
+    return Intl.message(
+      'Password and confirm password do not match',
+      name: 'passwordAndConfirmPasswordDoNotMatch',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

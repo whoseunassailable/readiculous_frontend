@@ -25,6 +25,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "account": MessageLookupByLibrary.simpleMessage("Account"),
         "add": MessageLookupByLibrary.simpleMessage("Add"),
         "addBook": MessageLookupByLibrary.simpleMessage("Add Book"),
+        "addGenre": MessageLookupByLibrary.simpleMessage("Add Genre"),
         "allGenres": MessageLookupByLibrary.simpleMessage("All Genres"),
         "alreadyInDb": MessageLookupByLibrary.simpleMessage("Already in DB"),
         "anyUnsavedChangesWillBeLost": MessageLookupByLibrary.simpleMessage(
@@ -32,6 +33,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "areYouSureYouWantToLogOut": MessageLookupByLibrary.simpleMessage(
             "Are you sure you want to log out?"),
         "australia": MessageLookupByLibrary.simpleMessage("Australia"),
+        "author": MessageLookupByLibrary.simpleMessage("Author"),
         "basedOnCollectedReaderData": MessageLookupByLibrary.simpleMessage(
             "Based on Collected Reader Data"),
         "basedOnYour": MessageLookupByLibrary.simpleMessage(
@@ -44,6 +46,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage(
                 "Browse the list of books currently in your database"),
         "budgetRange": MessageLookupByLibrary.simpleMessage("Budget Range"),
+        "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
         "changePassword":
             MessageLookupByLibrary.simpleMessage("Change Password"),
         "chooseYourLanguage":
@@ -66,6 +69,10 @@ class MessageLookup extends MessageLookupByLibrary {
         "eight_to_nine": MessageLookupByLibrary.simpleMessage("8.0 - 9.0"),
         "eighty_to_hundred": MessageLookupByLibrary.simpleMessage("80 - 100"),
         "email": MessageLookupByLibrary.simpleMessage("Email"),
+        "enterAuthorsName":
+            MessageLookupByLibrary.simpleMessage("Enter Author\'s Name"),
+        "enterBookTitle":
+            MessageLookupByLibrary.simpleMessage("Enter Book Title"),
         "enterYourPhoneNumber":
             MessageLookupByLibrary.simpleMessage("Enter your phone number"),
         "fantasy": MessageLookupByLibrary.simpleMessage("Fantasy"),
@@ -91,6 +98,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Forgot Password?"),
         "four_hundred_fifty_to_six_hundred":
             MessageLookupByLibrary.simpleMessage("450 - 600"),
+        "genre": MessageLookupByLibrary.simpleMessage("Genre"),
         "germany": MessageLookupByLibrary.simpleMessage("Germany"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Get Started"),
         "gpa": MessageLookupByLibrary.simpleMessage("GPA"),
@@ -125,6 +133,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "libraryDatabase":
             MessageLookupByLibrary.simpleMessage("Library Database"),
         "libraryPulse": MessageLookupByLibrary.simpleMessage("Library Pulse"),
+        "location": MessageLookupByLibrary.simpleMessage("Location"),
         "logOut": MessageLookupByLibrary.simpleMessage("Log out"),
         "login": MessageLookupByLibrary.simpleMessage("Login"),
         "loginFailed": MessageLookupByLibrary.simpleMessage(
@@ -135,12 +144,27 @@ class MessageLookup extends MessageLookupByLibrary {
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "passwordAndConfirmPasswordDoNotMatch":
+            MessageLookupByLibrary.simpleMessage(
+                "Password and confirm password do not match"),
         "patrickRothfus":
             MessageLookupByLibrary.simpleMessage("Patrick Rothfus"),
         "phd": MessageLookupByLibrary.simpleMessage("PhD"),
         "phoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
         "pleaseCheckYourEmail":
             MessageLookupByLibrary.simpleMessage("Please Check Your Email!"),
+        "pleaseEnterValidDOB":
+            MessageLookupByLibrary.simpleMessage("Please enter valid DOB"),
+        "pleaseEnterValidEmail":
+            MessageLookupByLibrary.simpleMessage("Please enter valid email"),
+        "pleaseEnterValidLocation":
+            MessageLookupByLibrary.simpleMessage("Please Enter Valid Location"),
+        "pleaseEnterValidName":
+            MessageLookupByLibrary.simpleMessage("Please enter valid name"),
+        "pleaseEnterValidPassword":
+            MessageLookupByLibrary.simpleMessage("Please enter valid Password"),
+        "pleaseEnterValidPhoneNumber": MessageLookupByLibrary.simpleMessage(
+            "Please enter valid phone number"),
         "preferredStudyLevel":
             MessageLookupByLibrary.simpleMessage("Preferred Study Level"),
         "profile": MessageLookupByLibrary.simpleMessage("Profile"),
@@ -153,6 +177,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "rememberMeNextTime":
             MessageLookupByLibrary.simpleMessage("Remember me next time?"),
         "requestAgain": MessageLookupByLibrary.simpleMessage("Request again"),
+        "save": MessageLookupByLibrary.simpleMessage("Save"),
         "search": MessageLookupByLibrary.simpleMessage("Search"),
         "select": MessageLookupByLibrary.simpleMessage("Select"),
         "sendCode": MessageLookupByLibrary.simpleMessage("Send Code"),
@@ -177,6 +202,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("300 - 319"),
         "three_twenty_to_three_forty":
             MessageLookupByLibrary.simpleMessage("320 - 340"),
+        "title": MessageLookupByLibrary.simpleMessage("Title"),
         "trendingGenres":
             MessageLookupByLibrary.simpleMessage("Trending Genres"),
         "two_sixty_to_three_hundred":

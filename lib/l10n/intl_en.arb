@@ -134,5 +134,21 @@
   "areYouSureYouWantToLogOut": "Are you sure you want to log out?",
   "anyUnsavedChangesWillBeLost": "Any unsaved changes will be lost.",
   "editProfile": "Edit Profile",
-  "changePassword": "Change Password"
+  "changePassword": "Change Password",
+  "title": "Title",
+  "author": "Author",
+  "genre": "Genre",
+  "addGenre": "Add Genre",
+  "save": "Save",
+  "cancel": "Cancel",
+  "location": "Location",
+  "enterBookTitle": "Enter Book Title",
+  "enterAuthorsName": "Enter Author's Name",
+  "pleaseEnterValidEmail": "Please enter valid email",
+  "pleaseEnterValidName": "Please enter valid name",
+  "pleaseEnterValidDOB": "Please enter valid DOB",
+  "pleaseEnterValidPhoneNumber": "Please enter valid phone number",
+  "pleaseEnterValidLocation": "Please Enter Valid Location",
+  "pleaseEnterValidPassword": "Please enter valid Password",
+  "passwordAndConfirmPasswordDoNotMatch": "Password and confirm password do not match"
 }

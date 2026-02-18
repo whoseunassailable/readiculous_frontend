@@ -3,14 +3,13 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:readiculous_frontend/core/features/authentication/presentation/register_page.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../generated/l10n.dart';
 import '../../../constants/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_button.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_text_field.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_styles.dart';
 
-import '../../services/api_service.dart';
 import '../data/data_sources/auth_remote_ds.dart';
 import '../data/repositories/auth_repository_impl.dart';
 
@@ -24,6 +23,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final _logger = Logger(printer: PrettyPrinter(colors: true));
 
   @override
   void dispose() {
@@ -34,11 +34,10 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final _logger = Logger(printer: PrettyPrinter(colors: true));
     final height = MediaQuery.of(context).size.height;
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         image: DecorationImage(
           fit: BoxFit.cover,
           image: AssetImage('assets/images/login_page.png'),
@@ -58,24 +57,24 @@ class _LoginPageState extends State<LoginPage> {
                   height: height * 0.30,
                 ),
                 Text(
-                  AppLocalizations.of(context).welcomeBack,
+                  S.of(context).welcomeBack,
                   style: CrayonStyles.title(height),
                   textAlign: TextAlign.center,
                 ),
                 Text(
-                  AppLocalizations.of(context).loginToYourAccount,
+                  S.of(context).loginToYourAccount,
                   style: CrayonStyles.subtitle(height),
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: height / 70),
                 CrayonTextField(
                   controller: emailController,
-                  hint: AppLocalizations.of(context).email,
+                  hint: S.of(context).email,
                 ),
                 SizedBox(height: height / 70),
                 CrayonTextField(
                   controller: passwordController,
-                  hint: AppLocalizations.of(context).password,
+                  hint: S.of(context).password,
                   obscureText: true,
                 ),
                 SizedBox(height: height / 35),
@@ -84,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                     // Handle forgot password
                   },
                   child: Text(
-                    AppLocalizations.of(context).forgotPassword,
+                    S.of(context).forgotPassword,
                     style: GoogleFonts.patrickHand(
                       fontSize: 18,
                       color: Colors.black,
@@ -94,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: height / 70),
                 CrayonButton(
-                  label: AppLocalizations.of(context).login,
+                  label: S.of(context).login,
                   fill: Colors.white.withOpacity(0.92),
                   textColor: const Color(
                       0xFF6A5ACD), // soft purple-ish like screenshot
@@ -120,6 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                       final userId = userMap['user_id'].toString();
 
                       final prefs = await SharedPreferences.getInstance();
+                      print("User id is ${userId} and email is ${email}");
                       await prefs.setString('userId', userId);
                       await prefs.setString('email', email);
 
@@ -141,7 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 SizedBox(height: height / 70),
                 CrayonButton(
-                  label: AppLocalizations.of(context).signUp,
+                  label: S.of(context).signUp,
                   fill: Colors.white.withOpacity(0.92),
                   textColor: const Color(0xFF6A5ACD),
                   onPressed: () {

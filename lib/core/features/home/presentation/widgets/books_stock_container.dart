@@ -26,7 +26,7 @@ class BooksStockContainer extends ConsumerWidget {
 
     return Container(
       height: homePage ? height * 0.42 : height * 0.5,
-      width: width * 0.8,
+      width: width * 0.9,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: const Color(0xFFB8743A), width: 5),
@@ -89,13 +89,14 @@ class BooksStockContainer extends ConsumerWidget {
                                     : S.of(context).add),
                             selected: inStock,
                             onTap: () {
-                              final controller =
-                                  ref.read(stockControllerProvider.notifier);
-                              if (inStock) {
-                                controller.removeBook(book);
-                              } else {
-                                controller.addBook(book);
-                              }
+                              // final controller =
+                              //     ref.read(stockControllerProvider.notifier);
+                              // if (inStock) {
+                              //   controller.removeBook(book);
+                              // } else {
+                              //   controller.addBook(book);
+                              // }
+                              context.goNamed(RouteNames.viewBookDetailsPage);
                             },
                             color: inStock ? Colors.greenAccent : Colors.red,
                           ),
@@ -110,7 +111,7 @@ class BooksStockContainer extends ConsumerWidget {
             const Spacer(),
             // --- BOTTOM BUTTONS ---
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 SizedBox(
                   width: width * 0.32,
@@ -120,7 +121,7 @@ class BooksStockContainer extends ConsumerWidget {
                         homePage ? S.of(context).addBook : S.of(context).home,
                     selected: false,
                     onTap: () => homePage
-                        ? context.pushNamed(RouteNames.viewBookDetailsPage)
+                        ? context.pushNamed(RouteNames.addBook)
                         : context.goNamed(RouteNames.homePage),
                     color: Colors.white,
                   ),
