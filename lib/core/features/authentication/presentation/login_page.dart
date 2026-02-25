@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
@@ -10,17 +11,18 @@ import 'package:readiculous_frontend/core/theme/crayon/crayon_button.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_text_field.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_styles.dart';
 
+import '../../../session/session_provider.dart';
 import '../data/data_sources/auth_remote_ds.dart';
 import '../data/repositories/auth_repository_impl.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final _logger = Logger(printer: PrettyPrinter(colors: true));
@@ -104,8 +106,6 @@ class _LoginPageState extends State<LoginPage> {
                     final email = emailController.text.trim();
                     final password = passwordController.text;
 
-                    _logger.i("email : $email");
-
                     final result = await _authRepo.login(
                       email: email,
                       password: password,
@@ -113,21 +113,21 @@ class _LoginPageState extends State<LoginPage> {
 
                     if (result.isSuccess) {
                       final data = result.data!;
-
-                      // Your backend format: { "user": { "user_id": ... } }
                       final userMap = data['user'] as Map<String, dynamic>;
                       final userId = userMap['user_id'].toString();
                       final role = userMap['role'].toString();
 
-                      final prefs = await SharedPreferences.getInstance();
-                      _logger
-                          .i('user : $userId | email : $email | role : $role');
-                      await prefs.setString('userId', userId);
-                      await prefs.setString('email', email);
-                      await prefs.setString('role', role);
+                      // ✅ update in-memory session state
+                      await ref.read(sessionProvider.notifier).setSession(
+                            userId: userId,
+                            role: role,
+                            email:
+                                email, // only if your SessionState supports email
+                          );
 
-                      context.pushNamed(RouteNames.homePage);
-                      return;
+                      // Now navigation works (router sees loggedIn=true)
+                      if (!context.mounted) return;
+                      context.go('/home_page'); // or pushNamed if you prefer
                     }
 
                     // Failure path

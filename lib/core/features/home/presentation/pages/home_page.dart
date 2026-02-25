@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/bottom_navigation_for_home_page.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/heading_with_logo.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/mini_heading.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/page_header.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 
@@ -19,7 +17,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final genres = const ["Fantasy", "Mystery", "Sci-Fi", "Romance", "History"];
   Set<String> selectedGenres = {"Fantasy"};
-  final _logger = Logger(printer: PrettyPrinter(colors: true));
   final genreColors = <String, Color>{
     "Fantasy": const Color(0xFFB7D8FF), // soft blue
     "Mystery": const Color(0xFFBFE3C0), // muted green
@@ -27,24 +24,6 @@ class _HomePageState extends State<HomePage> {
     "Romance": const Color(0xFFFFC7C2), // peach/pink
     "History": const Color(0xFFE8D2B0), // tan
   };
-  String? role;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPrefs();
-  }
-
-  Future<void> _loadPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedRole = prefs.getString('role');
-
-    if (!mounted) return;
-    setState(() {
-      role = savedRole;
-    });
-    _logger.i('Role : $role');
-  }
 
   @override
   Widget build(BuildContext context) {

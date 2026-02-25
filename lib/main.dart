@@ -4,23 +4,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'generated/l10n.dart';
-import 'l10n/app_localizations.dart';
 import 'core/routing/routing.dart';
+import 'core/session/session_provider.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  final container = ProviderContainer();
+  await container.read(sessionProvider.notifier).init();
 
   runApp(
-    const ProviderScope(
-      child: MyApp(),
+    UncontrolledProviderScope(
+      container: container,
+      child: const MyApp(),
     ),
   );
 
-  // Simulate a delay for splash (or load async data)
-  await Future.delayed(const Duration(seconds: 2));
-
-// whenever your initialization is completed, remove the splash screen:
   FlutterNativeSplash.remove();
 }
 
@@ -32,11 +31,9 @@ class MyApp extends ConsumerWidget {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: "READICULOUS",
-      routerConfig: Routing().router,
+      routerConfig: Routing(ref).router, // ✅ pass ref into routing
       theme: ThemeData(
         textTheme: GoogleFonts.patrickHandTextTheme(),
-        // colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        // useMaterial3: true,
       ),
       localizationsDelegates: const [
         S.delegate,
@@ -45,7 +42,6 @@ class MyApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: S.delegate.supportedLocales,
-      // locale: const Locale('en', 'US'), // optional override
     );
   }
 }

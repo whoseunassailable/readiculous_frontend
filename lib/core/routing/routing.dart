@@ -1,6 +1,7 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:readiculous_frontend/core/features/home/presentation/widgets/log_out_page_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import '../constants/routes.dart';
 import '../features/authentication/presentation/login_page.dart';
 import '../features/authentication/presentation/register_page.dart';
@@ -13,11 +14,26 @@ import '../features/settings/presentation/pages/profile_page.dart';
 import '../features/suggested_books/presentation/books_recommendation_for_library.dart';
 import '../features/suggested_books/presentation/books_recommendation_page_for_user.dart';
 import '../features/suggested_books/presentation/preferred_genre.dart';
+import '../session/session_provider.dart';
 
-// GoRouter configuration
+/// ✅ GoRouter refresh bridge for Riverpod
+class GoRouterRefresh extends ChangeNotifier {
+  GoRouterRefresh(WidgetRef ref) {
+    // WidgetRef.listen exists and works fine here
+    ref.listen(sessionProvider, (prev, next) {
+      notifyListeners();
+    });
+  }
+}
+
 class Routing {
-  final router = GoRouter(
+  final WidgetRef ref;
+  Routing(this.ref);
+
+  late final GoRouter router = GoRouter(
     initialLocation: '/',
+    refreshListenable: GoRouterRefresh(ref), // ✅ now correct
+
     routes: [
       GoRoute(
         path: '/',
@@ -39,7 +55,6 @@ class Routing {
         name: RouteNames.addBook,
         builder: (context, state) => const AddBook(),
       ),
-      // View book details page
       GoRoute(
         path: '/view_book_details',
         name: RouteNames.viewBookDetailsPage,
@@ -76,28 +91,24 @@ class Routing {
         builder: (context, state) => const LogoutPage(),
       ),
     ],
-    // errorPageBuilder: (context, state) {
-    //   return const MaterialPage(child: ErrorPage());
-    // },
-    redirect: (context, state) async {
-      // Perform the redirection based on the user's login status
-      final isLoggedIn = await isUserLoggedIn();
-      if (isLoggedIn && state.uri.toString() == '/') {
-        return '/home_page';
-      } else if (!isLoggedIn && state.uri.toString() != '/') {
-        return '/';
+
+    redirect: (context, state) {
+      final session = ref.read(sessionProvider);
+      if (!session.initialized) return null;
+      final loggedIn = session.userId != null && session.role != null;
+
+      final isAtLogin = state.matchedLocation == '/';
+      final isAtRegister = state.matchedLocation == '/register_page';
+
+      if (!loggedIn) {
+        return (isAtLogin || isAtRegister) ? null : '/';
       }
+
+      if (loggedIn && (isAtLogin || isAtRegister)) {
+        return '/home_page';
+      }
+
       return null;
     },
   );
-}
-
-Future<bool> isUserLoggedIn() async {
-  final prefs = await SharedPreferences.getInstance();
-  String? email = prefs.getString('email');
-  String? userId = prefs.getString('userId');
-  String? role = prefs.getString('role');
-  print("email : $email");
-  print("userId : $userId");
-  return email != null && userId != null && role != null;
 }
