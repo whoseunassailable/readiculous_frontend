@@ -96,13 +96,8 @@ Future<bool> isUserLoggedIn() async {
   final prefs = await SharedPreferences.getInstance();
   String? email = prefs.getString('email');
   String? userId = prefs.getString('userId');
+  String? role = prefs.getString('role');
   print("email : $email");
   print("userId : $userId");
-  return email != null && userId != null;
-}
-
-// Save login state
-Future<void> setLoginState(bool isLoggedIn) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('is_logged_in', isLoggedIn);
+  return email != null && userId != null && role != null;
 }

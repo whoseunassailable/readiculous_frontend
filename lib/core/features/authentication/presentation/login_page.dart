@@ -117,11 +117,14 @@ class _LoginPageState extends State<LoginPage> {
                       // Your backend format: { "user": { "user_id": ... } }
                       final userMap = data['user'] as Map<String, dynamic>;
                       final userId = userMap['user_id'].toString();
+                      final role = userMap['role'].toString();
 
                       final prefs = await SharedPreferences.getInstance();
-                      print("User id is ${userId} and email is ${email}");
+                      _logger
+                          .i('user : $userId | email : $email | role : $role');
                       await prefs.setString('userId', userId);
                       await prefs.setString('email', email);
+                      await prefs.setString('role', role);
 
                       context.pushNamed(RouteNames.homePage);
                       return;

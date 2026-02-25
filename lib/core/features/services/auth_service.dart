@@ -6,6 +6,7 @@ class AuthService {
     required String userId,
     required String firstName,
     required String lastName,
+    required String role,
     required String email,
     String? preferredLocation,
     required String phone,
@@ -18,6 +19,7 @@ class AuthService {
     await prefs.setString('user_id', userId);
     await prefs.setString('first_name', firstName);
     await prefs.setString('last_name', lastName);
+    await prefs.setString('role', role);
     await prefs.setString('email', email); // Using -1 to represent null
     await prefs.setString('preferred_location', preferredLocation ?? '');
     await prefs.setString('phone', phone);
@@ -32,6 +34,7 @@ class AuthService {
     String userId = prefs.getString('user_id') ?? '';
     String firstName = prefs.getString('first_name') ?? '';
     String lastName = prefs.getString('last_name') ?? '';
+    String role = prefs.getString('role') ?? '';
     String email = prefs.getString('email') ?? '';
     String? preferredLocation = prefs.getString('preferred_location')!.isEmpty
         ? null
@@ -45,6 +48,7 @@ class AuthService {
       'user_id': userId,
       'first_name': firstName,
       'last_name': lastName,
+      'role': role,
       'email': email,
       'preferred_location': preferredLocation,
       'phone': phone,
@@ -58,6 +62,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     String? firstName = prefs.getString('first_name');
     String? lastName = prefs.getString('last_name');
+    String? role = prefs.getString('role');
     return firstName != null && lastName != null;
   }
 
@@ -65,6 +70,7 @@ class AuthService {
   Future<void> updateStudentDetails({
     String? firstName,
     String? lastName,
+    String? role,
     String? email,
     String? preferredLocation,
     String? phone,
@@ -76,6 +82,7 @@ class AuthService {
     // Update only the non-null fields
     if (firstName != null) await prefs.setString('first_name', firstName);
     if (lastName != null) await prefs.setString('last_name', lastName);
+    if (role != null) await prefs.setString('role', role);
     if (email != null) await prefs.setString('email', email);
     if (preferredLocation != null)
       await prefs.setString('preferred_location', preferredLocation);
@@ -93,6 +100,7 @@ class AuthService {
     await prefs.remove('user_id');
     await prefs.remove('first_name');
     await prefs.remove('last_name');
+    await prefs.remove('role');
     await prefs.remove('email');
     await prefs.remove('gre_score');
     await prefs.remove('toefl_score');

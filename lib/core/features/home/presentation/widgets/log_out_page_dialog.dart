@@ -60,11 +60,7 @@ class LogOutPageDialog extends StatelessWidget {
                       child: const Icon(
                         MaterialCommunityIcons.close_circle,
                       ),
-                      onTap: () async {
-                        final authService = AuthService();
-                        await authService.clearStudentDetails();
-                        context.goNamed(RouteNames.loginPage);
-                      },
+                      onTap: () => context.pop(),
                     ),
                   ],
                 ),
@@ -156,9 +152,9 @@ class LogOutPageDialog extends StatelessWidget {
               ),
             )
           : ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final authService = AuthService();
-                authService.clearStudentDetails();
+                await authService.clearStudentDetails();
                 context.pushNamed(pageName);
               },
               style: ElevatedButton.styleFrom(
