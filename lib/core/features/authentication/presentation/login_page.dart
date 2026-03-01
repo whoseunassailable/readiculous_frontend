@@ -5,8 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:readiculous_frontend/core/features/authentication/presentation/register_page.dart';
 import '../../../../generated/l10n.dart';
-import '../../../constants/routes.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_button.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_text_field.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_styles.dart';
