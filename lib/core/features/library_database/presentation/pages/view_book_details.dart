@@ -7,8 +7,6 @@ import 'package:readiculous_frontend/core/features/library_database/presentation
 import 'package:readiculous_frontend/core/widgets/crayon_genre_chip.dart';
 
 import '../../../../../generated/l10n.dart';
-import '../../../home/application/controllers/stock_controller.dart';
-import '../../../home/application/providers/home_providers.dart';
 import '../../../home/presentation/widgets/fetch_book_data.dart';
 
 class ViewBookDetails extends ConsumerWidget {
@@ -16,8 +14,6 @@ class ViewBookDetails extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final featuredBookAsync = ref.watch(featuredBookProvider);
-
     final height = MediaQuery.of(context).size.height;
     final width = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -58,37 +54,14 @@ class ViewBookDetails extends ConsumerWidget {
                         size: height / 8,
                       ), // Book
                       SizedBox(width: width / 60),
-                      featuredBookAsync.when(
-                        loading: () => SizedBox(
-                          width: width * 0.45,
-                          child: const Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: LinearProgressIndicator(),
-                          ),
-                        ),
-                        error: (e, st) => SizedBox(
-                          width: width * 0.45,
-                          child: Text('Failed: $e'),
-                        ),
-                        data: (book) {
-                          final inStock = ref
-                              .watch(stockControllerProvider)
-                              .contains(book.id);
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              FetchBookData(
-                                height: height,
-                                width: width,
-                                primaryGenre: book.primaryGenre,
-                                nameOfBook: book.title,
-                                bookAuthor: book.author,
-                              ),
-                              SizedBox(width: width / 40),
-                            ],
-                          );
-                        },
-                      ),
+                      // FetchBookData(
+                      //   height: height,
+                      //   width: width,
+                      //   primaryGenre: book.primaryGenre,
+                      //   nameOfBook: book.title,
+                      //   bookAuthor: book.author,
+                      // ),
+                      SizedBox(width: width / 40),
                     ],
                   ),
                   Padding(

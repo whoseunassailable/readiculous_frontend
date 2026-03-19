@@ -4,9 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../constants/routes.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
-import '../../application/controllers/stock_controller.dart';
-import '../../application/providers/home_providers.dart';
-import 'fetch_book_data.dart';
 
 class BooksStockContainer extends ConsumerWidget {
   final double height;
@@ -22,8 +19,6 @@ class BooksStockContainer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final featuredBookAsync = ref.watch(featuredBookProvider);
-
     return Container(
       height: homePage ? height * 0.42 : height * 0.5,
       width: width * 0.9,
@@ -49,62 +44,62 @@ class BooksStockContainer extends ConsumerWidget {
                   height: height / 12,
                 ),
                 SizedBox(width: width / 40),
-                featuredBookAsync.when(
-                  loading: () => SizedBox(
-                    width: width * 0.45,
-                    child: const Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: LinearProgressIndicator(),
-                    ),
-                  ),
-                  error: (e, st) => SizedBox(
-                    width: width * 0.45,
-                    child: Text('Failed: $e'),
-                  ),
-                  data: (book) {
-                    final inStock =
-                        ref.watch(stockControllerProvider).contains(book.id);
-
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        FetchBookData(
-                          height: height,
-                          width: width,
-                          primaryGenre: book.primaryGenre,
-                          nameOfBook: book.title,
-                          bookAuthor: book.author,
-                        ),
-                        SizedBox(width: width / 40),
-                        SizedBox(
-                          width: width / 6.5,
-                          height: height / 20,
-                          child: CrayonGenreChip(
-                            label: homePage
-                                ? (inStock
-                                    ? S.of(context).alreadyInDb
-                                    : S.of(context).add)
-                                : (inStock
-                                    ? S.of(context).inStock
-                                    : S.of(context).add),
-                            selected: inStock,
-                            onTap: () {
-                              // final controller =
-                              //     ref.read(stockControllerProvider.notifier);
-                              // if (inStock) {
-                              //   controller.removeBook(book);
-                              // } else {
-                              //   controller.addBook(book);
-                              // }
-                              context.goNamed(RouteNames.viewBookDetailsPage);
-                            },
-                            color: inStock ? Colors.greenAccent : Colors.red,
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                // featuredBookAsync.when(
+                //   loading: () => SizedBox(
+                //     width: width * 0.45,
+                //     child: const Padding(
+                //       padding: EdgeInsets.only(top: 10),
+                //       child: LinearProgressIndicator(),
+                //     ),
+                //   ),
+                //   error: (e, st) => SizedBox(
+                //     width: width * 0.45,
+                //     child: Text('Failed: $e'),
+                //   ),
+                //   data: (book) {
+                //     final inStock =
+                //         ref.watch(stockControllerProvider).contains(book.id);
+                //
+                //     return Row(
+                //       crossAxisAlignment: CrossAxisAlignment.start,
+                //       children: [
+                //         FetchBookData(
+                //           height: height,
+                //           width: width,
+                //           primaryGenre: book.primaryGenre,
+                //           nameOfBook: book.title,
+                //           bookAuthor: book.author,
+                //         ),
+                //         SizedBox(width: width / 40),
+                //         SizedBox(
+                //           width: width / 6.5,
+                //           height: height / 20,
+                //           child: CrayonGenreChip(
+                //             label: homePage
+                //                 ? (inStock
+                //                     ? S.of(context).alreadyInDb
+                //                     : S.of(context).add)
+                //                 : (inStock
+                //                     ? S.of(context).inStock
+                //                     : S.of(context).add),
+                //             selected: inStock,
+                //             onTap: () {
+                //               // final controller =
+                //               //     ref.read(stockControllerProvider.notifier);
+                //               // if (inStock) {
+                //               //   controller.removeBook(book);
+                //               // } else {
+                //               //   controller.addBook(book);
+                //               // }
+                //               context.goNamed(RouteNames.viewBookDetailsPage);
+                //             },
+                //             color: inStock ? Colors.greenAccent : Colors.red,
+                //           ),
+                //         ),
+                //       ],
+                //     );
+                //   },
+                // ),
               ],
             ),
             const Divider(color: Colors.brown, thickness: 2),

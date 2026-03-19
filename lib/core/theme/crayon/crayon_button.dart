@@ -3,14 +3,14 @@ import 'crayon_styles.dart';
 
 class CrayonButton extends StatelessWidget {
   final String label;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color fill;
   final Color textColor;
 
   const CrayonButton({
     super.key,
     required this.label,
-    required this.onPressed,
+    this.onPressed,
     required this.fill,
     required this.textColor,
   });
