@@ -1,7 +1,17 @@
 import 'package:dio/dio.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class DioClient {
   DioClient._(); // no instances
+
+  static final _logger = PrettyDioLogger(
+    requestHeader: true,
+    requestBody: true,
+    responseBody: true,
+    responseHeader: false,
+    error: true,
+    compact: false,
+  );
 
   static final Dio main = Dio(
     BaseOptions(
@@ -13,7 +23,7 @@ class DioClient {
         'Accept': 'application/json',
       },
     ),
-  );
+  )..interceptors.add(_logger);
 
   static final Dio flask = Dio(
     BaseOptions(
@@ -25,5 +35,5 @@ class DioClient {
         'Accept': 'application/json',
       },
     ),
-  );
+  )..interceptors.add(_logger);
 }

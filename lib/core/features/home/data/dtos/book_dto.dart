@@ -22,12 +22,10 @@ class BookDto {
     );
   }
 
-  Book toEntity() {
-    return Book(
-      id: id,
-      title: title,
-      author: author,
-      primaryGenre: primaryGenre,
-    );
-  }
+  Book toEntity() => Book(
+        id: id,
+        title: title,
+        author: author,
+        primaryGenre: primaryGenre,
+      );
 }

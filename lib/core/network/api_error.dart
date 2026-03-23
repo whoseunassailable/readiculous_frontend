@@ -11,6 +11,9 @@ class ApiError {
     this.details,
   });
 
+  @override
+  String toString() => message;
+
   /// Converts DioException into ApiError
   factory ApiError.fromDio(DioException e) {
     // Server responded with error status

@@ -1,21 +1,15 @@
-import 'package:dio/dio.dart';
-
 import '../../../../network/dio_client.dart';
+import 'auth_api_client.dart';
 
 class AuthRemoteDataSource {
-  final Dio _dio = DioClient.main;
+  final AuthApiClient _client = AuthApiClient(DioClient.main);
 
-  Future<Response> register(Map<String, dynamic> data) {
-    return _dio.post('/users/create', data: data);
-  }
+  Future<Map<String, dynamic>> register(Map<String, dynamic> data) =>
+      _client.register(data);
 
-  Future<Response> login({
+  Future<Map<String, dynamic>> login({
     required String email,
     required String password,
-  }) {
-    return _dio.post('/users/login', data: {
-      'email': email,
-      'password': password,
-    });
-  }
+  }) =>
+      _client.login({'email': email, 'password': password});
 }

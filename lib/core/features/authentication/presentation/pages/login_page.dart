@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:readiculous_frontend/core/utils/app_logger.dart';
 
 import '../../../../../generated/l10n.dart';
 import 'package:readiculous_frontend/core/theme/crayon/crayon_button.dart';
@@ -38,6 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     next.whenOrNull(
       data: (_) => context.go('/home_page'),
       error: (error, _) {
+        AppLogger.e(error.toString(), error: error);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.toString())),
         );
