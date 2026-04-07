@@ -1,143 +1,101 @@
+# Readiculous
 
----
+> Because the solution to bad library shelves is *ridiculous*... I mean, Readiculous.
 
-# 📚 Readiculous Frontend
+## The Problem
 
-**Readiculous Frontend** is the Flutter-based frontend application for the Readiculous project. It provides a cross-platform user interface for the Readiculous ecosystem. This application aims to help librarians to shelve books based on the recommendation of the people nearby.
+Libraries have a shelf space problem. Walk into almost any public library and you'll find the same books that have been sitting there for decades — books that almost nobody checks out — while the books people actually want to read are nowhere to be found.
 
-## 🚀 Features
+This isn't just a bad user experience. It's a waste of shelf space, a waste of paper, and a missed opportunity to bring people back to one of the most underrated places in a city.
 
-* **Cross-Platform Support**: Runs smoothly on Android, iOS, Web, Windows, macOS, and Linux.
-* **Responsive UI**: Adapts to various screen sizes and orientations.
-* **Modular Architecture**: Organized codebase for scalability and maintainability.
-* **Integration Ready**: Designed to integrate seamlessly with the Readiculous backend services.
+## The Solution
 
-## 🛠️ Getting Started
+Readiculous is a Flutter app that connects readers and librarians through shared reading data and machine learning.
 
-### Prerequisites
+**How it works:**
 
-* **Flutter SDK**: Ensure you have Flutter installed. If not, follow the [Flutter installation guide](https://flutter.dev/docs/get-started/install).
-* **Dart SDK**: Comes bundled with Flutter.
-* **IDE**: [Android Studio](https://developer.android.com/studio), [VS Code](https://code.visualstudio.com/), or any preferred IDE with Flutter support.
+1. **Readers** create an account, set their genre preferences, and log the books they read
+2. **Genre trends** build up over time — the app knows what readers in a given library's area actually want
+3. An **ML model** analyzes those genre preferences and recommends specific books for the library to stock
+4. **Librarians** see these recommendations, approve them, order the books, and update inventory
+5. Books with the most community interest get stocked. The ones collecting dust get retired.
 
-### Installation
+The result: libraries that feel alive, shelves that reflect what their community actually reads, and readers who keep coming back because the books they want are actually there.
 
-1. **Clone the repository**:
+## Who It's For
 
-   ```bash
-   git clone https://github.com/whoseunassailable/readiculous_frontend.git
-   cd readiculous_frontend
-   ```
+**Readers:**
+- Browse your library's book catalog
+- Log the books you've read
+- Set your genre preferences
+- Get personalized book recommendations based on your taste
 
-2. **Install dependencies**:
+**Librarians:**
+- View genre trends from readers in your area
+- See ML-powered recommendations for which books to order
+- Manage your library's book inventory
+- Track recommendation status (New → Ordered → Stocked)
 
-   ```bash
-   flutter pub get
-   ```
+## Tech Stack
 
-3. **Run the application**:
+| Layer | Technology |
+|---|---|
+| Mobile App | Flutter |
+| State Management | Riverpod |
+| Routing | go_router |
+| HTTP Client | Dio + Retrofit |
+| Backend | Node.js + MySQL |
+| ML Model | Python / Flask |
+| ML Training Data | Kaggle book ratings dataset |
 
-   * **Android/iOS**:
+## Getting Started
 
-     ```bash
-     flutter run
-     ```
-
-   * **Web**:
-
-     ```bash
-     flutter run -d chrome
-     ```
-
-   * **Desktop (Windows/macOS/Linux)**:
-
-     ```bash
-     flutter run -d windows  # Replace with macos or linux as needed
-     ```
-
-### Building for Release
-
-* **Android**:
-
-  ```bash
-  flutter build apk --release
-  ```
-
-* **iOS**:
-
-  ```bash
-  flutter build ios --release
-  ```
-
-* **Web**:
-
-  ```bash
-  flutter build web
-  ```
-
-* **Desktop**:
-
-  ```bash
-  flutter build windows  # Replace with macos or linux as needed
-  ```
-
-## 📂 Project Structure
-
-```
-readiculous_frontend/
-├── android/        # Android-specific files
-├── ios/            # iOS-specific files
-├── lib/            # Main Dart codebase
-├── web/            # Web-specific files
-├── windows/        # Windows-specific files
-├── macos/          # macOS-specific files
-├── linux/          # Linux-specific files
-├── assets/         # Images, fonts, etc.
-├── test/           # Unit and widget tests
-├── pubspec.yaml    # Project metadata and dependencies
-└── README.md       # Project documentation
-```
-
-## 🧪 Running Tests
-
-To execute the test suite:
+This project uses [FVM](https://fvm.app/) for Flutter version management.
 
 ```bash
-flutter test
+# Install dependencies
+fvm flutter pub get
+
+# Run the app
+fvm flutter run
 ```
 
-Ensure that all tests pass before committing changes.
+Make sure the backend (Node API on port 5000) and ML model (Flask on port 6000) are running. For Android emulator, both are accessible at `10.0.2.2`.
 
-## 🤝 Contributing
+## Project Structure
 
-Contributions are welcome! Please follow these steps:
+```
+lib/
+├── core/
+│   ├── features/
+│   │   ├── authentication/     # Login, register, session
+│   │   ├── home/               # Role-based home screen
+│   │   ├── books/              # Add/view books
+│   │   ├── library_database/   # Browse & search library catalog
+│   │   ├── suggested_books/    # ML recommendations (user & library)
+│   │   └── settings/           # Profile, logout
+│   ├── network/                # Dio client + Retrofit API clients
+│   ├── session/                # Riverpod session management
+│   ├── routing/                # go_router configuration
+│   ├── constants/              # Colors, fonts, routes
+│   └── widgets/                # Shared UI components
+└── main.dart
+```
 
-1. Fork the repository.
+## API Overview
 
-2. Create a new branch:
+The backend exposes endpoints across these domains:
 
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+- **Users** — register, login, manage accounts and genre preferences
+- **Books** — full CRUD, genre assignments
+- **Libraries** — library management, book inventory
+- **Librarians** — assign/unassign librarians to libraries
+- **Reads** — user reading lists and read status
+- **Recommendations** — ML-generated suggestions for users and libraries
+- **Trends** — genre trend scores per library and globally
 
-3. Make your changes and commit them:
+## The Inspiration
 
-   ```bash
-   git commit -m "Add your message here"
-   ```
+The idea came from spending too much time in Chicago libraries — Chinatown, Joe and Rika, and others — and noticing that the books available never quite matched what people actually wanted to read. The same unread books occupying the same shelves, year after year.
 
-4. Push to your fork:
-
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-5. Open a pull request detailing your changes.
-
-Please ensure your code adheres to the project's coding standards and passes all tests.
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
+Readiculous is the answer to that frustration. A platform that makes library shelves smarter, one read at a time.
