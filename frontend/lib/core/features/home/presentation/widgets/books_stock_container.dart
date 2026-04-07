@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../../generated/l10n.dart';
 import '../../../../constants/app_roles.dart';
 import '../../../../constants/routes.dart';
 import '../../../../session/session_provider.dart';
@@ -105,60 +104,118 @@ class BooksStockContainer extends ConsumerWidget {
             const Divider(color: Colors.brown, thickness: 2),
             const Spacer(),
             // --- BOTTOM BUTTONS ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 10,
               children: isLibrarian
                   ? [
-                      SizedBox(
-                        width: width * 0.32,
+                      _ActionChip(
+                        width: width * 0.22,
                         height: height / 18,
-                        child: CrayonGenreChip(
-                          label: 'View Recommendations',
-                          selected: false,
-                          onTap: () => context.pushNamed(
-                              RouteNames.bookRecommendationPageForLibrary),
-                          color: Colors.white,
+                        label: 'Picks',
+                        color: const Color(0xFFD7C6FF),
+                        onTap: () => context.pushNamed(
+                          RouteNames.bookRecommendationPageForLibrary,
                         ),
                       ),
-                      SizedBox(
-                        width: width * 0.32,
+                      _ActionChip(
+                        width: width * 0.22,
                         height: height / 18,
-                        child: CrayonGenreChip(
-                          label: S.of(context).viewDatabase,
-                          selected: false,
-                          onTap: () =>
-                              context.pushNamed(RouteNames.viewDatabase),
-                          color: Colors.white,
-                        ),
+                        label: 'Trends',
+                        color: const Color(0xFFFFE4A0),
+                        onTap: () => context.pushNamed(RouteNames.genreTrends),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Stock',
+                        color: const Color(0xFFFFC7C2),
+                        onTap: () =>
+                            context.pushNamed(RouteNames.libraryInventory),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Database',
+                        color: const Color(0xFFB7D8FF),
+                        onTap: () => context.pushNamed(RouteNames.viewDatabase),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Library',
+                        color: const Color(0xFFBFE3C0),
+                        onTap: () =>
+                            context.pushNamed(RouteNames.libraryAssociation),
                       ),
                     ]
                   : [
-                      SizedBox(
-                        width: width * 0.32,
+                      _ActionChip(
+                        width: width * 0.22,
                         height: height / 18,
-                        child: CrayonGenreChip(
-                          label: 'My Recommendations',
-                          selected: false,
-                          onTap: () => context.pushNamed(
-                              RouteNames.bookRecommendationPageForUser),
-                          color: Colors.white,
+                        label: 'My Books',
+                        color: const Color(0xFFBFE3C0),
+                        onTap: () => context.pushNamed(RouteNames.myBooks),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'My Recs',
+                        color: const Color(0xFFD7C6FF),
+                        onTap: () => context.pushNamed(
+                          RouteNames.bookRecommendationPageForUser,
                         ),
                       ),
-                      SizedBox(
-                        width: width * 0.32,
+                      _ActionChip(
+                        width: width * 0.22,
                         height: height / 18,
-                        child: CrayonGenreChip(
-                          label: 'My Genres',
-                          selected: false,
-                          onTap: () =>
-                              context.pushNamed(RouteNames.preferredGenre),
-                          color: Colors.white,
-                        ),
+                        label: 'Genres',
+                        color: const Color(0xFFFFE4A0),
+                        onTap: () =>
+                            context.pushNamed(RouteNames.genrePreferences),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Library',
+                        color: const Color(0xFFB7D8FF),
+                        onTap: () => context.pushNamed(RouteNames.viewDatabase),
                       ),
                     ],
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActionChip extends StatelessWidget {
+  final double width;
+  final double height;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionChip({
+    required this.width,
+    required this.height,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: CrayonGenreChip(
+        label: label,
+        selected: false,
+        onTap: onTap,
+        color: color,
       ),
     );
   }

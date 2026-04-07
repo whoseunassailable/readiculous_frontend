@@ -10,6 +10,11 @@ import '../features/books/pages/add_book.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/library_database/presentation/pages/view_book_details.dart';
 import '../features/library_database/presentation/pages/view_database.dart';
+import '../features/genre_trends/presentation/pages/genre_trends_page.dart';
+import '../features/genre_preferences/presentation/pages/genre_preferences_page.dart';
+import '../features/my_books/presentation/pages/my_books_page.dart';
+import '../features/library_association/presentation/pages/library_association_page.dart';
+import '../features/library_inventory/presentation/pages/library_inventory_page.dart';
 import '../features/settings/presentation/pages/logout_page.dart';
 import '../features/settings/presentation/pages/profile_page.dart';
 import '../features/suggested_books/presentation/books_recommendation_for_library.dart';
@@ -59,7 +64,8 @@ class Routing {
       GoRoute(
         path: '/view_book_details',
         name: RouteNames.viewBookDetailsPage,
-        builder: (context, state) => const ViewBookDetails(),
+        builder: (context, state) =>
+            ViewBookDetails(book: state.extra as Map<String, dynamic>?),
       ),
       GoRoute(
         path: '/view_database',
@@ -90,6 +96,31 @@ class Routing {
         path: '/logout_page',
         name: RouteNames.logoutPage,
         builder: (context, state) => const LogoutPage(),
+      ),
+      GoRoute(
+        path: '/my_books',
+        name: RouteNames.myBooks,
+        builder: (context, state) => const MyBooksPage(),
+      ),
+      GoRoute(
+        path: '/genre_trends',
+        name: RouteNames.genreTrends,
+        builder: (context, state) => const GenreTrendsPage(),
+      ),
+      GoRoute(
+        path: '/library_inventory',
+        name: RouteNames.libraryInventory,
+        builder: (context, state) => const LibraryInventoryPage(),
+      ),
+      GoRoute(
+        path: '/genre_preferences',
+        name: RouteNames.genrePreferences,
+        builder: (context, state) => const GenrePreferencesPage(),
+      ),
+      GoRoute(
+        path: '/library_association',
+        name: RouteNames.libraryAssociation,
+        builder: (context, state) => const LibraryAssociationPage(),
       ),
     ],
 

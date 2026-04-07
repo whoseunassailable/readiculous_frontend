@@ -13,4 +13,9 @@ class RouteNames {
   static const bookRecommendationPageForLibrary =
       'book_recommendation_page_for_library';
   static const logoutPage = 'logout_page';
+  static const myBooks = 'my_books';
+  static const genreTrends = 'genre_trends';
+  static const libraryInventory = 'library_inventory';
+  static const genrePreferences = 'genre_preferences';
+  static const libraryAssociation = 'library_association';
 }
