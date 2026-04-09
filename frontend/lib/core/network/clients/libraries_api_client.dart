@@ -10,7 +10,10 @@ abstract class LibrariesApiClient {
   @GET('/libraries/')
   Future<List<dynamic>> getAllLibraries();
 
+  @GET('/libraries/{libraryId}/activity')
+  Future<List<dynamic>> getLibraryReaderActivity(
+      @Path('libraryId') String libraryId);
+
   @POST('/libraries/')
-  Future<Map<String, dynamic>> createLibrary(
-      @Body() Map<String, dynamic> body);
+  Future<Map<String, dynamic>> createLibrary(@Body() Map<String, dynamic> body);
 }

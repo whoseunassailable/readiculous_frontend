@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../l10n/app_localizations.dart';
 import '../../../utils/appbar.dart';
 import '../../../utils/book_info_card.dart';
 import 'state_management/user_recommendations_controller.dart';
@@ -17,7 +16,7 @@ class BookRecommendationPageForUser extends ConsumerWidget {
 
     return Scaffold(
       appBar: StylishAppBar(
-        title: AppLocalizations.of(context).readiculous,
+        title: 'My Recommendations',
         homepage: false,
       ),
       body: recsAsync.when(
@@ -37,10 +36,10 @@ class BookRecommendationPageForUser extends ConsumerWidget {
                 return BookInfoCard(
                   height: h * 0.15,
                   width: w * 0.9,
-                  title: book['title'] as String,
-                  author: book['author'] as String,
-                  genre: _formatGenre(book['genre'] as String?),
-                  rating: (book['rating'] as num).toDouble(),
+                  title: book['title']?.toString() ?? 'Unknown Title',
+                  author: book['author']?.toString() ?? 'Unknown Author',
+                  genre: _formatGenre(book['genre']?.toString()),
+                  rating: (book['rating'] as num?)?.toDouble() ?? 0.0,
                 );
               },
             ),

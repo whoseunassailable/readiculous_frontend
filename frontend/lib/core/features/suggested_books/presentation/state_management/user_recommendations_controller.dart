@@ -14,7 +14,7 @@ class UserRecommendationsController extends AsyncNotifier<List<dynamic>> {
         .getUserGenrePreferences(userId);
     final genreNames = genres
         .cast<Map<String, dynamic>>()
-        .map((g) => g['name'] as String)
+        .map((g) => g['name']?.toString() ?? '')
         .toList();
 
     if (genreNames.isEmpty) return [];

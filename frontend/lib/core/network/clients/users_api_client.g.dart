@@ -22,8 +22,8 @@ class _UsersApiClient implements UsersApiClient {
   }
 
   @override
-  Future<List<dynamic>> getAllUsersWithPreferences() async {
-    final response = await _dio.fetch<List<dynamic>>(
+  Future<Map<String, dynamic>> getAllUsersWithPreferences() async {
+    final response = await _dio.fetch<Map<String, dynamic>>(
       Options(method: 'GET').compose(_dio.options, '/users/preferences'),
     );
     return response.data!;

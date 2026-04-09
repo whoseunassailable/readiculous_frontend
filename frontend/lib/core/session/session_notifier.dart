@@ -64,7 +64,8 @@ class SessionNotifier extends Notifier<SessionState> {
     if (email == null) {
       await prefs.remove(_kEmailKey);
     } else {
-      await prefs.setString(_kEmailKey, email); // fix: was incorrectly writing to _kRoleKey
+      await prefs.setString(
+          _kEmailKey, email); // fix: was incorrectly writing to _kRoleKey
     }
     state = state.copyWith(email: email);
   }
@@ -73,6 +74,12 @@ class SessionNotifier extends Notifier<SessionState> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kHasGenrePrefsKey, true);
     state = state.copyWith(hasGenrePrefs: true);
+  }
+
+  Future<void> setGenrePrefsStatus(bool hasGenrePrefs) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kHasGenrePrefsKey, hasGenrePrefs);
+    state = state.copyWith(hasGenrePrefs: hasGenrePrefs);
   }
 
   Future<void> clearSession() async {

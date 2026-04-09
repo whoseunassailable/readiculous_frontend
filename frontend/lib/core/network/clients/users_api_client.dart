@@ -11,7 +11,7 @@ abstract class UsersApiClient {
   Future<List<dynamic>> getAllUsers();
 
   @GET('/users/preferences')
-  Future<List<dynamic>> getAllUsersWithPreferences();
+  Future<Map<String, dynamic>> getAllUsersWithPreferences();
 
   @DELETE('/users/{userId}')
   Future<void> deleteUser(@Path('userId') String userId);

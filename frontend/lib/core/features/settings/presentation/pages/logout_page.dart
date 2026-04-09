@@ -1,22 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../l10n/app_localizations.dart';
 import '../../../../constants/routes.dart';
-import '../../../services/auth_service.dart';
+import '../../../../session/session_provider.dart';
 
-class LogoutPage extends StatelessWidget {
+class LogoutPage extends ConsumerWidget {
   const LogoutPage({Key? key}) : super(key: key);
 
-  Future<void> _logout(BuildContext context) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear(); // Clear user data
-    // Navigate to the login screen
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -50,7 +43,11 @@ class LogoutPage extends StatelessWidget {
                   const SizedBox(height: 40),
                   // Logout Button
                   ElevatedButton(
-                    onPressed: () => _logout(context),
+                    onPressed: () async {
+                      await ref.read(sessionProvider.notifier).clearSession();
+                      if (!context.mounted) return;
+                      context.goNamed(RouteNames.loginPage);
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 50, vertical: 15),
@@ -60,19 +57,12 @@ class LogoutPage extends StatelessWidget {
                       ),
                       elevation: 5,
                     ),
-                    child: GestureDetector(
-                      onTap: () async {
-                        final authservice = AuthService();
-                        await authservice.clearStudentDetails();
-                        context.replaceNamed(RouteNames.loginPage);
-                      },
-                      child: Text(
-                        'Log Out',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    child: Text(
+                      'Log Out',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

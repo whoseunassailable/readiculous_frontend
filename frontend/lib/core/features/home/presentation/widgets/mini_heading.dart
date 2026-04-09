@@ -5,7 +5,8 @@ import '../../../../../generated/l10n.dart';
 class MiniHeading extends StatelessWidget {
   final double height;
   final double width;
-  const MiniHeading({super.key, required this.height, required this.width});
+  final bool isLibrarian;
+  const MiniHeading({super.key, required this.height, required this.width, this.isLibrarian = true});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +14,7 @@ class MiniHeading extends StatelessWidget {
       children: [
         SizedBox(width: width / 12),
         Text(
-          S.of(context).basedOnCollectedReaderData,
+          isLibrarian ? S.of(context).basedOnCollectedReaderData : 'Track, rate, and discover books',
           style: TextStyle(
             fontSize: height / 45,
           ),

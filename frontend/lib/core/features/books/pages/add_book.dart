@@ -10,7 +10,6 @@ import '../../../../generated/l10n.dart';
 import '../../../constants/app_font_size.dart';
 import '../../../widgets/crayon_genre_chip.dart';
 import '../../library_database/presentation/widgets/header_book_database.dart';
-import '../../services/auth_service.dart';
 
 class AddBook extends StatefulWidget {
   const AddBook({super.key});
@@ -179,8 +178,6 @@ class _AddBookState extends State<AddBook> {
       width: width * 0.3,
       child: ElevatedButton(
         onPressed: () {
-          final authService = AuthService();
-          authService.clearStudentDetails();
           context.pushNamed(pageName);
         },
         style: ElevatedButton.styleFrom(

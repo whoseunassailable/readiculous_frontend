@@ -36,9 +36,11 @@ class AuthService {
     String lastName = prefs.getString('last_name') ?? '';
     String role = prefs.getString('role') ?? '';
     String email = prefs.getString('email') ?? '';
-    String? preferredLocation = prefs.getString('preferred_location')!.isEmpty
-        ? null
-        : prefs.getString('preferred_location');
+    final storedPreferredLocation = prefs.getString('preferred_location');
+    String? preferredLocation =
+        (storedPreferredLocation == null || storedPreferredLocation.isEmpty)
+            ? null
+            : storedPreferredLocation;
     String phone = prefs.getString('phone') ?? '';
     String dateOfBirth = prefs.getString('date_of_birth') ??
         ''; // Retrieve dateOfBirth as String
@@ -62,7 +64,6 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     String? firstName = prefs.getString('first_name');
     String? lastName = prefs.getString('last_name');
-    String? role = prefs.getString('role');
     return firstName != null && lastName != null;
   }
 
@@ -84,14 +85,17 @@ class AuthService {
     if (lastName != null) await prefs.setString('last_name', lastName);
     if (role != null) await prefs.setString('role', role);
     if (email != null) await prefs.setString('email', email);
-    if (preferredLocation != null)
+    if (preferredLocation != null) {
       await prefs.setString('preferred_location', preferredLocation);
+    }
     if (phone != null) await prefs.setString('phone', phone);
-    if (dateOfBirth != null)
+    if (dateOfBirth != null) {
       await prefs.setString(
           'date_of_birth', dateOfBirth); // Update dateOfBirth as String
-    if (password != null)
+    }
+    if (password != null) {
       await prefs.setString('password', password); // Update password
+    }
   }
 
   // Clear student details (logout)
@@ -102,11 +106,9 @@ class AuthService {
     await prefs.remove('last_name');
     await prefs.remove('role');
     await prefs.remove('email');
-    await prefs.remove('gre_score');
-    await prefs.remove('toefl_score');
     await prefs.remove('preferred_location');
     await prefs.remove('phone');
     await prefs.remove('date_of_birth');
-    await prefs.remove('password'); // Clear password
+    await prefs.remove('password');
   }
 }

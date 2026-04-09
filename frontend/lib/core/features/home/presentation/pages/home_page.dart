@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:readiculous_frontend/core/constants/app_roles.dart';
+import 'package:readiculous_frontend/core/features/home/presentation/state_management/genres_provider.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/bottom_navigation_for_home_page.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/heading_with_logo.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/mini_heading.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/page_header.dart';
-import 'package:readiculous_frontend/core/features/home/presentation/state_management/genres_provider.dart';
+import 'package:readiculous_frontend/core/session/session_provider.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 
@@ -42,6 +44,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
 
+    final session = ref.watch(sessionProvider);
+    final isLibrarian = session.role == AppRoles.librarian;
     final genresAsync = ref.watch(allGenresProvider);
 
     return Scaffold(
@@ -94,9 +98,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               height: height,
               width: width,
               imageAssetName: 'assets/icons/books_to_stock_icon.png',
-              heading: S.of(context).booksToStock,
+              heading: isLibrarian ? S.of(context).booksToStock : 'Your Reading Hub',
             ),
-            MiniHeading(height: height, width: width),
+            MiniHeading(height: height, width: width, isLibrarian: isLibrarian),
             SizedBox(height: height / 60),
             BooksStockContainer(
               height: height,

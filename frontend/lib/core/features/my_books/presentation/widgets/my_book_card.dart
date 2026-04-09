@@ -5,12 +5,16 @@ class MyBookCard extends StatelessWidget {
   final Map<String, dynamic> book;
   final VoidCallback onDelete;
   final void Function(double rating)? onRate;
+  final VoidCallback? onMarkFinished;
+  final VoidCallback? onMoveToReading;
 
   const MyBookCard({
     super.key,
     required this.book,
     required this.onDelete,
     this.onRate,
+    this.onMarkFinished,
+    this.onMoveToReading,
   });
 
   @override
@@ -77,9 +81,27 @@ class MyBookCard extends StatelessWidget {
                 color: const Color(0xFF3A3329).withOpacity(0.60),
               ),
             ),
+            if (status == 'reading' && onMarkFinished != null) ...[
+              const SizedBox(height: 10),
+              _StatusButton(
+                label: 'Finished Reading',
+                color: const Color(0xFFD7C6FF),
+                icon: Icons.check_circle_outline,
+                onTap: onMarkFinished!,
+              ),
+            ],
             if (status == 'read') ...[
               const SizedBox(height: 10),
               _StarRating(rating: rating, onRate: onRate),
+              if (onMoveToReading != null) ...[
+                const SizedBox(height: 8),
+                _StatusButton(
+                  label: 'Move to Reading',
+                  color: const Color(0xFFBFE3C0),
+                  icon: Icons.menu_book_outlined,
+                  onTap: onMoveToReading!,
+                ),
+              ],
             ],
           ],
         ),
@@ -137,6 +159,39 @@ class _StatusChip extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w700,
           color: Colors.black,
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _StatusButton({required this.label, required this.color, required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.black, width: 1.8),
+          boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(2, 2), blurRadius: 0)],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: Colors.black87),
+            const SizedBox(width: 6),
+            Text(label, style: GoogleFonts.patrickHand(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
+          ],
         ),
       ),
     );

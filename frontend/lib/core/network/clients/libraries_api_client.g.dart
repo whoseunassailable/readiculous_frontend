@@ -22,10 +22,18 @@ class _LibrariesApiClient implements LibrariesApiClient {
   }
 
   @override
+  Future<List<dynamic>> getLibraryReaderActivity(String libraryId) async {
+    final response = await _dio.fetch<List<dynamic>>(
+      Options(method: 'GET')
+          .compose(_dio.options, '/libraries/$libraryId/activity'),
+    );
+    return response.data!;
+  }
+
+  @override
   Future<Map<String, dynamic>> createLibrary(Map<String, dynamic> body) async {
     final response = await _dio.fetch<Map<String, dynamic>>(
-      Options(method: 'POST')
-          .compose(_dio.options, '/libraries/', data: body),
+      Options(method: 'POST').compose(_dio.options, '/libraries/', data: body),
     );
     return response.data!;
   }

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:readiculous_frontend/core/constants/app_font_size.dart';
-import 'package:readiculous_frontend/core/features/services/auth_service.dart';
 
 import '../../../../../generated/l10n.dart';
 import '../../../../constants/routes.dart';
+import '../../../../session/session_provider.dart';
 
-class LogOutPageDialog extends StatelessWidget {
+class LogOutPageDialog extends ConsumerWidget {
   final double height;
   final double width;
   const LogOutPageDialog({
@@ -17,7 +18,7 @@ class LogOutPageDialog extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -94,17 +95,20 @@ class LogOutPageDialog extends StatelessWidget {
                         SizedBox(height: height / 60),
                         customizedButton(
                             context: context,
+                            ref: ref,
                             text: S.of(context).editProfile.toUpperCase(),
                             outlined: true,
                             pageName: RouteNames.profilePage),
                         customizedButton(
                           context: context,
+                          ref: ref,
                           text: S.of(context).changePassword.toUpperCase(),
                           outlined: true,
                           pageName: RouteNames.homePage,
                         ),
                         customizedButton(
                           context: context,
+                          ref: ref,
                           text: S.of(context).logOut.toUpperCase(),
                           outlined: false,
                           pageName: RouteNames.loginPage,
@@ -124,6 +128,7 @@ class LogOutPageDialog extends StatelessWidget {
 
   customizedButton({
     required BuildContext context,
+    required WidgetRef ref,
     required String text,
     required bool outlined,
     required String pageName,
@@ -153,9 +158,10 @@ class LogOutPageDialog extends StatelessWidget {
             )
           : ElevatedButton(
               onPressed: () async {
-                final authService = AuthService();
-                await authService.clearStudentDetails();
-                context.pushNamed(pageName);
+                await ref.read(sessionProvider.notifier).clearSession();
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                context.goNamed(pageName);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.transparent,

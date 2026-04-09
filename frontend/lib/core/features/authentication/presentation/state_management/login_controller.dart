@@ -6,6 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/data_sources/auth_remote_ds.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../../../network/api_error.dart';
+import '../../../../network/clients/user_genres_api_client.dart';
+import '../../../../network/dio_client.dart';
 import '../../../../session/session_provider.dart';
 
 // ── State ────────────────────────────────────────────────────────────────────
@@ -38,13 +41,52 @@ class LoginController extends AsyncNotifier<void> {
     final result = await _authRepo.login(email: email, password: password);
 
     if (result.isSuccess) {
-      final userMap = result.data!['user'] as Map<String, dynamic>;
+      final payload = result.data;
+      final user = payload?['user'];
+      if (user is! Map<String, dynamic>) {
+        state = AsyncError(
+          ApiError(
+            message: 'Invalid login response',
+            details: payload.toString(),
+          ),
+          StackTrace.current,
+        );
+        return;
+      }
+
+      final userMap = user;
+      final userId = userMap['user_id']?.toString();
+      final role = userMap['role']?.toString();
+      if (userId == null || userId.isEmpty || role == null || role.isEmpty) {
+        state = AsyncError(
+          ApiError(
+            message: 'Login response missing session fields',
+            details: payload.toString(),
+          ),
+          StackTrace.current,
+        );
+        return;
+      }
 
       await ref.read(sessionProvider.notifier).setSession(
-            userId: userMap['user_id'].toString(),
-            role: userMap['role'].toString(),
+            userId: userId,
+            role: role,
             email: email,
           );
+
+      if (role == 'user') {
+        try {
+          final genres = await UserGenresApiClient(DioClient.main)
+              .getUserGenrePreferences(userId);
+          await ref
+              .read(sessionProvider.notifier)
+              .setGenrePrefsStatus(genres.isNotEmpty);
+        } catch (_) {
+          await ref.read(sessionProvider.notifier).setGenrePrefsStatus(false);
+        }
+      } else {
+        await ref.read(sessionProvider.notifier).setGenrePrefsStatus(false);
+      }
 
       // Signal success — the page will navigate in response.
       state = const AsyncData(null);

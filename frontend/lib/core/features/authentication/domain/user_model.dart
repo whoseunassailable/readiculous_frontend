@@ -7,6 +7,7 @@ class UserModel {
   String dateOfBirth;
   String password;
   String location;
+  String role;
 
   UserModel({
     this.userId,
@@ -17,6 +18,7 @@ class UserModel {
     required this.dateOfBirth,
     required this.password,
     required this.location,
+    this.role = 'user',
   });
 
   UserModel copyWith({
@@ -28,6 +30,7 @@ class UserModel {
     String? dateOfBirth,
     String? password,
     String? location,
+    String? role,
   }) =>
       UserModel(
         userId: userId ?? this.userId,
@@ -38,6 +41,7 @@ class UserModel {
         dateOfBirth: dateOfBirth ?? this.dateOfBirth,
         password: password ?? this.password,
         location: location ?? this.location,
+        role: role ?? this.role,
       );
 
   factory UserModel.fromJson(Map<String, dynamic> json) => UserModel(
@@ -49,6 +53,7 @@ class UserModel {
         dateOfBirth: json["date_of_birth"] ?? "",
         password: json["password"] ?? "",
         location: json["location"] ?? "",
+        role: json["role"] ?? "user",
       );
 
   Map<String, dynamic> toJson() => {
@@ -60,5 +65,6 @@ class UserModel {
         "date_of_birth": dateOfBirth,
         "password": password,
         "location": location,
+        "role": role,
       };
 }

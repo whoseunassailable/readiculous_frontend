@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:go_router/go_router.dart';
+import 'package:readiculous_frontend/core/features/home/presentation/state_management/user_library_provider.dart';
 import 'package:readiculous_frontend/core/network/clients/books_api_client.dart';
+import 'package:readiculous_frontend/core/network/clients/library_books_api_client.dart';
 import 'package:readiculous_frontend/core/network/dio_client.dart';
-import 'package:readiculous_frontend/core/utils/appbar.dart';
+import 'package:readiculous_frontend/core/session/session_provider.dart';
 import '../state_management/my_books_provider.dart';
 import '../widgets/my_book_card.dart';
 
@@ -17,18 +21,58 @@ class MyBooksPage extends ConsumerWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        appBar: StylishAppBar(title: 'My Books', homepage: false),
         body: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              fit: BoxFit.fitHeight,
-              image: AssetImage('assets/images/home.png'),
+              fit: BoxFit.cover,
+              image: AssetImage('assets/images/bg_for_add_books.png'),
             ),
           ),
-          child: Column(
-            children: [
-              const SizedBox(height: 14),
-              _CrayonTabBar(),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // ── Custom crayon header ──
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => context.pop(),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF3A436),
+                            borderRadius: BorderRadius.circular(10),
+                            border:
+                                Border.all(color: Colors.black, width: 2),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black,
+                                offset: Offset(2, 2),
+                                blurRadius: 0,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                              MaterialCommunityIcons.arrow_left,
+                              color: Colors.black,
+                              size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Text(
+                        'My Books',
+                        style: GoogleFonts.patrickHand(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3A3329),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _CrayonTabBar(),
               const SizedBox(height: 8),
               Expanded(
                 child: booksAsync.when(
@@ -46,6 +90,7 @@ class MyBooksPage extends ConsumerWidget {
               ),
             ],
           ),
+        ),
         ),
         floatingActionButton: FloatingActionButton(
           backgroundColor: const Color(0xFFF3A436),
@@ -140,6 +185,70 @@ class _BookTabView extends ConsumerWidget {
   }
 }
 
+void _showRatingSheet(BuildContext context, WidgetRef ref, String bookId) {
+  double selectedRating = 0;
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setModal) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFFDF3),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border(
+            top: BorderSide(color: Colors.black, width: 2),
+            left: BorderSide(color: Colors.black, width: 2),
+            right: BorderSide(color: Colors.black, width: 2),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('How was the book?', style: GoogleFonts.patrickHand(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF3A3329))),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(5, (i) => GestureDetector(
+                onTap: () => setModal(() => selectedRating = i + 1.0),
+                child: Icon(
+                  (i + 1) <= selectedRating ? Icons.star_rounded : Icons.star_outline_rounded,
+                  size: 40,
+                  color: const Color(0xFFF3A436),
+                ),
+              )),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: () {
+                  ref.read(myBooksProvider.notifier).addOrUpdate(
+                    bookId: bookId,
+                    status: 'read',
+                    rating: selectedRating > 0 ? selectedRating : null,
+                  );
+                  Navigator.pop(ctx);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF3A436),
+                  foregroundColor: Colors.black,
+                  side: const BorderSide(color: Colors.black, width: 2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  elevation: 3,
+                  shadowColor: Colors.black,
+                ),
+                child: Text('Mark as Finished', style: GoogleFonts.patrickHand(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 class _BookList extends ConsumerWidget {
   final List<Map<String, dynamic>> books;
   final String emptyMsg;
@@ -180,6 +289,15 @@ class _BookList extends ConsumerWidget {
                     rating: rating,
                   )
               : null,
+          onMarkFinished: status == 'reading'
+              ? () => _showRatingSheet(context, ref, bookId)
+              : null,
+          onMoveToReading: status == 'read'
+              ? () => ref.read(myBooksProvider.notifier).addOrUpdate(
+                    bookId: bookId,
+                    status: 'reading',
+                  )
+              : null,
         );
       },
     );
@@ -211,7 +329,19 @@ class _AddBookSheetState extends ConsumerState<_AddBookSheet> {
 
   Future<void> _loadBooks() async {
     try {
-      final raw = await BooksApiClient(DioClient.main).getAllBooks();
+      List<dynamic> raw;
+      final userId = ref.read(sessionProvider).userId;
+      if (userId != null) {
+        final library = await ref.read(userLibraryProvider(userId).future);
+        if (library != null) {
+          raw = await LibraryBooksApiClient(DioClient.main)
+              .getBooksInLibrary(library.libraryId.toString());
+        } else {
+          raw = await BooksApiClient(DioClient.main).getAllBooks();
+        }
+      } else {
+        raw = await BooksApiClient(DioClient.main).getAllBooks();
+      }
       if (mounted) {
         setState(() {
           _allBooks = raw.cast<Map<String, dynamic>>();

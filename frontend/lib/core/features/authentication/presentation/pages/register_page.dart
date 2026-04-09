@@ -37,6 +37,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  String _role = AppRoles.user;
   final uuid = const Uuid();
   final logger = Logger(printer: PrettyPrinter(colors: true));
   final AnimatedMessage animatedMessage = AnimatedMessage();
@@ -88,36 +89,53 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             image: AssetImage('assets/images/login_page.png'),
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(width: width / 20),
-                GestureDetector(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // ── Back button row ──
+              Padding(
+                padding: EdgeInsets.only(
+                    left: width / 20, top: height * 0.01),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(MaterialCommunityIcons.arrow_left)),
-                SizedBox(width: width / 5),
-                Image.asset(
-                  "assets/images/logo.png",
-                  height: height / 4,
+                    child: const Icon(MaterialCommunityIcons.arrow_left,
+                        size: 28),
+                  ),
                 ),
-              ],
-            ),
-            Text(
-              animatedWelcomeMessage,
-              style: TextStyle(
-                  fontSize: width * AppFontSize.xxxl,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.blackColor),
-            ),
-            listOfTextFormFields(height: height, width: width),
-            SizedBox(
-              height: height * 0.075,
-              child: MinimalistButton(
-                onPressed: () async {
+              ),
+              SizedBox(height: height * 0.01),
+              // ── Logo centered ──
+              Image.asset(
+                'assets/images/logo.png',
+                height: height / 7,
+              ),
+              SizedBox(height: height * 0.015),
+              // ── Title ──
+              Text(
+                animatedWelcomeMessage,
+                style: TextStyle(
+                    fontSize: width * AppFontSize.xxxl,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.blackColor),
+              ),
+              SizedBox(height: height * 0.02),
+              // ── Scrollable form fields ──
+              Expanded(
+                child: SingleChildScrollView(
+                  child: listOfTextFormFields(
+                      height: height, width: width),
+                ),
+              ),
+              // ── Sign Up button pinned at bottom ──
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: height * 0.02),
+                child: SizedBox(
+                  height: height * 0.075,
+                  child: MinimalistButton(
+                  onPressed: () async {
                   final authRepo = AuthRepositoryImpl(AuthRemoteDataSource());
 
                   final email = _emailController.text.trim();
@@ -221,6 +239,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     dateOfBirth: dob,
                     password: password,
                     location: location,
+                    role: _role,
                   ).toJson();
 
                   final result = await authRepo.register(payload);
@@ -239,7 +258,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     await ref.read(sessionProvider.notifier).setSession(
                       userId: userId,
                       email: email,
-                      role: AppRoles.user,
+                      role: _role,
                     );
 
                     if (!context.mounted) return;
@@ -259,80 +278,98 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     focusNode: emailFocus,
                   );
                 },
-                text: S.of(context).signUp,
+                  text: S.of(context).signUp,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  listOfTextFormFields({
+  Widget listOfTextFormFields({
     required double height,
     required double width,
   }) {
-    List<String> listOfTextFormFields = [
-      S.of(context).email,
-      S.of(context).name,
-      S.of(context).dob,
-      S.of(context).phoneNumber,
-      S.of(context).location,
-      S.of(context).password,
-      S.of(context).confirmPassword,
-    ];
+    final spacing = SizedBox(height: height * 0.012);
 
-    List<TextEditingController> listOfTextEditingControllers = [
-      _emailController,
-      _nameController,
-      _dobController,
-      _phoneController,
-      _locationController,
-      _passwordController,
-      _confirmPasswordController
-    ];
-
-    List<bool> obscureTextList = [
-      false, // Email (no obscuring)
-      false, // Name (no obscuring)
-      false, // DOB (no obscuring)
-      false, // Phone Number (no obscuring)
-      false, // Location
-      true, // Password (obscured)
-      true, // Confirm Password (obscured)
-    ];
-
-    const List<Icon> listOfIcons = [
-      Icon(MaterialCommunityIcons.email), // Email
-      Icon(MaterialCommunityIcons.account), // Name
-      Icon(MaterialCommunityIcons.calendar), // Date of Birth (DOB)
-      Icon(MaterialCommunityIcons.phone), // Phone Number
-      Icon(Entypo.location),
-      Icon(MaterialCommunityIcons.lock), // Password
-      Icon(MaterialCommunityIcons.lock_check), // Confirm Password
-    ];
-
-    return SizedBox(
-      height: height * 0.60,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(width / 15, 0, width / 15, 0),
-        child: ListView.builder(
-          itemCount: listOfTextFormFields.length,
-          itemBuilder: (context, index) {
-            return Column(
-              children: [
-                CustomTextFormField(
-                  hintText: listOfTextFormFields[index],
-                  controller: listOfTextEditingControllers[index],
-                  prefixIcon: listOfIcons[index],
-                  obscureText: obscureTextList[index],
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: width / 15),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+            CustomTextFormField(
+              hintText: S.of(context).email,
+              controller: _emailController,
+              prefixIcon: const Icon(MaterialCommunityIcons.email),
+            ),
+            spacing,
+            CustomTextFormField(
+              hintText: S.of(context).name,
+              controller: _nameController,
+              prefixIcon: const Icon(MaterialCommunityIcons.account),
+            ),
+            spacing,
+            CustomTextFormField(
+              hintText: S.of(context).dob,
+              controller: _dobController,
+              prefixIcon: const Icon(MaterialCommunityIcons.calendar),
+            ),
+            spacing,
+            CustomTextFormField(
+              hintText: S.of(context).phoneNumber,
+              controller: _phoneController,
+              prefixIcon: const Icon(MaterialCommunityIcons.phone),
+            ),
+            spacing,
+            CustomTextFormField(
+              hintText: S.of(context).location,
+              controller: _locationController,
+              prefixIcon: const Icon(Entypo.location),
+            ),
+            spacing,
+            // "Are you a librarian?" role selector
+            DropdownButtonFormField<String>(
+              value: _role,
+              decoration: const InputDecoration(
+                prefixIcon: Icon(MaterialCommunityIcons.account_tie),
+                hintText: 'Are you a librarian?',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                SizedBox(height: height * 0.015),
+                fillColor: Colors.white,
+                filled: true,
+              ),
+              items: const [
+                DropdownMenuItem(value: 'user', child: Text('No')),
+                DropdownMenuItem(value: 'librarian', child: Text('Yes')),
               ],
-            );
-          },
+              onChanged: (value) {
+                if (value != null) setState(() => _role = value);
+              },
+            ),
+            spacing,
+            CustomTextFormField(
+              hintText: S.of(context).password,
+              controller: _passwordController,
+              prefixIcon: const Icon(MaterialCommunityIcons.lock),
+              obscureText: true,
+            ),
+            spacing,
+            CustomTextFormField(
+              hintText: S.of(context).confirmPassword,
+              controller: _confirmPasswordController,
+              prefixIcon: const Icon(MaterialCommunityIcons.lock_check),
+              obscureText: true,
+            ),
+            spacing,
+          ],
         ),
-      ),
     );
   }
 }
+
+
+
