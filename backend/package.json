@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon ./src/index.js",
-    "seed:demo": "node ./scripts/seed_demo_data.js"
+    "seed:demo": "node ./scripts/seed_demo_data.js",
+    "seed:books": "node ./scripts/seed_library_books.js",
+    "seed:catalog": "node ./scripts/seed_books_catalog.js",
+    "seed:catalog-csv": "python3 ./scripts/import_books_from_csv.py"
   },
   "keywords": [],
   "author": "",

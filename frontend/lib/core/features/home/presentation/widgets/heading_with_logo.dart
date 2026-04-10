@@ -5,12 +5,14 @@ class HeadingWithLogo extends StatelessWidget {
   final double width;
   final String imageAssetName;
   final String heading;
+  final Widget? trailing;
   const HeadingWithLogo(
       {super.key,
       required this.height,
       required this.width,
       required this.imageAssetName,
-      required this.heading});
+      required this.heading,
+      this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +28,11 @@ class HeadingWithLogo extends StatelessWidget {
           heading,
           style: TextStyle(fontSize: height / 30, fontWeight: FontWeight.w500),
         ),
+        if (trailing != null) ...[
+          const Spacer(),
+          trailing!,
+          SizedBox(width: width / 12),
+        ],
       ],
     );
   }

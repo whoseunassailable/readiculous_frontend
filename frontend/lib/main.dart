@@ -17,14 +17,6 @@ Future<void> main() async {
   final container = ProviderContainer();
   await container.read(sessionProvider.notifier).init();
 
-  // Pre-warm caches in the background — UI loads instantly, data is ready
-  // by the time the user navigates to those pages.
-  unawaited(container.read(allLibrariesProvider.future).catchError((_) {}));
-  final userId = container.read(sessionProvider).userId;
-  if (userId != null) {
-    unawaited(container.read(myBooksProvider.future).catchError((_) {}));
-  }
-
   runApp(
     UncontrolledProviderScope(
       container: container,
@@ -32,7 +24,17 @@ Future<void> main() async {
     ),
   );
 
-  FlutterNativeSplash.remove();
+  // Wait for the first frame to render (login/home screen is fully visible and
+  // interactive) before starting any background fetches. This keeps the UI
+  // responsive — pre-warming no longer competes with the initial render.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    FlutterNativeSplash.remove();
+    unawaited(container.read(allLibrariesProvider.future).catchError((_) {}));
+    final userId = container.read(sessionProvider).userId;
+    if (userId != null) {
+      unawaited(container.read(myBooksProvider.future).catchError((_) {}));
+    }
+  });
 }
 
 class MyApp extends ConsumerStatefulWidget {

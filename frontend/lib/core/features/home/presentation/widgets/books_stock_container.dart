@@ -7,6 +7,7 @@ import '../../../../session/session_provider.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 import '../state_management/library_recommendations_provider.dart';
 import '../state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/core/features/my_books/presentation/state_management/my_books_provider.dart';
 
 class BooksStockContainer extends ConsumerWidget {
   final double height;
@@ -28,7 +29,7 @@ class BooksStockContainer extends ConsumerWidget {
 
     final isLibrarian = userRole == AppRoles.librarian && userId != null;
 
-    // Resolve library + pending recommendation for librarians reactively
+    // Librarians: resolve pending ML recommendation
     String? pendingBookTitle;
     String? pendingBookAuthor;
     if (isLibrarian) {
@@ -46,6 +47,20 @@ class BooksStockContainer extends ConsumerWidget {
             pendingBookTitle = pending.first['title'] as String?;
             pendingBookAuthor = pending.first['author'] as String?;
           }
+        }
+      }
+    }
+
+    // Users: resolve currently-reading book
+    String? currentBookTitle;
+    String? currentBookAuthor;
+    if (!isLibrarian) {
+      final books = ref.watch(myBooksProvider).asData?.value;
+      if (books != null) {
+        final reading = books.where((b) => b['status'] == 'reading').toList();
+        if (reading.isNotEmpty) {
+          currentBookTitle = reading.first['title'] as String?;
+          currentBookAuthor = reading.first['author'] as String?;
         }
       }
     }
@@ -72,22 +87,55 @@ class BooksStockContainer extends ConsumerWidget {
               children: [
                 Image.asset("assets/icons/blue_book_icon.png", height: height / 12),
                 SizedBox(width: width / 40),
-                if (isLibrarian && pendingBookTitle != null)
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          pendingBookTitle!,
-                          style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (pendingBookAuthor != null)
-                          Text(pendingBookAuthor!, style: TextStyle(fontSize: height / 65)),
-                      ],
-                    ),
-                  ),
+                Expanded(
+                  child: isLibrarian
+                      ? (pendingBookTitle != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  pendingBookTitle!,
+                                  style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (pendingBookAuthor != null)
+                                  Text(pendingBookAuthor!, style: TextStyle(fontSize: height / 65, color: Colors.black54)),
+                              ],
+                            )
+                          : Text('No pending picks', style: TextStyle(fontSize: height / 55, color: Colors.black45)))
+                      : (currentBookTitle != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Currently reading',
+                                  style: TextStyle(fontSize: height / 65, color: Colors.black45),
+                                ),
+                                Text(
+                                  currentBookTitle!,
+                                  style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (currentBookAuthor != null)
+                                  Text(currentBookAuthor!, style: TextStyle(fontSize: height / 65, color: Colors.black54)),
+                              ],
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Nothing in progress',
+                                  style: TextStyle(fontSize: height / 55, fontWeight: FontWeight.w600),
+                                ),
+                                Text(
+                                  'Pick something from My Books!',
+                                  style: TextStyle(fontSize: height / 65, color: Colors.black45),
+                                ),
+                              ],
+                            )),
+                ),
               ],
             ),
             const Divider(color: Colors.brown, thickness: 2),
