@@ -81,6 +81,15 @@ class MyBookCard extends StatelessWidget {
                 color: const Color(0xFF3A3329).withOpacity(0.60),
               ),
             ),
+            if (status == 'want_to_read') ...[
+              const SizedBox(height: 10),
+              _StatusButton(
+                label: 'Remove',
+                color: const Color(0xFFFFC7C2),
+                icon: Icons.remove_circle_outline,
+                onTap: onDelete,
+              ),
+            ],
             if (status == 'reading' && onMarkFinished != null) ...[
               const SizedBox(height: 10),
               _StatusButton(

@@ -140,69 +140,75 @@ class BooksStockContainer extends ConsumerWidget {
             const Spacer(),
             // --- BOTTOM BUTTONS ---
 
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 10,
-              children: isLibrarian
-                  ? [
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Picks',
-                        color: const Color(0xFFD7C6FF),
-                        onTap: () => context.pushNamed(
-                          RouteNames.bookRecommendationPageForLibrary,
-                        ),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Trends',
-                        color: const Color(0xFFFFE4A0),
-                        onTap: () => context.pushNamed(RouteNames.genreTrends),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Stock',
-                        color: const Color(0xFFFFC7C2),
-                        onTap: () =>
-                            context.pushNamed(RouteNames.libraryInventory),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Database',
-                        color: const Color(0xFFB7D8FF),
-                        onTap: () => context.pushNamed(RouteNames.viewDatabase),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Library',
-                        color: const Color(0xFFBFE3C0),
-                        onTap: () =>
-                            context.pushNamed(RouteNames.libraryAssociation),
-                      ),
-                    ]
-                  : [
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'My Books',
-                        color: const Color(0xFFBFE3C0),
-                        onTap: () => context.pushNamed(RouteNames.myBooks),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Library',
-                        color: const Color(0xFFB7D8FF),
-                        onTap: () => context.pushNamed(RouteNames.viewDatabase),
-                      ),
-                    ],
-            ),
+            if (isLibrarian)
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 10,
+                children: [
+                  _ActionChip(
+                    width: width * 0.22,
+                    height: height / 18,
+                    label: 'Picks',
+                    color: const Color(0xFFD7C6FF),
+                    onTap: () => context.pushNamed(
+                      RouteNames.bookRecommendationPageForLibrary,
+                    ),
+                  ),
+                  _ActionChip(
+                    width: width * 0.22,
+                    height: height / 18,
+                    label: 'Trends',
+                    color: const Color(0xFFFFE4A0),
+                    onTap: () => context.pushNamed(RouteNames.genreTrends),
+                  ),
+                  _ActionChip(
+                    width: width * 0.22,
+                    height: height / 18,
+                    label: 'Stock',
+                    color: const Color(0xFFFFC7C2),
+                    onTap: () =>
+                        context.pushNamed(RouteNames.libraryInventory),
+                  ),
+                  _ActionChip(
+                    width: width * 0.22,
+                    height: height / 18,
+                    label: 'Database',
+                    color: const Color(0xFFB7D8FF),
+                    onTap: () => context.pushNamed(RouteNames.viewDatabase),
+                  ),
+                  _ActionChip(
+                    width: width * 0.22,
+                    height: height / 18,
+                    label: 'Library',
+                    color: const Color(0xFFBFE3C0),
+                    onTap: () =>
+                        context.pushNamed(RouteNames.libraryAssociation),
+                  ),
+                ],
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionChip(
+                      height: height / 18,
+                      label: 'My Books',
+                      color: const Color(0xFFBFE3C0),
+                      onTap: () => context.pushNamed(RouteNames.myBooks),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _ActionChip(
+                      height: height / 18,
+                      label: 'Library',
+                      color: const Color(0xFFB7D8FF),
+                      onTap: () => context.pushNamed(RouteNames.viewDatabase),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -211,14 +217,14 @@ class BooksStockContainer extends ConsumerWidget {
 }
 
 class _ActionChip extends StatelessWidget {
-  final double width;
+  final double? width;
   final double height;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
   const _ActionChip({
-    required this.width,
+    this.width,
     required this.height,
     required this.label,
     required this.color,

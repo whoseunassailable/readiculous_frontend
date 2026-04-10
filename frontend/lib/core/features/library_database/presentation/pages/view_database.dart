@@ -48,7 +48,6 @@ class _ViewDatabaseState extends ConsumerState<ViewDatabase> {
     final libraryAsync =
         userId == null ? null : ref.watch(userLibraryProvider(userId));
     final inventoryAsync = ref.watch(currentLibraryInventoryProvider);
-    final activityAsync = ref.watch(currentLibraryActivityProvider);
     final genresAsync = ref.watch(allGenresProvider);
 
     String? currentLibraryId;
@@ -105,28 +104,20 @@ class _ViewDatabaseState extends ConsumerState<ViewDatabase> {
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
                       error: (_, __) => _DatabaseBody(
-                        role: role,
-                        libraryName: library.name,
-                        libraryLocation: library.location,
                         selectedGenre: _selectedGenre,
                         onGenreChanged: (value) =>
                             setState(() => _selectedGenre = value),
                         searchController: _searchController,
                         availableGenres: const ['All Genres'],
                         inventoryAsync: inventoryAsync,
-                        activityAsync: activityAsync,
                       ),
                       data: (genres) => _DatabaseBody(
-                        role: role,
-                        libraryName: library.name,
-                        libraryLocation: library.location,
                         selectedGenre: _selectedGenre,
                         onGenreChanged: (value) =>
                             setState(() => _selectedGenre = value),
                         searchController: _searchController,
                         availableGenres: ['All Genres', ...genres],
                         inventoryAsync: inventoryAsync,
-                        activityAsync: activityAsync,
                       ),
                     );
                   },
@@ -138,140 +129,128 @@ class _ViewDatabaseState extends ConsumerState<ViewDatabase> {
 }
 
 class _DatabaseBody extends StatelessWidget {
-  final String? role;
-  final String libraryName;
-  final String? libraryLocation;
   final String selectedGenre;
   final ValueChanged<String> onGenreChanged;
   final TextEditingController searchController;
   final List<String> availableGenres;
   final AsyncValue<List<Map<String, dynamic>>> inventoryAsync;
-  final AsyncValue<List<Map<String, dynamic>>> activityAsync;
 
   const _DatabaseBody({
-    required this.role,
-    required this.libraryName,
-    required this.libraryLocation,
     required this.selectedGenre,
     required this.onGenreChanged,
     required this.searchController,
     required this.availableGenres,
     required this.inventoryAsync,
-    required this.activityAsync,
   });
 
   @override
   Widget build(BuildContext context) {
     final query = searchController.text.trim().toLowerCase();
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _PinnedHeader(
-          title: 'Library Database',
-          trailing: _HeaderAction(
-            icon: Icons.home_outlined,
-            label: 'Home',
-            onTap: () => context.goNamed(RouteNames.homePage),
-          ),
-        ),
-        const SizedBox(height: 14),
-        _LibraryPulseCard(
-          libraryName: libraryName,
-          libraryLocation: libraryLocation,
-        ),
-        const SizedBox(height: 18),
-        _ControlRow(
-          selectedGenre: selectedGenre,
-          genres: availableGenres,
-          onGenreChanged: onGenreChanged,
-          searchController: searchController,
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Browse books on the shelf. Use the search or genre filter to narrow down.',
-          style: GoogleFonts.patrickHand(
-            fontSize: 15,
-            color: const Color(0xFF43352A).withOpacity(0.75),
-          ),
-        ),
-        const SizedBox(height: 16),
-        inventoryAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _PaperNotice(
-            title: 'Could not load library books.',
-            subtitle: '$e',
-          ),
-          data: (inventory) {
-            final filtered = inventory.where((book) {
-              final genres = (book['genres']?.toString() ?? '');
-              final matchesGenre = selectedGenre == 'All Genres' ||
-                  genres.toLowerCase().contains(selectedGenre.toLowerCase());
-              final matchesText = query.isEmpty ||
-                  (book['title']?.toString().toLowerCase() ?? '')
-                      .contains(query) ||
-                  (book['author']?.toString().toLowerCase() ?? '')
-                      .contains(query);
-              return matchesGenre && matchesText;
-            }).toList();
-
-            if (inventory.isEmpty) {
-              return const _PaperNotice(
-                title: 'No books in this library yet.',
-                subtitle: 'A librarian can add books using the + button.',
-              );
-            }
-            if (filtered.isEmpty) {
-              return const _PaperNotice(
-                title: 'No books match your search.',
-                subtitle: 'Try a different title, author, or genre.',
-              );
-            }
-
-            return _SectionCard(
-              title: 'Books on Shelf',
-              child: Column(
-                children: filtered
-                    .map(
-                      (book) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _LibraryBookCard(book: book),
-                      ),
-                    )
-                    .toList(),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _PinnedHeader(
+                title: 'Library Database',
+                trailing: _HeaderAction(
+                  icon: Icons.home_outlined,
+                  label: 'Home',
+                  onTap: () => context.goNamed(RouteNames.homePage),
+                ),
               ),
-            );
-          },
-        ),
-        const SizedBox(height: 18),
-        activityAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _PaperNotice(
-            title: 'Could not load reader activity.',
-            subtitle: '$e',
-          ),
-          data: (activity) {
-            if (activity.isEmpty) {
-              return const _PaperNotice(
-                title: 'No reading activity yet.',
-                subtitle: 'When library members add and track books, their activity shows up here.',
-              );
-            }
-
-            return _SectionCard(
-              title: 'What Readers Are Reading',
-              child: Column(
-                children: activity
-                    .map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _ReaderActivityCard(item: item),
-                      ),
-                    )
-                    .toList(),
+              const SizedBox(height: 14),
+              _ControlRow(
+                selectedGenre: selectedGenre,
+                genres: availableGenres,
+                onGenreChanged: onGenreChanged,
+                searchController: searchController,
               ),
-            );
-          },
+              const SizedBox(height: 12),
+              Text(
+                'Browse books on the shelf. Use the search or genre filter to narrow down.',
+                style: GoogleFonts.patrickHand(
+                  fontSize: 15,
+                  color: const Color(0xFF43352A).withOpacity(0.75),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+            child: inventoryAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => _PaperNotice(
+                title: 'Could not load library books.',
+                subtitle: '$e',
+              ),
+              data: (inventory) {
+                final filtered = inventory.where((book) {
+                  final genres = (book['genres']?.toString() ?? '');
+                  final matchesGenre = selectedGenre == 'All Genres' ||
+                      genres.toLowerCase().contains(selectedGenre.toLowerCase());
+                  final matchesText = query.isEmpty ||
+                      (book['title']?.toString().toLowerCase() ?? '')
+                          .contains(query) ||
+                      (book['author']?.toString().toLowerCase() ?? '')
+                          .contains(query);
+                  return matchesGenre && matchesText;
+                }).toList();
+
+                if (inventory.isEmpty) {
+                  return const _PaperNotice(
+                    title: 'No books in this library yet.',
+                    subtitle: 'A librarian can add books using the + button.',
+                  );
+                }
+                if (filtered.isEmpty) {
+                  return const _PaperNotice(
+                    title: 'No books match your search.',
+                    subtitle: 'Try a different title, author, or genre.',
+                  );
+                }
+
+                return Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8EBDD),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(color: const Color(0xFF7A5332), width: 3),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Books on Shelf',
+                        style: GoogleFonts.patrickHand(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF342116),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: filtered.length,
+                          itemBuilder: (_, i) => Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _LibraryBookCard(book: filtered[i]),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ],
     );
@@ -367,66 +346,6 @@ class _HeaderAction extends StatelessWidget {
   }
 }
 
-class _LibraryPulseCard extends StatelessWidget {
-  final String libraryName;
-  final String? libraryLocation;
-
-  const _LibraryPulseCard({
-    required this.libraryName,
-    required this.libraryLocation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6E4C9),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF7A5332), width: 2),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('📚', style: TextStyle(fontSize: 26)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  libraryName,
-                  style: GoogleFonts.patrickHand(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF342116),
-                  ),
-                ),
-                if (libraryLocation != null && libraryLocation!.isNotEmpty)
-                  Text(
-                    libraryLocation!,
-                    style: GoogleFonts.patrickHand(
-                      fontSize: 16,
-                      color: const Color(0xFF5E4736),
-                    ),
-                  ),
-                const SizedBox(height: 4),
-                Text(
-                  'What readers nearby are pulling, saving, and asking for right now.',
-                  style: GoogleFonts.patrickHand(
-                    fontSize: 16,
-                    color: const Color(0xFF5E4736),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ControlRow extends StatelessWidget {
   final String selectedGenre;
   final List<String> genres;
@@ -505,43 +424,6 @@ class _ControlRow extends StatelessWidget {
   }
 }
 
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _SectionCard({
-    required this.title,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8EBDD),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF7A5332), width: 3),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.patrickHand(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF342116),
-            ),
-          ),
-          const SizedBox(height: 10),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
 class _LibraryBookCard extends StatelessWidget {
   final Map<String, dynamic> book;
 
@@ -607,34 +489,36 @@ class _LibraryBookCard extends StatelessWidget {
                   Text(
                     book['title']?.toString() ?? 'Unknown Title',
                     style: GoogleFonts.patrickHand(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF342116),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     book['author']?.toString() ?? 'Unknown Author',
                     style: GoogleFonts.patrickHand(
-                      fontSize: 16,
+                      fontSize: 14,
                       color: const Color(0xFF5E4736),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 6,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                  const SizedBox(height: 4),
+                  Row(
                     children: [
-                      if ((book['genres']?.toString() ?? '').isNotEmpty)
+                      if ((book['genres']?.toString() ?? '').isNotEmpty) ...[
                         _MiniPill(
-                          label:
-                              book['genres'].toString().split(',').first.trim(),
+                          label: book['genres'].toString().split(',').first.trim(),
                           color: const Color(0xFFB7D8FF),
                         ),
+                        const SizedBox(width: 8),
+                      ],
                       Text(
                         '$available of $total available',
                         style: GoogleFonts.patrickHand(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: const Color(0xFF6A5039),
                         ),
                       ),
@@ -669,78 +553,6 @@ class _LibraryBookCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ReaderActivityCard extends StatelessWidget {
-  final Map<String, dynamic> item;
-
-  const _ReaderActivityCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    final readingCount = num.tryParse(item['reading_count']?.toString() ?? '')?.toInt() ?? 0;
-    final wantCount = num.tryParse(item['want_to_read_count']?.toString() ?? '')?.toInt() ?? 0;
-    final readCount = num.tryParse(item['read_count']?.toString() ?? '')?.toInt() ?? 0;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF9F0),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFB98A5D), width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            item['title']?.toString() ?? 'Unknown Title',
-            style: GoogleFonts.patrickHand(
-              fontSize: 21,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF342116),
-            ),
-          ),
-          Text(
-            item['author']?.toString() ?? 'Unknown Author',
-            style: GoogleFonts.patrickHand(
-              fontSize: 15,
-              color: const Color(0xFF5E4736),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              if (readingCount > 0)
-                _MiniPill(
-                  label: '$readingCount reading now',
-                  color: const Color(0xFFBFE3C0),
-                ),
-              if (wantCount > 0)
-                _MiniPill(
-                  label: '$wantCount queued',
-                  color: const Color(0xFFFFE4A0),
-                ),
-              if (readCount > 0)
-                _MiniPill(
-                  label: '$readCount finished',
-                  color: const Color(0xFFD7C6FF),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            item['reader_names']?.toString() ?? 'No readers listed',
-            style: GoogleFonts.patrickHand(
-              fontSize: 15,
-              color: const Color(0xFF5E4736),
-            ),
-          ),
-        ],
       ),
     );
   }
