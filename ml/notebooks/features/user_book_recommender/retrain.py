@@ -2,13 +2,14 @@
 retrain.py — Readiculous model retraining pipeline
 
 Pulls live signals from MySQL, merges with the Kaggle baseline,
-retrains XGBoost + SVD, and overwrites the .pkl files in place.
+retrains XGBoost (content-based) and SVD (collaborative filtering),
+and overwrites the .pkl files in place.
 
 Called by the Node.js backend via:
   POST /api/ml/retrain
 
 Outputs a single JSON line to stdout on completion:
-  {"status": "ok", "records": 12345, "xgb_accuracy": 0.87, "message": "..."}
+  {"status": "ok", "records": 12345, "xgb_accuracy": 0.87, "cf_rmse": 0.91, "message": "..."}
   {"status": "error", "message": "..."}
 
 Usage (standalone):
@@ -28,10 +29,12 @@ import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.decomposition import TruncatedSVD
-from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score
 import xgboost as xgb
+
+from surprise import Dataset, Reader, SVD as SurpriseSVD
+from surprise.model_selection import train_test_split as surprise_split
+from surprise import accuracy as surprise_accuracy
 
 warnings.filterwarnings("ignore")
 
@@ -47,9 +50,10 @@ DB_CONFIG = {
     "charset":  "utf8mb4",
 }
 
-KAGGLE_CSV   = os.getenv("GOODREADS_CSV", "/Users/whoseunassailable/Documents/datasets/GoodReads_100k_books.csv")
-MODEL_DIR    = os.path.dirname(os.path.abspath(__file__))
-MIN_NEW_ROWS = int(os.getenv("MIN_NEW_ROWS", "100"))  # skip retraining if fewer new signals than this
+KAGGLE_CSV       = os.getenv("GOODREADS_CSV", "/Users/whoseunassailable/Documents/datasets/GoodReads_100k_books.csv")
+MODEL_DIR        = os.path.dirname(os.path.abspath(__file__))
+MIN_NEW_ROWS     = int(os.getenv("MIN_NEW_ROWS", "100"))    # skip XGBoost retrain if fewer signals
+MIN_CF_ROWS      = int(os.getenv("MIN_CF_ROWS",  "10"))     # skip CF retrain if fewer interactions
 
 
 def out(payload: dict):
@@ -58,47 +62,38 @@ def out(payload: dict):
 
 
 # ──────────────────────────────────────────────
-# 1. Pull signals from MySQL
+# 1a. Pull quality signals for XGBoost
 # ──────────────────────────────────────────────
 
 def pull_mysql_signals():
     """
     Returns a DataFrame with columns:
       isbn13, avg_user_rating, rating_count, library_signal
-
-    library_signal:
-       +1  = book was STOCKED or ORDERED by a librarian (positive)
-       -1  = book was IGNORED by a librarian (negative)
-        0  = no librarian signal
     """
     conn = pymysql.connect(**DB_CONFIG)
     try:
-        # User ratings aggregated per book
         user_ratings = pd.read_sql(
             """
-            SELECT
-                b.isbn13,
-                AVG(ur.rating)  AS avg_user_rating,
-                COUNT(ur.rating) AS rating_count
+            SELECT b.isbn13,
+                   AVG(ur.rating)   AS avg_user_rating,
+                   COUNT(ur.rating) AS rating_count
             FROM user_reads ur
             JOIN books b ON b.book_id = ur.book_id
             WHERE ur.rating IS NOT NULL
-              AND b.isbn13  IS NOT NULL
+              AND b.isbn13   IS NOT NULL
             GROUP BY b.isbn13
             """,
             conn,
         )
 
-        # Librarian signals
         library_signals = pd.read_sql(
             """
-            SELECT
-                b.isbn13,
-                MAX(CASE
-                    WHEN lr.state IN ('STOCKED', 'ORDERED') THEN  1
-                    WHEN lr.state = 'IGNORED'               THEN -1
-                    ELSE 0
-                END) AS library_signal
+            SELECT b.isbn13,
+                   MAX(CASE
+                       WHEN lr.state IN ('STOCKED','ORDERED') THEN  1
+                       WHEN lr.state = 'IGNORED'              THEN -1
+                       ELSE 0
+                   END) AS library_signal
             FROM library_recommendations lr
             JOIN books b ON b.book_id = lr.book_id
             WHERE lr.state != 'NEW'
@@ -114,10 +109,54 @@ def pull_mysql_signals():
         return pd.DataFrame()
 
     signals = pd.merge(user_ratings, library_signals, on="isbn13", how="outer")
-    signals["avg_user_rating"]  = signals["avg_user_rating"].fillna(0)
-    signals["rating_count"]     = signals["rating_count"].fillna(0)
-    signals["library_signal"]   = signals["library_signal"].fillna(0)
+    signals["avg_user_rating"] = signals["avg_user_rating"].fillna(0)
+    signals["rating_count"]    = signals["rating_count"].fillna(0)
+    signals["library_signal"]  = signals["library_signal"].fillna(0)
     return signals
+
+
+# ──────────────────────────────────────────────
+# 1b. Pull user interactions for CF
+# ──────────────────────────────────────────────
+
+def pull_user_interactions():
+    """
+    Returns a DataFrame with columns: user_id, isbn13, effective_rating.
+
+    effective_rating:
+      - Explicit rating if present (1-5 tinyint)
+      - Implicit fallback from status if no rating:
+          read         → 3.5  (finished, probably liked it)
+          reading      → 3.0  (in progress, neutral positive)
+          want_to_read → 2.5  (expressed interest, weaker signal)
+    """
+    conn = pymysql.connect(**DB_CONFIG)
+    try:
+        df = pd.read_sql(
+            """
+            SELECT
+                ur.user_id,
+                b.isbn13,
+                COALESCE(
+                    ur.rating,
+                    CASE ur.status
+                        WHEN 'read'         THEN 3.5
+                        WHEN 'reading'      THEN 3.0
+                        WHEN 'want_to_read' THEN 2.5
+                    END
+                ) AS effective_rating
+            FROM user_reads ur
+            JOIN books b ON b.book_id = ur.book_id
+            WHERE b.isbn13 IS NOT NULL
+            """,
+            conn,
+        )
+    finally:
+        conn.close()
+
+    df = df.dropna(subset=["effective_rating"])
+    df["effective_rating"] = df["effective_rating"].astype(float).clip(1.0, 5.0)
+    return df
 
 
 # ──────────────────────────────────────────────
@@ -125,44 +164,27 @@ def pull_mysql_signals():
 # ──────────────────────────────────────────────
 
 def build_training_data(signals: pd.DataFrame):
-    """
-    Load the Kaggle CSV and overlay live MySQL signals.
-
-    For books present in MySQL:
-      - Blend the Kaggle avg rating with the user rating (weighted 70/30)
-      - Assign per-row sample weights from library_signal
-        (STOCKED/ORDERED → 3.0, IGNORED → 0.5, no signal → 1.0)
-
-    Returns (df, weights) where weights is a float32 array aligned to df rows.
-    """
     cols = ["author", "bookformat", "genre", "isbn", "pages", "rating", "reviews", "title", "totalratings"]
     df = pd.read_csv(KAGGLE_CSV, encoding="utf-8")
     df = df[[c for c in cols if c in df.columns]]
     df = df.dropna(subset=["rating", "genre", "author"]).reset_index(drop=True)
 
-    # Normalise isbn column name to isbn13
     if "isbn" in df.columns:
         df = df.rename(columns={"isbn": "isbn13"})
 
     if signals.empty or "isbn13" not in df.columns:
         return df, np.ones(len(df), dtype="float32")
 
-    # Merge signals
     merged = df.merge(signals, on="isbn13", how="left")
     merged["avg_user_rating"] = merged["avg_user_rating"].fillna(0)
     merged["library_signal"]  = merged["library_signal"].fillna(0)
 
-    # Blend rating: 70% Kaggle + 30% user rating (only where user data exists)
     has_user_rating = merged["avg_user_rating"] > 0
     merged.loc[has_user_rating, "rating"] = (
         0.7 * merged.loc[has_user_rating, "rating"] +
         0.3 * merged.loc[has_user_rating, "avg_user_rating"]
     )
 
-    # Build sample weights from library signals instead of duplicating/capping rows.
-    # STOCKED/ORDERED → weight 3.0 (strong positive signal)
-    # IGNORED         → weight 0.5 (downweight, but keep the book in training)
-    # No signal       → weight 1.0 (neutral)
     weights = np.ones(len(merged), dtype="float32")
     weights[merged["library_signal"] == 1]  = 3.0
     weights[merged["library_signal"] == -1] = 0.5
@@ -172,7 +194,7 @@ def build_training_data(signals: pd.DataFrame):
 
 
 # ──────────────────────────────────────────────
-# 3. Feature engineering (mirrors the notebook)
+# 3. Feature engineering
 # ──────────────────────────────────────────────
 
 def engineer_features(df: pd.DataFrame):
@@ -208,16 +230,15 @@ def engineer_features(df: pd.DataFrame):
 
 
 # ──────────────────────────────────────────────
-# 4. Train XGBoost + SVD + LogisticRegression
+# 4a. Train XGBoost (content-based ranker)
 # ──────────────────────────────────────────────
 
-def train(features: pd.DataFrame, target: pd.Series, weights: np.ndarray):
+def train_xgb(features: pd.DataFrame, target: pd.Series, weights: np.ndarray):
     X_train, X_test, y_train, y_test, w_train, _ = train_test_split(
         features, target, weights, test_size=0.2, random_state=42, stratify=target
     )
 
-    # XGBoost — sample_weight amplifies librarian-approved books, downweights ignored ones
-    xgb_model = xgb.XGBClassifier(
+    model = xgb.XGBClassifier(
         n_estimators=200,
         max_depth=6,
         learning_rate=0.1,
@@ -226,30 +247,49 @@ def train(features: pd.DataFrame, target: pd.Series, weights: np.ndarray):
         random_state=42,
         verbosity=0,
     )
-    xgb_model.fit(X_train, y_train, sample_weight=w_train)
-    xgb_acc = accuracy_score(y_test, xgb_model.predict(X_test))
+    model.fit(X_train, y_train, sample_weight=w_train)
+    acc = accuracy_score(y_test, model.predict(X_test))
+    return model, float(acc)
 
-    # SVD + Logistic Regression
-    svd = TruncatedSVD(n_components=20, random_state=42)
-    X_train_svd = svd.fit_transform(X_train)
-    X_test_svd  = svd.transform(X_test)
 
-    logreg = LogisticRegression(max_iter=1000, random_state=42)
-    logreg.fit(X_train_svd, y_train, sample_weight=w_train)
+# ──────────────────────────────────────────────
+# 4b. Train SVD (collaborative filtering)
+# ──────────────────────────────────────────────
 
-    return xgb_model, svd, logreg, float(xgb_acc)
+def train_cf(interactions: pd.DataFrame):
+    """
+    Train surprise SVD on user-book interactions.
+    Returns (model, rmse) or (None, None) if data is insufficient.
+    """
+    reader  = Reader(rating_scale=(1.0, 5.0))
+    dataset = Dataset.load_from_df(
+        interactions[["user_id", "isbn13", "effective_rating"]],
+        reader,
+    )
+
+    trainset, testset = surprise_split(dataset, test_size=0.2, random_state=42)
+
+    # n_factors=50: reasonable for a mid-size catalogue; adjust after measuring RMSE
+    model = SurpriseSVD(n_factors=50, n_epochs=25, lr_all=0.005, reg_all=0.02, random_state=42)
+    model.fit(trainset)
+
+    predictions = model.test(testset)
+    rmse = surprise_accuracy.rmse(predictions, verbose=False)
+    return model, float(rmse)
 
 
 # ──────────────────────────────────────────────
 # 5. Save models
 # ──────────────────────────────────────────────
 
-def save_models(xgb_model, svd, logreg, le_a, le_f):
+def save_xgb(xgb_model, le_a, le_f):
     joblib.dump(xgb_model, os.path.join(MODEL_DIR, "xgb_model.pkl"))
-    joblib.dump(svd,       os.path.join(MODEL_DIR, "svd_transformer.pkl"))
-    joblib.dump(logreg,    os.path.join(MODEL_DIR, "svd_logistic_model.pkl"))
     joblib.dump(le_a,      os.path.join(MODEL_DIR, "le_author.pkl"))
     joblib.dump(le_f,      os.path.join(MODEL_DIR, "le_format.pkl"))
+
+
+def save_cf(cf_model):
+    joblib.dump(cf_model, os.path.join(MODEL_DIR, "cf_model.pkl"))
 
 
 # ──────────────────────────────────────────────
@@ -258,41 +298,52 @@ def save_models(xgb_model, svd, logreg, le_a, le_f):
 
 def main():
     t0 = time.time()
+    result = {}
 
     try:
-        # 1. Pull live signals
-        signals = pull_mysql_signals()
+        # ── Content-based (XGBoost) ───────────────
+        signals          = pull_mysql_signals()
         new_signal_count = len(signals)
 
         if new_signal_count < MIN_NEW_ROWS:
-            out({
-                "status":  "skipped",
-                "records": new_signal_count,
-                "message": f"Only {new_signal_count} new signals — minimum is {MIN_NEW_ROWS}. Retraining skipped.",
-            })
-            return
+            result["xgb_status"]  = "skipped"
+            result["xgb_message"] = f"Only {new_signal_count} signals (min {MIN_NEW_ROWS})"
+        else:
+            df, weights            = build_training_data(signals)
+            features, target, le_a, le_f = engineer_features(df)
+            xgb_model, xgb_acc    = train_xgb(features, target, weights)
+            save_xgb(xgb_model, le_a, le_f)
+            result["xgb_status"]   = "ok"
+            result["xgb_records"]  = len(df)
+            result["xgb_accuracy"] = round(xgb_acc, 4)
 
-        # 2. Build training data (returns df + per-row sample weights)
-        df, weights = build_training_data(signals)
+        # ── Collaborative filtering (SVD) ─────────
+        interactions      = pull_user_interactions()
+        cf_interaction_count = len(interactions)
 
-        # 3. Feature engineering
-        features, target, le_a, le_f = engineer_features(df)
+        if cf_interaction_count < MIN_CF_ROWS:
+            result["cf_status"]  = "skipped"
+            result["cf_message"] = f"Only {cf_interaction_count} interactions (min {MIN_CF_ROWS})"
+        else:
+            cf_model, cf_rmse = train_cf(interactions)
+            save_cf(cf_model)
+            result["cf_status"]        = "ok"
+            result["cf_interactions"]  = cf_interaction_count
+            result["cf_unique_users"]  = int(interactions["user_id"].nunique())
+            result["cf_unique_books"]  = int(interactions["isbn13"].nunique())
+            result["cf_rmse"]          = round(cf_rmse, 4)
 
-        # 4. Train — pass weights so both models respect library signals
-        xgb_model, svd, logreg, xgb_acc = train(features, target, weights)
-
-        # 5. Save
-        save_models(xgb_model, svd, logreg, le_a, le_f)
-
-        elapsed = round(time.time() - t0, 1)
-        out({
-            "status":       "ok",
-            "records":      len(df),
-            "new_signals":  new_signal_count,
-            "xgb_accuracy": round(xgb_acc, 4),
-            "elapsed_s":    elapsed,
-            "message":      f"Retrained on {len(df)} records ({new_signal_count} live signals) in {elapsed}s. XGBoost accuracy: {round(xgb_acc * 100, 1)}%",
-        })
+        elapsed         = round(time.time() - t0, 1)
+        result["status"]    = "ok"
+        result["elapsed_s"] = elapsed
+        result["message"]   = (
+            f"Retrain complete in {elapsed}s. "
+            f"XGBoost: {result.get('xgb_status', 'skipped')} "
+            f"(acc={result.get('xgb_accuracy', 'n/a')}). "
+            f"CF: {result.get('cf_status', 'skipped')} "
+            f"(rmse={result.get('cf_rmse', 'n/a')})."
+        )
+        out(result)
 
     except Exception as e:
         out({"status": "error", "message": str(e)})

@@ -7,7 +7,7 @@ import '../../../../session/session_provider.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
 import '../state_management/library_recommendations_provider.dart';
 import '../state_management/user_library_provider.dart';
-import 'package:readiculous_frontend/core/features/my_books/presentation/state_management/my_books_provider.dart';
+import 'package:readiculous_frontend/core/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
 
 class BooksStockContainer extends ConsumerWidget {
   final double height;
@@ -51,17 +51,15 @@ class BooksStockContainer extends ConsumerWidget {
       }
     }
 
-    // Users: resolve currently-reading book
-    String? currentBookTitle;
-    String? currentBookAuthor;
+    // Users: resolve top recommendation
+    String? recBookTitle;
+    String? recBookAuthor;
     if (!isLibrarian) {
-      final books = ref.watch(myBooksProvider).asData?.value;
-      if (books != null) {
-        final reading = books.where((b) => b['status'] == 'reading').toList();
-        if (reading.isNotEmpty) {
-          currentBookTitle = reading.first['title'] as String?;
-          currentBookAuthor = reading.first['author'] as String?;
-        }
+      final recs = ref.watch(userRecommendationsProvider).asData?.value;
+      if (recs != null && recs.isNotEmpty) {
+        final top = recs.first as Map<String, dynamic>;
+        recBookTitle = top['title'] as String?;
+        recBookAuthor = top['author'] as String?;
       }
     }
 
@@ -104,33 +102,33 @@ class BooksStockContainer extends ConsumerWidget {
                               ],
                             )
                           : Text('No pending picks', style: TextStyle(fontSize: height / 55, color: Colors.black45)))
-                      : (currentBookTitle != null
+                      : (recBookTitle != null
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Currently reading',
+                                  'Recommended for you',
                                   style: TextStyle(fontSize: height / 65, color: Colors.black45),
                                 ),
                                 Text(
-                                  currentBookTitle!,
+                                  recBookTitle!,
                                   style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (currentBookAuthor != null)
-                                  Text(currentBookAuthor!, style: TextStyle(fontSize: height / 65, color: Colors.black54)),
+                                if (recBookAuthor != null)
+                                  Text(recBookAuthor!, style: TextStyle(fontSize: height / 65, color: Colors.black54)),
                               ],
                             )
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Nothing in progress',
+                                  'No recommendations yet',
                                   style: TextStyle(fontSize: height / 55, fontWeight: FontWeight.w600),
                                 ),
                                 Text(
-                                  'Pick something from My Books!',
+                                  'Rate books & set genre prefs!',
                                   style: TextStyle(fontSize: height / 65, color: Colors.black45),
                                 ),
                               ],
@@ -195,23 +193,6 @@ class BooksStockContainer extends ConsumerWidget {
                         label: 'My Books',
                         color: const Color(0xFFBFE3C0),
                         onTap: () => context.pushNamed(RouteNames.myBooks),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'My Recs',
-                        color: const Color(0xFFD7C6FF),
-                        onTap: () => context.pushNamed(
-                          RouteNames.bookRecommendationPageForUser,
-                        ),
-                      ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Genres',
-                        color: const Color(0xFFFFE4A0),
-                        onTap: () =>
-                            context.pushNamed(RouteNames.genrePreferences),
                       ),
                       _ActionChip(
                         width: width * 0.22,

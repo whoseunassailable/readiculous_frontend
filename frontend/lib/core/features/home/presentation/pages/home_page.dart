@@ -74,16 +74,23 @@ class _HomePageState extends ConsumerState<HomePage> {
               trailing: isLibrarian
                   ? null
                   : GestureDetector(
-                      onTap: () => context.pushNamed(RouteNames.genrePreferences),
+                      onTap: () =>
+                          context.pushNamed(RouteNames.genrePreferences),
                       child: Container(
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF3A436).withOpacity(0.9),
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(color: Colors.black, width: 1.5),
-                          boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 0)],
+                          boxShadow: const [
+                            BoxShadow(
+                                color: Colors.black26,
+                                offset: Offset(1, 1),
+                                blurRadius: 0)
+                          ],
                         ),
-                        child: const Icon(Icons.tune_rounded, size: 18, color: Colors.black),
+                        child: const Icon(Icons.tune_rounded,
+                            size: 18, color: Colors.black),
                       ),
                     ),
             ),
@@ -115,7 +122,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               height: height,
               width: width,
               imageAssetName: 'assets/icons/books_to_stock_icon.png',
-              heading: isLibrarian ? S.of(context).booksToStock : 'Your Reading Hub',
+              heading:
+                  isLibrarian ? S.of(context).booksToStock : 'Your Reading Hub',
             ),
             MiniHeading(height: height, width: width, isLibrarian: isLibrarian),
             SizedBox(height: height / 60),
