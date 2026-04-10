@@ -95,23 +95,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             children: [
               // ── Back button row ──
               Padding(
-                padding: EdgeInsets.only(
-                    left: width / 20, top: height * 0.01),
+                padding: EdgeInsets.only(left: width / 20, top: height * 0.01),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: GestureDetector(
                     onTap: () => context.pop(),
-                    child: const Icon(MaterialCommunityIcons.arrow_left,
-                        size: 28),
+                    child:
+                        const Icon(MaterialCommunityIcons.arrow_left, size: 28),
                   ),
                 ),
               ),
               SizedBox(height: height * 0.01),
               // ── Logo centered ──
-              Image.asset(
-                'assets/images/logo.png',
-                height: height / 7,
-              ),
+              Image.asset('assets/images/logo.png', height: height * 0.10),
               SizedBox(height: height * 0.015),
               // ── Title ──
               Text(
@@ -125,8 +121,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               // ── Scrollable form fields ──
               Expanded(
                 child: SingleChildScrollView(
-                  child: listOfTextFormFields(
-                      height: height, width: width),
+                  child: listOfTextFormFields(height: height, width: width),
                 ),
               ),
               // ── Sign Up button pinned at bottom ──
@@ -135,150 +130,153 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 child: SizedBox(
                   height: height * 0.075,
                   child: MinimalistButton(
-                  onPressed: () async {
-                  final authRepo = AuthRepositoryImpl(AuthRemoteDataSource());
+                    onPressed: () async {
+                      final authRepo =
+                          AuthRepositoryImpl(AuthRemoteDataSource());
 
-                  final email = _emailController.text.trim();
-                  final name = _nameController.text.trim();
-                  final dob = _dobController.text.trim();
-                  final location = _locationController.text.trim();
-                  final phone = _phoneController.text.trim();
-                  final password = _passwordController.text;
-                  final confirmPassword = _confirmPasswordController.text;
+                      final email = _emailController.text.trim();
+                      final name = _nameController.text.trim();
+                      final dob = _dobController.text.trim();
+                      final location = _locationController.text.trim();
+                      final phone = _phoneController.text.trim();
+                      final password = _passwordController.text;
+                      final confirmPassword = _confirmPasswordController.text;
 
-                  final isEmailValid = RegexPatterns.email.hasMatch(email);
-                  final isNameValid = RegexPatterns.name.hasMatch(name);
-                  final isDobValid = RegexPatterns.dob.hasMatch(dob);
-                  final isPhoneValid = RegexPatterns.phone.hasMatch(phone);
-                  final isLocationValid =
-                      location.isNotEmpty; // or RegexPatterns.location
-                  final isPasswordValid =
-                      RegexPatterns.password.hasMatch(password);
-                  final validPassword = password == confirmPassword;
+                      final isEmailValid = RegexPatterns.email.hasMatch(email);
+                      final isNameValid = RegexPatterns.name.hasMatch(name);
+                      final isDobValid = RegexPatterns.dob.hasMatch(dob);
+                      final isPhoneValid = RegexPatterns.phone.hasMatch(phone);
+                      final isLocationValid =
+                          location.isNotEmpty; // or RegexPatterns.location
+                      final isPasswordValid =
+                          RegexPatterns.password.hasMatch(password);
+                      final validPassword = password == confirmPassword;
 
-                  final displaySnackbar = DisplaySnackbar();
+                      final displaySnackbar = DisplaySnackbar();
 
-                  if (!isEmailValid) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message: S.of(context).pleaseEnterValidEmail,
-                      focusNode: emailFocus,
-                    );
-                    return;
-                  }
+                      if (!isEmailValid) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S.of(context).pleaseEnterValidEmail,
+                          focusNode: emailFocus,
+                        );
+                        return;
+                      }
 
-                  if (!isNameValid) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message: S.of(context).pleaseEnterValidName,
-                      focusNode: nameFocus,
-                    );
-                    return;
-                  }
+                      if (!isNameValid) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S.of(context).pleaseEnterValidName,
+                          focusNode: nameFocus,
+                        );
+                        return;
+                      }
 
-                  if (!isDobValid) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message: S.of(context).pleaseEnterValidDOB,
-                      focusNode: dobFocus,
-                    );
-                    return;
-                  }
+                      if (!isDobValid) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S.of(context).pleaseEnterValidDOB,
+                          focusNode: dobFocus,
+                        );
+                        return;
+                      }
 
-                  if (!isPhoneValid) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message: S.of(context).pleaseEnterValidPhoneNumber,
-                      focusNode: phoneNumberFocus,
-                    );
-                    return;
-                  }
+                      if (!isPhoneValid) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S.of(context).pleaseEnterValidPhoneNumber,
+                          focusNode: phoneNumberFocus,
+                        );
+                        return;
+                      }
 
-                  if (!isLocationValid) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message: S.of(context).pleaseEnterValidLocation,
-                      focusNode: locationFocus,
-                    );
-                    return;
-                  }
+                      if (!isLocationValid) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S.of(context).pleaseEnterValidLocation,
+                          focusNode: locationFocus,
+                        );
+                        return;
+                      }
 
-                  if (!isPasswordValid) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message: S.of(context).pleaseEnterValidPassword,
-                      focusNode: passwordFocus,
-                    );
-                    return;
-                  }
+                      if (!isPasswordValid) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S.of(context).pleaseEnterValidPassword,
+                          focusNode: passwordFocus,
+                        );
+                        return;
+                      }
 
-                  if (!validPassword) {
-                    displaySnackbar.showErrorWithFocus(
-                      context: context,
-                      message:
-                          S.of(context).passwordAndConfirmPasswordDoNotMatch,
-                      focusNode: passwordFocus,
-                    );
-                    return;
-                  }
+                      if (!validPassword) {
+                        displaySnackbar.showErrorWithFocus(
+                          context: context,
+                          message: S
+                              .of(context)
+                              .passwordAndConfirmPasswordDoNotMatch,
+                          focusNode: passwordFocus,
+                        );
+                        return;
+                      }
 
-                  // Split name safely
-                  final parts = name
-                      .split(RegExp(r'\s+'))
-                      .where((p) => p.isNotEmpty)
-                      .toList();
-                  final firstName = parts.isNotEmpty ? parts.first : "";
-                  final lastName =
-                      parts.length > 1 ? parts.sublist(1).join(' ') : "";
+                      // Split name safely
+                      final parts = name
+                          .split(RegExp(r'\s+'))
+                          .where((p) => p.isNotEmpty)
+                          .toList();
+                      final firstName = parts.isNotEmpty ? parts.first : "";
+                      final lastName =
+                          parts.length > 1 ? parts.sublist(1).join(' ') : "";
 
-                  final payload = UserModel(
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email,
-                    phone: phone,
-                    dateOfBirth: dob,
-                    password: password,
-                    location: location,
-                    role: _role,
-                  ).toJson();
+                      final payload = UserModel(
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        phone: phone,
+                        dateOfBirth: dob,
+                        password: password,
+                        location: location,
+                        role: _role,
+                      ).toJson();
 
-                  final result = await authRepo.register(payload);
+                      final result = await authRepo.register(payload);
 
-                  if (result.isSuccess) {
-                    final data = result.data!;
+                      if (result.isSuccess) {
+                        final data = result.data!;
 
-                    String? userId;
-                    if (data['user'] is Map) {
-                      userId = (data['user']['user_id']).toString();
-                    } else if (data['data'] is Map) {
-                      final inner = data['data'] as Map<String, dynamic>;
-                      userId = (inner['user_id'] ?? inner['id'])?.toString();
-                    }
+                        String? userId;
+                        if (data['user'] is Map) {
+                          userId = (data['user']['user_id']).toString();
+                        } else if (data['data'] is Map) {
+                          final inner = data['data'] as Map<String, dynamic>;
+                          userId =
+                              (inner['user_id'] ?? inner['id'])?.toString();
+                        }
 
-                    await ref.read(sessionProvider.notifier).setSession(
-                      userId: userId,
-                      email: email,
-                      role: _role,
-                    );
+                        await ref.read(sessionProvider.notifier).setSession(
+                              userId: userId,
+                              email: email,
+                              role: _role,
+                            );
 
-                    if (!context.mounted) return;
-                    context.go('/home_page');
-                    return;
-                  }
+                        if (!context.mounted) return;
+                        context.go('/home_page');
+                        return;
+                      }
 
-                  final err = result.error!;
-                  _logger.e(
-                      'Register failed: ${err.statusCode}\n${err.message}\n${err.details}');
+                      final err = result.error!;
+                      _logger.e(
+                          'Register failed: ${err.statusCode}\n${err.message}\n${err.details}');
 
-                  if (!context.mounted) return;
+                      if (!context.mounted) return;
 
-                  displaySnackbar.showErrorWithFocus(
-                    context: context,
-                    message: err.message,
-                    focusNode: emailFocus,
-                  );
-                },
-                  text: S.of(context).signUp,
+                      displaySnackbar.showErrorWithFocus(
+                        context: context,
+                        message: err.message,
+                        focusNode: emailFocus,
+                      );
+                    },
+                    text: S.of(context).signUp,
                   ),
                 ),
               ),
@@ -300,76 +298,73 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-            CustomTextFormField(
-              hintText: S.of(context).email,
-              controller: _emailController,
-              prefixIcon: const Icon(MaterialCommunityIcons.email),
-            ),
-            spacing,
-            CustomTextFormField(
-              hintText: S.of(context).name,
-              controller: _nameController,
-              prefixIcon: const Icon(MaterialCommunityIcons.account),
-            ),
-            spacing,
-            CustomTextFormField(
-              hintText: S.of(context).dob,
-              controller: _dobController,
-              prefixIcon: const Icon(MaterialCommunityIcons.calendar),
-            ),
-            spacing,
-            CustomTextFormField(
-              hintText: S.of(context).phoneNumber,
-              controller: _phoneController,
-              prefixIcon: const Icon(MaterialCommunityIcons.phone),
-            ),
-            spacing,
-            CustomTextFormField(
-              hintText: S.of(context).location,
-              controller: _locationController,
-              prefixIcon: const Icon(Entypo.location),
-            ),
-            spacing,
-            // "Are you a librarian?" role selector
-            DropdownButtonFormField<String>(
-              value: _role,
-              decoration: const InputDecoration(
-                prefixIcon: Icon(MaterialCommunityIcons.account_tie),
-                hintText: 'Are you a librarian?',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-                fillColor: Colors.white,
-                filled: true,
+          CustomTextFormField(
+            hintText: S.of(context).email,
+            controller: _emailController,
+            prefixIcon: const Icon(MaterialCommunityIcons.email),
+          ),
+          spacing,
+          CustomTextFormField(
+            hintText: S.of(context).name,
+            controller: _nameController,
+            prefixIcon: const Icon(MaterialCommunityIcons.account),
+          ),
+          spacing,
+          CustomTextFormField(
+            hintText: S.of(context).dob,
+            controller: _dobController,
+            prefixIcon: const Icon(MaterialCommunityIcons.calendar),
+          ),
+          spacing,
+          CustomTextFormField(
+            hintText: S.of(context).phoneNumber,
+            controller: _phoneController,
+            prefixIcon: const Icon(MaterialCommunityIcons.phone),
+          ),
+          spacing,
+          CustomTextFormField(
+            hintText: S.of(context).location,
+            controller: _locationController,
+            prefixIcon: const Icon(Entypo.location),
+          ),
+          spacing,
+          // "Are you a librarian?" role selector
+          DropdownButtonFormField<String>(
+            value: _role,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(MaterialCommunityIcons.account_tie),
+              hintText: 'Are you a librarian?',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(10)),
               ),
-              items: const [
-                DropdownMenuItem(value: 'user', child: Text('No')),
-                DropdownMenuItem(value: 'librarian', child: Text('Yes')),
-              ],
-              onChanged: (value) {
-                if (value != null) setState(() => _role = value);
-              },
+              fillColor: Colors.white,
+              filled: true,
             ),
-            spacing,
-            CustomTextFormField(
-              hintText: S.of(context).password,
-              controller: _passwordController,
-              prefixIcon: const Icon(MaterialCommunityIcons.lock),
-              obscureText: true,
-            ),
-            spacing,
-            CustomTextFormField(
-              hintText: S.of(context).confirmPassword,
-              controller: _confirmPasswordController,
-              prefixIcon: const Icon(MaterialCommunityIcons.lock_check),
-              obscureText: true,
-            ),
-            spacing,
-          ],
-        ),
+            items: const [
+              DropdownMenuItem(value: 'user', child: Text('No')),
+              DropdownMenuItem(value: 'librarian', child: Text('Yes')),
+            ],
+            onChanged: (value) {
+              if (value != null) setState(() => _role = value);
+            },
+          ),
+          spacing,
+          CustomTextFormField(
+            hintText: S.of(context).password,
+            controller: _passwordController,
+            prefixIcon: const Icon(MaterialCommunityIcons.lock),
+            obscureText: true,
+          ),
+          spacing,
+          CustomTextFormField(
+            hintText: S.of(context).confirmPassword,
+            controller: _confirmPasswordController,
+            prefixIcon: const Icon(MaterialCommunityIcons.lock_check),
+            obscureText: true,
+          ),
+          spacing,
+        ],
+      ),
     );
   }
 }
-
-
-

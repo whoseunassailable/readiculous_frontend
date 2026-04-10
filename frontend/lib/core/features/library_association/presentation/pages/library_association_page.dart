@@ -1,24 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_vector_icons/flutter_vector_icons.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
 import 'package:readiculous_frontend/core/network/clients/librarians_api_client.dart';
-import 'package:readiculous_frontend/core/network/clients/libraries_api_client.dart';
 import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
-import 'package:readiculous_frontend/core/utils/appbar.dart';
 
 import '../../../home/presentation/state_management/user_library_provider.dart';
-
-final allLibrariesProvider =
-    FutureProvider<List<Map<String, dynamic>>>((ref) async {
-  final raw = await LibrariesApiClient(DioClient.main).getAllLibraries();
-  final items = raw.cast<Map<String, dynamic>>().toList()
-    ..sort((a, b) => (a['name']?.toString() ?? '')
-        .toLowerCase()
-        .compareTo((b['name']?.toString() ?? '').toLowerCase()));
-  return items;
-});
+import '../state_management/libraries_provider.dart';
 
 class LibraryAssociationPage extends ConsumerStatefulWidget {
   const LibraryAssociationPage({super.key});
@@ -32,6 +23,29 @@ class _LibraryAssociationPageState
     extends ConsumerState<LibraryAssociationPage> {
   String? _selectedLibraryId;
   bool _saving = false;
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl.addListener(() => setState(() {}));
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> _filter(List<Map<String, dynamic>> libraries) {
+    final q = _searchCtrl.text.trim().toLowerCase();
+    if (q.isEmpty) return libraries;
+    return libraries.where((lib) {
+      final name = (lib['name']?.toString() ?? '').toLowerCase();
+      final location = (lib['location']?.toString() ?? '').toLowerCase();
+      return name.contains(q) || location.contains(q);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,69 +57,231 @@ class _LibraryAssociationPageState
         userId == null ? null : ref.watch(userLibraryProvider(userId));
 
     return Scaffold(
-      appBar: StylishAppBar(title: 'Library Association', homepage: false),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            fit: BoxFit.fitHeight,
-            image: AssetImage('assets/images/home.png'),
+            fit: BoxFit.cover,
+            image: AssetImage('assets/images/bg_for_add_books.png'),
           ),
         ),
-        child: librariesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => _StatusMessage(
-            title: 'Could not load libraries.',
-            subtitle: '$e',
-          ),
-          data: (libraries) {
-            final currentLibrary = currentLibraryAsync?.maybeWhen(
-              data: (library) => library,
-              orElse: () => null,
-            );
-            _selectedLibraryId ??= currentLibrary?.libraryId.toString();
-
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-              children: [
-                _HeaderCard(
-                  role: role,
-                  currentLibraryName: currentLibrary?.name,
-                ),
-                const SizedBox(height: 18),
-                ...libraries.map(
-                  (library) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _LibraryCard(
-                      library: library,
-                      selected: _selectedLibraryId ==
-                          library['library_id'].toString(),
-                      isCurrent: currentLibrary?.libraryId.toString() ==
-                          library['library_id'].toString(),
-                      onTap: () => setState(
-                        () =>
-                            _selectedLibraryId = library['library_id'].toString(),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // ── Custom crayon header ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3A436),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.black, width: 2),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black,
+                              offset: Offset(2, 2),
+                              blurRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(MaterialCommunityIcons.arrow_left,
+                            color: Colors.black, size: 20),
                       ),
+                    ),
+                    const SizedBox(width: 14),
+                    Text(
+                      'Choose Library',
+                      style: GoogleFonts.patrickHand(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF3A3329),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              // ── Search bar ──
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.80),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black, width: 2),
+                    boxShadow: const [
+                      BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(2, 2),
+                          blurRadius: 0),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchCtrl,
+                    style: GoogleFonts.patrickHand(fontSize: 15),
+                    decoration: InputDecoration(
+                      hintText: 'Search by city, zip, name…',
+                      hintStyle: GoogleFonts.patrickHand(
+                          color: Colors.black38, fontSize: 14),
+                      prefixIcon:
+                          const Icon(Icons.search, color: Colors.black54),
+                      suffixIcon: _searchCtrl.text.isNotEmpty
+                          ? GestureDetector(
+                              onTap: () => _searchCtrl.clear(),
+                              child: const Icon(Icons.close,
+                                  color: Colors.black45, size: 20),
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10),
-                _SaveButton(
-                  saving: _saving,
-                  enabled: userId != null && _selectedLibraryId != null,
-                  label: role == AppRoles.librarian
-                      ? 'Save Association'
-                      : 'Save Library',
-                  onPressed: () => _saveAssociation(
-                    context,
-                    userId!,
-                    role ?? AppRoles.user,
+              ),
+              const SizedBox(height: 12),
+              // ── List ──
+              Expanded(
+                child: librariesAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(
+                    child: Text(
+                      'Could not load libraries.\n$e',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.patrickHand(fontSize: 16),
+                    ),
                   ),
+                  data: (libraries) {
+                    final currentLibrary = currentLibraryAsync?.maybeWhen(
+                      data: (library) => library,
+                      orElse: () => null,
+                    );
+                    _selectedLibraryId ??=
+                        currentLibrary?.libraryId.toString();
+
+                    final filtered = _filter(libraries);
+
+                    return ListView(
+                      padding:
+                          const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                      children: [
+                        // Current association banner
+                        if (currentLibrary != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFB7D8FF).withOpacity(0.80),
+                              borderRadius: BorderRadius.circular(14),
+                              border:
+                                  Border.all(color: Colors.black, width: 2),
+                              boxShadow: const [
+                                BoxShadow(
+                                    color: Colors.black26,
+                                    offset: Offset(2, 2),
+                                    blurRadius: 0),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.verified,
+                                    color: Colors.black, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Current: ${currentLibrary.name}',
+                                    style: GoogleFonts.patrickHand(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: const Color(0xFF3A3329),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (filtered.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 40),
+                            child: Center(
+                              child: Text(
+                                'No libraries match\n"${_searchCtrl.text}"',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.patrickHand(
+                                  fontSize: 17,
+                                  color: const Color(0xFF3A3329)
+                                      .withOpacity(0.55),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          ...filtered.map(
+                            (library) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _LibraryCard(
+                                library: library,
+                                selected: _selectedLibraryId ==
+                                    library['library_id'].toString(),
+                                isCurrent:
+                                    currentLibrary?.libraryId.toString() ==
+                                        library['library_id'].toString(),
+                                onTap: () => setState(
+                                  () => _selectedLibraryId =
+                                      library['library_id'].toString(),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
-              ],
-            );
-          },
+              ),
+            ],
+          ),
         ),
       ),
+      // ── Pinned Save button ──
+      floatingActionButton: _selectedLibraryId != null && userId != null
+          ? FloatingActionButton.extended(
+              backgroundColor: const Color(0xFFF3A436),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Colors.black, width: 2),
+              ),
+              elevation: 4,
+              onPressed: _saving
+                  ? null
+                  : () => _saveAssociation(
+                      context, userId, role ?? AppRoles.user),
+              label: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.black),
+                    )
+                  : Text(
+                      role == AppRoles.librarian
+                          ? 'Save Association'
+                          : 'Save Library',
+                      style: GoogleFonts.patrickHand(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+              icon: _saving ? const SizedBox.shrink() : const Icon(Icons.save_outlined),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -136,13 +312,17 @@ class _LibraryAssociationPageState
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          backgroundColor: const Color(0xFFF3A436),
           content: Text(
             role == AppRoles.librarian
                 ? 'Library association saved.'
                 : 'Preferred library saved.',
+            style: GoogleFonts.patrickHand(
+                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
           ),
         ),
       );
+      if (context.mounted) context.pop();
     } catch (_) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -151,57 +331,6 @@ class _LibraryAssociationPageState
     } finally {
       if (mounted) setState(() => _saving = false);
     }
-  }
-}
-
-class _HeaderCard extends StatelessWidget {
-  final String? role;
-  final String? currentLibraryName;
-
-  const _HeaderCard({
-    required this.role,
-    required this.currentLibraryName,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isLibrarian = role == AppRoles.librarian;
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFB7D8FF),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black, width: 2.5),
-        boxShadow: const [
-          BoxShadow(color: Colors.black, offset: Offset(4, 4), blurRadius: 0),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isLibrarian ? 'Your Library Base' : 'Browse Libraries',
-            style: GoogleFonts.patrickHand(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            currentLibraryName == null
-                ? (isLibrarian
-                    ? 'Pick the branch you manage so trends, picks, and inventory stay in sync.'
-                    : 'Pick the library you want your reading activity to count toward.')
-                : 'Current association: $currentLibraryName',
-            style: GoogleFonts.patrickHand(
-              fontSize: 14,
-              color: Colors.black.withOpacity(0.72),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -221,17 +350,26 @@ class _LibraryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = library['location']?.toString();
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: selected ? const Color(0xFFBFE3C0) : const Color(0xFFFFFDF3),
+          color: selected
+              ? const Color(0xFFBFE3C0).withOpacity(0.88)
+              : Colors.white.withOpacity(0.72),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.black, width: 2),
-          boxShadow: const [
-            BoxShadow(color: Colors.black, offset: Offset(3, 3), blurRadius: 0),
+          border: Border.all(
+            color: Colors.black,
+            width: selected ? 2.5 : 1.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black,
+              offset: Offset(selected ? 3 : 2, selected ? 3 : 2),
+              blurRadius: 0,
+            ),
           ],
         ),
         child: Row(
@@ -239,6 +377,7 @@ class _LibraryCard extends StatelessWidget {
             Icon(
               isCurrent ? Icons.verified : Icons.local_library_outlined,
               color: Colors.black,
+              size: 22,
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -248,108 +387,35 @@ class _LibraryCard extends StatelessWidget {
                   Text(
                     library['name']?.toString() ?? 'Unnamed Library',
                     style: GoogleFonts.patrickHand(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF3A3329),
                     ),
                   ),
                   if (location != null && location.isNotEmpty)
-                    Text(
-                      location,
-                      style: GoogleFonts.patrickHand(
-                        fontSize: 13,
-                        color: const Color(0xFF3A3329).withOpacity(0.60),
-                      ),
+                    Row(
+                      children: [
+                        const Icon(Icons.place_outlined,
+                            size: 13, color: Colors.black54),
+                        const SizedBox(width: 3),
+                        Text(
+                          location,
+                          style: GoogleFonts.patrickHand(
+                            fontSize: 13,
+                            color: const Color(0xFF3A3329).withOpacity(0.65),
+                          ),
+                        ),
+                      ],
                     ),
                 ],
               ),
             ),
-            if (selected)
-              const Icon(Icons.check_circle, color: Colors.black, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SaveButton extends StatelessWidget {
-  final bool saving;
-  final bool enabled;
-  final String label;
-  final VoidCallback onPressed;
-
-  const _SaveButton({
-    required this.saving,
-    required this.enabled,
-    required this.label,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ElevatedButton(
-        onPressed: enabled && !saving ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFF3A436),
-          foregroundColor: Colors.black,
-          elevation: 0,
-          side: const BorderSide(color: Colors.black, width: 2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-        child: saving
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.black),
-              )
-            : Text(
-                label,
-                style: GoogleFonts.patrickHand(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-      ),
-    );
-  }
-}
-
-class _StatusMessage extends StatelessWidget {
-  final String title;
-  final String subtitle;
-
-  const _StatusMessage({
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.patrickHand(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.patrickHand(fontSize: 14),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 150),
+              child: selected
+                  ? const Icon(Icons.check_circle,
+                      key: ValueKey('check'), color: Colors.black, size: 22)
+                  : const SizedBox.shrink(key: ValueKey('empty')),
             ),
           ],
         ),

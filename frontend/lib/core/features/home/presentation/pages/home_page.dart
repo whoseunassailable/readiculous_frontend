@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/state_management/genres_provider.dart';
+import 'package:readiculous_frontend/core/constants/routes.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/bottom_navigation_for_home_page.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/widgets/heading_with_logo.dart';
@@ -10,6 +11,7 @@ import 'package:readiculous_frontend/core/features/home/presentation/widgets/pag
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import '../../../../../generated/l10n.dart';
 import '../../../../widgets/crayon_genre_chip.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -64,11 +66,33 @@ class _HomePageState extends ConsumerState<HomePage> {
           children: [
             PageHeader(height: height, width: width),
             SizedBox(height: height / 25),
-            HeadingWithLogo(
-              height: height,
-              width: width,
-              imageAssetName: 'assets/icons/trending_genres_icon.png',
-              heading: S.of(context).trendingGenres,
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: width / 12),
+              child: Row(
+                children: [
+                  Image.asset('assets/icons/trending_genres_icon.png', height: height / 25),
+                  SizedBox(width: width / 24),
+                  Text(
+                    S.of(context).trendingGenres,
+                    style: TextStyle(fontSize: height / 30, fontWeight: FontWeight.w500),
+                  ),
+                  const Spacer(),
+                  if (!isLibrarian)
+                    GestureDetector(
+                      onTap: () => context.pushNamed(RouteNames.genrePreferences),
+                      child: Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3A436).withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Colors.black, width: 1.5),
+                          boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(1, 1), blurRadius: 0)],
+                        ),
+                        child: const Icon(Icons.tune_rounded, size: 18, color: Colors.black),
+                      ),
+                    ),
+                ],
+              ),
             ),
             SizedBox(height: height / 60),
             genresAsync.when(

@@ -371,15 +371,32 @@ exports.generateLibraryRecommendations = async (req, res) => {
     }
     const library = libraries[0];
 
-    // 2. Find users whose city appears in the library's location string
-    const [users] = await db.execute(
-      "SELECT user_id FROM users WHERE LOWER(?) LIKE CONCAT('%', LOWER(city), '%')",
-      [library.location || ""],
+    // 2. Find users explicitly associated with this library.
+    // Fallback to the older location-based behavior so existing demo data still works.
+    let [users] = await db.execute(
+      `SELECT DISTINCT user_id
+       FROM user_libraries
+       WHERE library_id = ?`,
+      [library_id],
     );
 
     if (users.length === 0) {
-      logger.warn({ library_id }, "generateLibraryRecommendations: no local users found");
-      return res.status(400).json({ message: "No users found in this library's area" });
+      [users] = await db.execute(
+        "SELECT user_id FROM users WHERE LOWER(?) LIKE CONCAT('%', LOWER(location), '%')",
+        [library.location || ""],
+      );
+    }
+
+    if (users.length === 0) {
+      // Cold start: new library with no local users — fall back to globally popular genres
+      logger.info({ library_id }, "generateLibraryRecommendations: no local users — using global user pool");
+      [users] = await db.execute(
+        "SELECT DISTINCT user_id FROM user_genres LIMIT 200",
+      );
+      if (users.length === 0) {
+        logger.warn({ library_id }, "generateLibraryRecommendations: no users in system at all");
+        return res.status(400).json({ message: "No users found in the system yet" });
+      }
     }
 
     const userIds = users.map((u) => u.user_id);
@@ -391,6 +408,24 @@ exports.generateLibraryRecommendations = async (req, res) => {
       return res.status(400).json({ message: "No genre preferences found for local users" });
     }
 
+    // 3b. Boost genre scores with this library's accumulated trend signal
+    const [trendRows] = await db.execute(
+      `SELECT g.name AS genre, gt.score AS trend_score
+       FROM genre_trends gt
+       JOIN genres g ON g.genre_id = gt.genre_id
+       WHERE gt.library_id = ?`,
+      [library_id],
+    );
+    if (trendRows.length > 0) {
+      const trendMap = Object.fromEntries(trendRows.map((r) => [r.genre, Number(r.trend_score)]));
+      for (const g of weightedGenres) {
+        if (trendMap[g.genre] != null) {
+          g.score += trendMap[g.genre];
+        }
+      }
+      weightedGenres.sort((a, b) => b.score - a.score);
+    }
+
     const topGenreNames = weightedGenres.map((g) => g.genre);
     logger.info({ library_id, topGenreNames }, "generateLibraryRecommendations: weighted genres computed");
 
@@ -400,7 +435,7 @@ exports.generateLibraryRecommendations = async (req, res) => {
     // 5. Resolve each book and save to library_recommendations
     const saved = [];
     for (const rec of recommendations) {
-      const book_id = await resolveBook(rec.isbn);
+      const book_id = await resolveBook(rec.isbn13 ?? rec.isbn);
       if (!book_id) {
         logger.warn({ title: rec.title }, "generateLibraryRecommendations: could not resolve book, skipping");
         continue;
@@ -457,7 +492,7 @@ exports.generateUserRecommendations = async (req, res) => {
     // 3. Resolve each book and save to user_recommendations
     const saved = [];
     for (const rec of recommendations) {
-      const book_id = await resolveBook(rec.isbn);
+      const book_id = await resolveBook(rec.isbn13 ?? rec.isbn);
       if (!book_id) {
         logger.warn({ title: rec.title }, "generateUserRecommendations: could not resolve book, skipping");
         continue;

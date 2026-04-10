@@ -57,10 +57,10 @@ The recommendation engine lives in `notebooks/features/user_book_recommender/goo
 
 It uses a hybrid approach combining two models:
 
-| Model | Role |
-|---|---|
-| XGBoost | Classifies books as high/low quality based on ratings, review count, format, author |
-| SVD + Logistic Regression | Reduces feature space and scores books in latent genre space |
+| Model                     | Role                                                                                |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| XGBoost                   | Classifies books as high/low quality based on ratings, review count, format, author |
+| SVD + Logistic Regression | Reduces feature space and scores books in latent genre space                        |
 
 Final score = `0.5 × XGBoost probability + 0.5 × SVD probability`
 
@@ -69,10 +69,12 @@ The dataset is sourced from Kaggle — 100k GoodReads books with ratings, genres
 ### Two Recommendation Flows
 
 **For individual readers** (`/recommend`):
+
 - Input: list of genre preferences
 - Output: top-N books ranked by final score
 
 **For libraries** (`/suggest`):
+
 - Input: reading preferences from all users in the library's area
 - Output: top trending genres + top-N books per genre — what the librarian should consider ordering
 
@@ -82,93 +84,93 @@ The dataset is sourced from Kaggle — 100k GoodReads books with ratings, genres
 
 ### User & Auth
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/users/` | GET | Get all users |
-| `/api/users/create` | POST | Create user |
-| `/api/users/login` | POST | Login |
-| `/api/users/preferences` | GET | All users with genre preferences |
-| `/api/users/:user_id/library` | GET | Get user's library (librarian only) |
-| `/api/users/:user_id` | DELETE | Delete user |
+| Endpoint                      | Method | Description                         |
+| ----------------------------- | ------ | ----------------------------------- |
+| `/api/users/`                 | GET    | Get all users                       |
+| `/api/users/create`           | POST   | Create user                         |
+| `/api/users/login`            | POST   | Login                               |
+| `/api/users/preferences`      | GET    | All users with genre preferences    |
+| `/api/users/:user_id/library` | GET    | Get user's library (librarian only) |
+| `/api/users/:user_id`         | DELETE | Delete user                         |
 
 ### Books
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/books/` | GET | All books (includes cover_url, isbn13) |
-| `/api/books/:book_id` | GET | Single book |
-| `/api/books/` | POST | Create book |
-| `/api/books/:book_id` | PUT | Update book |
-| `/api/books/:book_id` | DELETE | Delete book |
+| Endpoint              | Method | Description                            |
+| --------------------- | ------ | -------------------------------------- |
+| `/api/books/`         | GET    | All books (includes cover_url, isbn13) |
+| `/api/books/:book_id` | GET    | Single book                            |
+| `/api/books/`         | POST   | Create book                            |
+| `/api/books/:book_id` | PUT    | Update book                            |
+| `/api/books/:book_id` | DELETE | Delete book                            |
 
 ### Genres
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/genres/` | GET | All genres |
-| `/api/genres/` | POST | Create genre |
+| Endpoint                | Method | Description  |
+| ----------------------- | ------ | ------------ |
+| `/api/genres/`          | GET    | All genres   |
+| `/api/genres/`          | POST   | Create genre |
 | `/api/genres/:genre_id` | DELETE | Delete genre |
 
 ### Book–Genre Assignments
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/book-genres/` | POST | Assign genres to a book |
-| `/api/book-genres/:book_id` | GET | Get genres for a book |
-| `/api/book-genres/:book_id/:genre_id` | DELETE | Remove genre from book |
+| Endpoint                              | Method | Description             |
+| ------------------------------------- | ------ | ----------------------- |
+| `/api/book-genres/`                   | POST   | Assign genres to a book |
+| `/api/book-genres/:book_id`           | GET    | Get genres for a book   |
+| `/api/book-genres/:book_id/:genre_id` | DELETE | Remove genre from book  |
 
 ### User Genre Preferences
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/user-genres/` | POST | Add genres to user preferences |
-| `/api/user-genres/:user_id` | GET | Get user's genre preferences |
+| Endpoint                              | Method | Description                        |
+| ------------------------------------- | ------ | ---------------------------------- |
+| `/api/user-genres/`                   | POST   | Add genres to user preferences     |
+| `/api/user-genres/:user_id`           | GET    | Get user's genre preferences       |
 | `/api/user-genres/:user_id/:genre_id` | DELETE | Remove genre from user preferences |
 
 ### Libraries
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/libraries/` | GET | All libraries |
-| `/api/libraries/` | POST | Create library |
-| `/api/library-books/:library_id` | GET | Books in a library |
-| `/api/library-books/` | POST | Add or update book inventory |
+| Endpoint                         | Method | Description                  |
+| -------------------------------- | ------ | ---------------------------- |
+| `/api/libraries/`                | GET    | All libraries                |
+| `/api/libraries/`                | POST   | Create library               |
+| `/api/library-books/:library_id` | GET    | Books in a library           |
+| `/api/library-books/`            | POST   | Add or update book inventory |
 
 ### Librarians
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/librarians/assign` | POST | Assign librarian (sets role) |
-| `/api/librarians/:library_id` | GET | Get librarians for a library |
-| `/api/librarians/:user_id/:library_id` | DELETE | Unassign librarian |
+| Endpoint                               | Method | Description                  |
+| -------------------------------------- | ------ | ---------------------------- |
+| `/api/librarians/assign`               | POST   | Assign librarian (sets role) |
+| `/api/librarians/:library_id`          | GET    | Get librarians for a library |
+| `/api/librarians/:user_id/:library_id` | DELETE | Unassign librarian           |
 
 ### Reading Lists
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/reads/:user_id` | GET | Get user's reading list |
-| `/api/reads/` | POST | Add or update read status |
-| `/api/reads/:user_id/:book_id` | DELETE | Remove from reading list |
+| Endpoint                       | Method | Description               |
+| ------------------------------ | ------ | ------------------------- |
+| `/api/reads/:user_id`          | GET    | Get user's reading list   |
+| `/api/reads/`                  | POST   | Add or update read status |
+| `/api/reads/:user_id/:book_id` | DELETE | Remove from reading list  |
 
 ### Recommendations
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/recommendations/users/:user_id` | GET | User recommendations |
-| `/api/recommendations/users` | POST | Create user recommendation |
-| `/api/recommendations/users/:recommendation_id` | DELETE | Delete user recommendation |
-| `/api/recommendations/libraries/:library_id` | GET | Library recommendations |
-| `/api/recommendations/libraries` | POST | Create library recommendation |
-| `/api/recommendations/libraries/:recommendation_id` | PATCH | Update state (NEW / ORDERED / STOCKED / IGNORED) |
-| `/api/recommendations/libraries/:recommendation_id` | DELETE | Delete library recommendation |
+| Endpoint                                            | Method | Description                                      |
+| --------------------------------------------------- | ------ | ------------------------------------------------ |
+| `/api/recommendations/users/:user_id`               | GET    | User recommendations                             |
+| `/api/recommendations/users`                        | POST   | Create user recommendation                       |
+| `/api/recommendations/users/:recommendation_id`     | DELETE | Delete user recommendation                       |
+| `/api/recommendations/libraries/:library_id`        | GET    | Library recommendations                          |
+| `/api/recommendations/libraries`                    | POST   | Create library recommendation                    |
+| `/api/recommendations/libraries/:recommendation_id` | PATCH  | Update state (NEW / ORDERED / STOCKED / IGNORED) |
+| `/api/recommendations/libraries/:recommendation_id` | DELETE | Delete library recommendation                    |
 
 ### Trends
 
-| Endpoint | Method | Description |
-|---|---|---|
-| `/api/trends/libraries/:library_id` | GET | Genre trends for a specific library |
-| `/api/trends/top` | GET | Top trends globally or per library |
-| `/api/trends/` | POST | Upsert trend score |
+| Endpoint                            | Method | Description                         |
+| ----------------------------------- | ------ | ----------------------------------- |
+| `/api/trends/libraries/:library_id` | GET    | Genre trends for a specific library |
+| `/api/trends/top`                   | GET    | Top trends globally or per library  |
+| `/api/trends/`                      | POST   | Upsert trend score                  |
 
 ---
 
@@ -207,6 +209,7 @@ python notebooks/features/user_book_recommender/recommender.py
 ### Endpoints
 
 **POST `/recommend`** — book recommendations for a reader
+
 ```json
 {
   "genres": ["Romance", "Mystery"],
@@ -215,6 +218,7 @@ python notebooks/features/user_book_recommender/recommender.py
 ```
 
 **POST `/suggest`** — library stocking suggestions based on community preferences
+
 ```json
 {
   "user_preferences": [

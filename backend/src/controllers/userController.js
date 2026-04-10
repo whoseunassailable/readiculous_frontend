@@ -261,27 +261,127 @@ exports.getUserLibrary = async (req, res) => {
     logger.debug({ user_id }, "getUserLibrary: querying library for user");
 
     const [rows] = await db.execute(
-      `SELECT
-         l.library_id,
-         l.name,
-         l.location,
-         lb.verified
-       FROM librarians lb
-       JOIN libraries l ON l.library_id = lb.library_id
-       WHERE lb.user_id = ?
+      `SELECT library_id, name, location, verified, association_type
+       FROM (
+         SELECT
+           l.library_id,
+           l.name,
+           l.location,
+           lb.verified,
+           'librarian' AS association_type,
+           0 AS association_priority
+         FROM librarians lb
+         JOIN libraries l ON l.library_id = lb.library_id
+         WHERE lb.user_id = ?
+         UNION ALL
+         SELECT
+           l.library_id,
+           l.name,
+           l.location,
+           NULL AS verified,
+           'reader' AS association_type,
+           1 AS association_priority
+         FROM user_libraries ul
+         JOIN libraries l ON l.library_id = ul.library_id
+         WHERE ul.user_id = ?
+       ) associations
+       ORDER BY association_priority ASC
        LIMIT 1`,
-      [user_id],
+      [user_id, user_id],
     );
 
     if (rows.length === 0) {
-      logger.info({ user_id }, "getUserLibrary: user is not a librarian");
+      logger.info({ user_id }, "getUserLibrary: no library association found");
       return res.json({ library: null });
     }
 
-    logger.info({ user_id, library_id: rows[0].library_id }, "getUserLibrary: library found");
+    logger.info(
+      {
+        user_id,
+        library_id: rows[0].library_id,
+        association_type: rows[0].association_type,
+      },
+      "getUserLibrary: library found",
+    );
     return res.json({ library: rows[0] });
   } catch (error) {
     logger.error(error, "getUserLibrary: unexpected error");
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// POST /api/users/:user_id/library
+exports.upsertUserLibrary = async (req, res) => {
+  const { user_id } = req.params;
+  const { library_id } = req.body;
+
+  if (!user_id || !library_id) {
+    logger.warn({ user_id, library_id }, "upsertUserLibrary: missing required fields");
+    return res.status(400).json({ message: "user_id and library_id are required" });
+  }
+
+  try {
+    const [userRows] = await db.execute(
+      "SELECT role FROM users WHERE user_id = ? LIMIT 1",
+      [user_id],
+    );
+
+    if (userRows.length === 0) {
+      logger.warn({ user_id }, "upsertUserLibrary: user not found");
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (userRows[0].role === "librarian") {
+      logger.warn({ user_id, library_id }, "upsertUserLibrary: librarians must use librarian assignment");
+      return res.status(400).json({ message: "Librarian accounts must use librarian assignment" });
+    }
+
+    const [libraryRows] = await db.execute(
+      "SELECT library_id FROM libraries WHERE library_id = ? LIMIT 1",
+      [library_id],
+    );
+
+    if (libraryRows.length === 0) {
+      logger.warn({ user_id, library_id }, "upsertUserLibrary: library not found");
+      return res.status(404).json({ message: "Library not found" });
+    }
+
+    await db.execute(
+      `INSERT INTO user_libraries (user_id, library_id)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE
+         library_id = VALUES(library_id),
+         updated_at = CURRENT_TIMESTAMP`,
+      [user_id, library_id],
+    );
+
+    logger.info({ user_id, library_id }, "upsertUserLibrary: association saved");
+    return res.status(201).json({ message: "User library association saved", user_id, library_id });
+  } catch (error) {
+    logger.error(error, "upsertUserLibrary: unexpected error");
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// DELETE /api/users/:user_id/library
+exports.removeUserLibrary = async (req, res) => {
+  const { user_id } = req.params;
+
+  try {
+    const [result] = await db.execute(
+      "DELETE FROM user_libraries WHERE user_id = ?",
+      [user_id],
+    );
+
+    if (result.affectedRows === 0) {
+      logger.warn({ user_id }, "removeUserLibrary: association not found");
+      return res.status(404).json({ message: "User library association not found" });
+    }
+
+    logger.info({ user_id }, "removeUserLibrary: association removed");
+    return res.json({ message: "User library association removed" });
+  } catch (error) {
+    logger.error(error, "removeUserLibrary: unexpected error");
     return res.status(500).json({ message: "Internal server error" });
   }
 };

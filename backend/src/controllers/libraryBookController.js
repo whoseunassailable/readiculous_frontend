@@ -9,11 +9,28 @@ exports.getBooksForLibrary = async (req, res) => {
     logger.debug({ library_id }, "getBooksForLibrary: fetching books");
 
     const [rows] = await db.execute(
-      `SELECT lb.library_id, lb.book_id, b.title, b.author,
-              lb.copies_total, lb.copies_available, lb.low_stock_threshold, lb.is_deleted
+      `SELECT
+         lb.library_id,
+         lb.book_id,
+         b.title,
+         b.author,
+         b.description,
+         b.cover_url,
+         b.isbn13,
+         GROUP_CONCAT(DISTINCT g.name ORDER BY g.name SEPARATOR ', ') AS genres,
+         lb.copies_total,
+         lb.copies_available,
+         lb.low_stock_threshold,
+         lb.is_deleted
        FROM library_books lb
        JOIN books b ON b.book_id = lb.book_id
-       WHERE lb.library_id = ? AND lb.is_deleted = 0`,
+       LEFT JOIN book_genres bg ON bg.book_id = b.book_id
+       LEFT JOIN genres g ON g.genre_id = bg.genre_id
+       WHERE lb.library_id = ? AND lb.is_deleted = 0
+       GROUP BY
+         lb.library_id, lb.book_id, b.title, b.author, b.description, b.cover_url, b.isbn13,
+         lb.copies_total, lb.copies_available, lb.low_stock_threshold, lb.is_deleted
+       ORDER BY b.title ASC`,
       [library_id],
     );
 

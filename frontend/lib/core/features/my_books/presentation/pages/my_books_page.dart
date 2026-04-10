@@ -92,25 +92,31 @@ class MyBooksPage extends ConsumerWidget {
           ),
         ),
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFFF3A436),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-            side: const BorderSide(color: Colors.black, width: 2),
+        floatingActionButton: Builder(
+          builder: (fabCtx) => FloatingActionButton(
+            backgroundColor: const Color(0xFFF3A436),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(999),
+              side: const BorderSide(color: Colors.black, width: 2),
+            ),
+            onPressed: () {
+              final tabIndex = DefaultTabController.of(fabCtx).index;
+              final defaultStatus = ['reading', 'want_to_read', 'read'][tabIndex];
+              _showAddBookSheet(context, ref, defaultStatus: defaultStatus);
+            },
+            child: const Icon(Icons.add, color: Colors.black, size: 28),
           ),
-          onPressed: () => _showAddBookSheet(context, ref),
-          child: const Icon(Icons.add, color: Colors.black, size: 28),
         ),
       ),
     );
   }
 
-  void _showAddBookSheet(BuildContext context, WidgetRef ref) {
+  void _showAddBookSheet(BuildContext context, WidgetRef ref, {String defaultStatus = 'want_to_read'}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _AddBookSheet(),
+      builder: (_) => _AddBookSheet(defaultStatus: defaultStatus),
     );
   }
 }
@@ -307,7 +313,8 @@ class _BookList extends ConsumerWidget {
 // ─── Add book bottom sheet ───────────────────────────────────────────────────
 
 class _AddBookSheet extends ConsumerStatefulWidget {
-  const _AddBookSheet();
+  final String defaultStatus;
+  const _AddBookSheet({this.defaultStatus = 'want_to_read'});
 
   @override
   ConsumerState<_AddBookSheet> createState() => _AddBookSheetState();
@@ -317,12 +324,13 @@ class _AddBookSheetState extends ConsumerState<_AddBookSheet> {
   final _searchCtrl = TextEditingController();
   List<Map<String, dynamic>> _allBooks = [];
   List<Map<String, dynamic>> _filtered = [];
-  String _status = 'want_to_read';
+  late String _status;
   bool _loading = true;
 
   @override
   void initState() {
     super.initState();
+    _status = widget.defaultStatus;
     _loadBooks();
     _searchCtrl.addListener(_filter);
   }

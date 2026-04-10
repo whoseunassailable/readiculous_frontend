@@ -1,0 +1,10 @@
+{
+  "name": "readiculous",
+  "private": true,
+  "scripts": {
+    "start": "concurrently --prefix-colors \"bgBlue.bold,bgGreen.bold\" --names \"BACKEND,ML\" \"npm --prefix backend start\" \"GOODREADS_CSV=/Users/whoseunassailable/Documents/datasets/GoodReads_100k_books.csv python3 ml/notebooks/features/user_book_recommender/recommender.py\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

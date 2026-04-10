@@ -22,11 +22,11 @@ import '../features/suggested_books/presentation/books_recommendation_page_for_u
 import '../features/suggested_books/presentation/preferred_genre.dart';
 import '../session/session_provider.dart';
 
-/// ✅ GoRouter refresh bridge for Riverpod
+/// GoRouter refresh bridge for Riverpod
 class GoRouterRefresh extends ChangeNotifier {
   GoRouterRefresh(WidgetRef ref) {
-    // WidgetRef.listen exists and works fine here
-    ref.listen(sessionProvider, (prev, next) {
+    // listenManual works outside of build (no debugDoingBuild assertion)
+    ref.listenManual(sessionProvider, (prev, next) {
       notifyListeners();
     });
   }

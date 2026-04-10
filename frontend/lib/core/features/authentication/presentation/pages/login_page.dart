@@ -89,6 +89,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Padding(
             padding: const EdgeInsets.all(20.0),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _Logo(height: height),
                 _WelcomeText(height: height, s: s),
@@ -137,7 +138,7 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset('assets/images/logo.png', height: height * 0.30);
+    return Image.asset('assets/images/logo.png', height: height * 0.10);
   }
 }
 

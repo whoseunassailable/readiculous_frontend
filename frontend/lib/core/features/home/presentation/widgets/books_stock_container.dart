@@ -28,28 +28,26 @@ class BooksStockContainer extends ConsumerWidget {
 
     final isLibrarian = userRole == AppRoles.librarian && userId != null;
 
-    // Resolve library + pending recommendation for librarians
+    // Resolve library + pending recommendation for librarians reactively
     String? pendingBookTitle;
     String? pendingBookAuthor;
     if (isLibrarian) {
-      final libraryAsync = ref.watch(userLibraryProvider(userId));
-      libraryAsync.whenData((library) {
-        if (library != null) {
-          final recsAsync = ref.watch(
-            libraryRecommendationsProvider(library.libraryId.toString()),
-          );
-          recsAsync.whenData((recs) {
-            final pending = recs
-                .cast<Map<String, dynamic>>()
-                .where((r) => r['state'] == 'NEW' || r['state'] == null)
-                .toList();
-            if (pending.isNotEmpty) {
-              pendingBookTitle = pending.first['title'] as String?;
-              pendingBookAuthor = pending.first['author'] as String?;
-            }
-          });
+      final library = ref.watch(userLibraryProvider(userId)).asData?.value;
+      if (library != null) {
+        final recs = ref
+            .watch(libraryRecommendationsProvider(library.libraryId.toString()))
+            .asData?.value;
+        if (recs != null) {
+          final pending = recs
+              .cast<Map<String, dynamic>>()
+              .where((r) => r['state'] == 'NEW' || r['state'] == null)
+              .toList();
+          if (pending.isNotEmpty) {
+            pendingBookTitle = pending.first['title'] as String?;
+            pendingBookAuthor = pending.first['author'] as String?;
+          }
         }
-      });
+      }
     }
 
     return Container(
@@ -72,10 +70,7 @@ class BooksStockContainer extends ConsumerWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Image.asset(
-                  "assets/icons/blue_book_icon.png",
-                  height: height / 12,
-                ),
+                Image.asset("assets/icons/blue_book_icon.png", height: height / 12),
                 SizedBox(width: width / 40),
                 if (isLibrarian && pendingBookTitle != null)
                   Expanded(
@@ -84,18 +79,12 @@ class BooksStockContainer extends ConsumerWidget {
                       children: [
                         Text(
                           pendingBookTitle!,
-                          style: TextStyle(
-                            fontSize: height / 50,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (pendingBookAuthor != null)
-                          Text(
-                            pendingBookAuthor!,
-                            style: TextStyle(fontSize: height / 65),
-                          ),
+                          Text(pendingBookAuthor!, style: TextStyle(fontSize: height / 65)),
                       ],
                     ),
                   ),
@@ -104,6 +93,7 @@ class BooksStockContainer extends ConsumerWidget {
             const Divider(color: Colors.brown, thickness: 2),
             const Spacer(),
             // --- BOTTOM BUTTONS ---
+
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 8,

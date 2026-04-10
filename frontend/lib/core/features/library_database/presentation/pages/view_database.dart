@@ -169,17 +169,11 @@ class _DatabaseBody extends StatelessWidget {
       children: [
         _PinnedHeader(
           title: 'Library Database',
-          trailing: role == AppRoles.user
-              ? _HeaderAction(
-                  icon: Icons.place_outlined,
-                  label: 'Change',
-                  onTap: () => context.pushNamed(RouteNames.libraryAssociation),
-                )
-              : _HeaderAction(
-                  icon: Icons.home_outlined,
-                  label: 'Home',
-                  onTap: () => context.goNamed(RouteNames.homePage),
-                ),
+          trailing: _HeaderAction(
+            icon: Icons.home_outlined,
+            label: 'Home',
+            onTap: () => context.goNamed(RouteNames.homePage),
+          ),
         ),
         const SizedBox(height: 14),
         _LibraryPulseCard(
@@ -195,10 +189,10 @@ class _DatabaseBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Browse the books currently in this library and see what nearby readers are picking up.',
+          'Browse books on the shelf. Use the search or genre filter to narrow down.',
           style: GoogleFonts.patrickHand(
-            fontSize: 16,
-            color: const Color(0xFF43352A),
+            fontSize: 15,
+            color: const Color(0xFF43352A).withOpacity(0.75),
           ),
         ),
         const SizedBox(height: 16),
@@ -221,10 +215,16 @@ class _DatabaseBody extends StatelessWidget {
               return matchesGenre && matchesText;
             }).toList();
 
+            if (inventory.isEmpty) {
+              return const _PaperNotice(
+                title: 'No books in this library yet.',
+                subtitle: 'A librarian can add books using the + button.',
+              );
+            }
             if (filtered.isEmpty) {
               return const _PaperNotice(
-                title: 'No books match this filter.',
-                subtitle: 'Try another genre or search term.',
+                title: 'No books match your search.',
+                subtitle: 'Try a different title, author, or genre.',
               );
             }
 
@@ -253,14 +253,13 @@ class _DatabaseBody extends StatelessWidget {
           data: (activity) {
             if (activity.isEmpty) {
               return const _PaperNotice(
-                title: 'No reader activity yet.',
-                subtitle:
-                    'Run the demo seed or let local readers start logging books.',
+                title: 'No reading activity yet.',
+                subtitle: 'When library members add and track books, their activity shows up here.',
               );
             }
 
             return _SectionCard(
-              title: 'Reader Pulse',
+              title: 'What Readers Are Reading',
               child: Column(
                 children: activity
                     .map(

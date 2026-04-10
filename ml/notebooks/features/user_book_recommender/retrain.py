@@ -49,7 +49,7 @@ DB_CONFIG = {
 
 KAGGLE_CSV   = os.getenv("GOODREADS_CSV", "/Users/whoseunassailable/Documents/datasets/GoodReads_100k_books.csv")
 MODEL_DIR    = os.path.dirname(os.path.abspath(__file__))
-MIN_NEW_ROWS = int(os.getenv("MIN_NEW_ROWS", "10"))   # skip retraining if fewer new signals than this
+MIN_NEW_ROWS = int(os.getenv("MIN_NEW_ROWS", "100"))  # skip retraining if fewer new signals than this
 
 
 def out(payload: dict):
@@ -130,10 +130,10 @@ def build_training_data(signals: pd.DataFrame):
 
     For books present in MySQL:
       - Blend the Kaggle avg rating with the user rating (weighted 70/30)
-      - Boost or penalise rows based on library_signal by duplicating them
-        (STOCKED/ORDERED → 3× copies, IGNORED → 1 copy with rating capped at 2.5)
+      - Assign per-row sample weights from library_signal
+        (STOCKED/ORDERED → 3.0, IGNORED → 0.5, no signal → 1.0)
 
-    Returns a DataFrame ready for feature engineering + training.
+    Returns (df, weights) where weights is a float32 array aligned to df rows.
     """
     cols = ["author", "bookformat", "genre", "isbn", "pages", "rating", "reviews", "title", "totalratings"]
     df = pd.read_csv(KAGGLE_CSV, encoding="utf-8")
@@ -145,7 +145,7 @@ def build_training_data(signals: pd.DataFrame):
         df = df.rename(columns={"isbn": "isbn13"})
 
     if signals.empty or "isbn13" not in df.columns:
-        return df
+        return df, np.ones(len(df), dtype="float32")
 
     # Merge signals
     merged = df.merge(signals, on="isbn13", how="left")
@@ -159,16 +159,16 @@ def build_training_data(signals: pd.DataFrame):
         0.3 * merged.loc[has_user_rating, "avg_user_rating"]
     )
 
-    # Positive library signal → duplicate rows (amplify this book's influence)
-    positive = merged[merged["library_signal"] == 1]
-    if not positive.empty:
-        merged = pd.concat([merged] + [positive] * 2, ignore_index=True)
+    # Build sample weights from library signals instead of duplicating/capping rows.
+    # STOCKED/ORDERED → weight 3.0 (strong positive signal)
+    # IGNORED         → weight 0.5 (downweight, but keep the book in training)
+    # No signal       → weight 1.0 (neutral)
+    weights = np.ones(len(merged), dtype="float32")
+    weights[merged["library_signal"] == 1]  = 3.0
+    weights[merged["library_signal"] == -1] = 0.5
 
-    # Negative library signal → cap rating at 2.5 (push below quality threshold)
-    neg_mask = merged["library_signal"] == -1
-    merged.loc[neg_mask, "rating"] = merged.loc[neg_mask, "rating"].clip(upper=2.5)
-
-    return merged.drop(columns=["avg_user_rating", "rating_count", "library_signal"], errors="ignore")
+    df_out = merged.drop(columns=["avg_user_rating", "rating_count", "library_signal"], errors="ignore")
+    return df_out, weights
 
 
 # ──────────────────────────────────────────────
@@ -180,8 +180,8 @@ def engineer_features(df: pd.DataFrame):
     df["pages"]        = df["pages"].fillna(0).astype("int32")
     df["reviews"]      = df["reviews"].fillna(0).astype("int32")
     df["totalratings"] = df["totalratings"].fillna(0).astype("int32")
-    df["bookformat"]   = df["bookformat"].fillna("Unknown")
-    df["genre"]        = df["genre"].fillna("Other")
+    df["bookformat"]   = df["bookformat"].fillna("unknown").str.lower().str.strip()
+    df["genre"]        = df["genre"].fillna("other").str.lower().str.strip()
 
     df["log_pages"]        = np.log1p(df["pages"]).astype("float32")
     df["log_reviews"]      = np.log1p(df["reviews"]).astype("float32")
@@ -204,19 +204,19 @@ def engineer_features(df: pd.DataFrame):
     features = pd.concat([df[feature_cols], genre_dummies], axis=1)
     target   = (df["rating"] >= 4.0).astype("int8")
 
-    return features, target
+    return features, target, le_a, le_f
 
 
 # ──────────────────────────────────────────────
 # 4. Train XGBoost + SVD + LogisticRegression
 # ──────────────────────────────────────────────
 
-def train(features: pd.DataFrame, target: pd.Series):
-    X_train, X_test, y_train, y_test = train_test_split(
-        features, target, test_size=0.2, random_state=42, stratify=target
+def train(features: pd.DataFrame, target: pd.Series, weights: np.ndarray):
+    X_train, X_test, y_train, y_test, w_train, _ = train_test_split(
+        features, target, weights, test_size=0.2, random_state=42, stratify=target
     )
 
-    # XGBoost
+    # XGBoost — sample_weight amplifies librarian-approved books, downweights ignored ones
     xgb_model = xgb.XGBClassifier(
         n_estimators=200,
         max_depth=6,
@@ -226,7 +226,7 @@ def train(features: pd.DataFrame, target: pd.Series):
         random_state=42,
         verbosity=0,
     )
-    xgb_model.fit(X_train, y_train)
+    xgb_model.fit(X_train, y_train, sample_weight=w_train)
     xgb_acc = accuracy_score(y_test, xgb_model.predict(X_test))
 
     # SVD + Logistic Regression
@@ -235,7 +235,7 @@ def train(features: pd.DataFrame, target: pd.Series):
     X_test_svd  = svd.transform(X_test)
 
     logreg = LogisticRegression(max_iter=1000, random_state=42)
-    logreg.fit(X_train_svd, y_train)
+    logreg.fit(X_train_svd, y_train, sample_weight=w_train)
 
     return xgb_model, svd, logreg, float(xgb_acc)
 
@@ -244,10 +244,12 @@ def train(features: pd.DataFrame, target: pd.Series):
 # 5. Save models
 # ──────────────────────────────────────────────
 
-def save_models(xgb_model, svd, logreg):
+def save_models(xgb_model, svd, logreg, le_a, le_f):
     joblib.dump(xgb_model, os.path.join(MODEL_DIR, "xgb_model.pkl"))
     joblib.dump(svd,       os.path.join(MODEL_DIR, "svd_transformer.pkl"))
     joblib.dump(logreg,    os.path.join(MODEL_DIR, "svd_logistic_model.pkl"))
+    joblib.dump(le_a,      os.path.join(MODEL_DIR, "le_author.pkl"))
+    joblib.dump(le_f,      os.path.join(MODEL_DIR, "le_format.pkl"))
 
 
 # ──────────────────────────────────────────────
@@ -270,17 +272,17 @@ def main():
             })
             return
 
-        # 2. Build training data
-        df = build_training_data(signals)
+        # 2. Build training data (returns df + per-row sample weights)
+        df, weights = build_training_data(signals)
 
         # 3. Feature engineering
-        features, target = engineer_features(df)
+        features, target, le_a, le_f = engineer_features(df)
 
-        # 4. Train
-        xgb_model, svd, logreg, xgb_acc = train(features, target)
+        # 4. Train — pass weights so both models respect library signals
+        xgb_model, svd, logreg, xgb_acc = train(features, target, weights)
 
         # 5. Save
-        save_models(xgb_model, svd, logreg)
+        save_models(xgb_model, svd, logreg, le_a, le_f)
 
         elapsed = round(time.time() - t0, 1)
         out({
