@@ -429,8 +429,8 @@ exports.generateLibraryRecommendations = async (req, res) => {
     const topGenreNames = weightedGenres.map((g) => g.genre);
     logger.info({ library_id, topGenreNames }, "generateLibraryRecommendations: weighted genres computed");
 
-    // 4. Call Flask /recommend with the weighted top genres
-    const recommendations = await mlService.getRecommendationsForUser(topGenreNames, top_n_books);
+    // 4. Call Flask /recommend with the weighted top genres (no specific user_id for library-level)
+    const recommendations = await mlService.getRecommendationsForUser(topGenreNames, null, top_n_books);
 
     // 5. Resolve each book and save to library_recommendations
     const saved = [];
@@ -485,9 +485,9 @@ exports.generateUserRecommendations = async (req, res) => {
 
     const genres = genreRows.map((r) => r.genre);
 
-    // 2. Call Flask ML service
+    // 2. Call Flask ML service — pass user_id to activate the hybrid CF layer
     logger.info({ user_id, genres }, "generateUserRecommendations: calling ML");
-    const recommendations = await mlService.getRecommendationsForUser(genres, top_n);
+    const recommendations = await mlService.getRecommendationsForUser(genres, user_id, top_n);
 
     // 3. Resolve each book and save to user_recommendations
     const saved = [];
@@ -506,7 +506,16 @@ exports.generateUserRecommendations = async (req, res) => {
         [user_id, book_id, score, `Genres: ${genres.join(", ")}`],
       );
 
-      saved.push({ recommendation_id: result.insertId || null, book_id, title: rec.title, score });
+      // Return full details so the Flutter app doesn't need a second fetch
+      saved.push({
+        recommendation_id: result.insertId || null,
+        book_id,
+        title:  rec.title,
+        author: rec.author  ?? null,
+        genre:  rec.genre   ?? null,
+        rating: rec.rating  ?? null,
+        score,
+      });
     }
 
     logger.info({ user_id, saved: saved.length }, "generateUserRecommendations: done");

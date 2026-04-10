@@ -27,17 +27,4 @@ class DioClient {
     ..transformer = BackgroundTransformer()
     ..interceptors.add(_logger);
 
-  static final Dio flask = Dio(
-    BaseOptions(
-      baseUrl: 'http://10.0.2.2:6000',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-    ),
-  )
-    ..transformer = BackgroundTransformer()
-    ..interceptors.add(_logger);
 }

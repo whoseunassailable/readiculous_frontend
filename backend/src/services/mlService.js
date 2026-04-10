@@ -11,10 +11,11 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:6000";
  * @param {number}   topN    - how many books to return
  * @returns {Promise<Array>} - array of book objects from the ML model
  */
-exports.getRecommendationsForUser = async (genres, topN = 10) => {
-  logger.debug({ genres, topN }, "mlService: calling /recommend");
+exports.getRecommendationsForUser = async (genres, userId, topN = 10) => {
+  logger.debug({ genres, userId, topN }, "mlService: calling /recommend");
   const response = await axios.post(`${ML_SERVICE_URL}/recommend`, {
     genres,
+    user_id: userId,
     top_n: topN,
   });
   return response.data;
