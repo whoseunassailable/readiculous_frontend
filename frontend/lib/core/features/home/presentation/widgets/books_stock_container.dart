@@ -52,10 +52,13 @@ class BooksStockContainer extends ConsumerWidget {
     }
 
     // Users: resolve top recommendation
+    bool recLoading = false;
     String? recBookTitle;
     String? recBookAuthor;
     if (!isLibrarian) {
-      final recs = ref.watch(userRecommendationsProvider).asData?.value;
+      final recsAsync = ref.watch(userRecommendationsProvider);
+      recLoading = recsAsync is AsyncLoading;
+      final recs = recsAsync.asData?.value;
       if (recs != null && recs.isNotEmpty) {
         final top = recs.first as Map<String, dynamic>;
         recBookTitle = top['title'] as String?;
@@ -102,37 +105,51 @@ class BooksStockContainer extends ConsumerWidget {
                               ],
                             )
                           : Text('No pending picks', style: TextStyle(fontSize: height / 55, color: Colors.black45)))
-                      : (recBookTitle != null
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Recommended for you',
-                                  style: TextStyle(fontSize: height / 65, color: Colors.black45),
+                      : (recLoading
+                          ? SizedBox(
+                              height: height / 12,
+                              child: const Center(
+                                child: SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Color(0xFFB8743A),
+                                  ),
                                 ),
-                                Text(
-                                  recBookTitle!,
-                                  style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                if (recBookAuthor != null)
-                                  Text(recBookAuthor!, style: TextStyle(fontSize: height / 65, color: Colors.black54)),
-                              ],
+                              ),
                             )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'No recommendations yet',
-                                  style: TextStyle(fontSize: height / 55, fontWeight: FontWeight.w600),
-                                ),
-                                Text(
-                                  'Rate books & set genre prefs!',
-                                  style: TextStyle(fontSize: height / 65, color: Colors.black45),
-                                ),
-                              ],
-                            )),
+                          : recBookTitle != null
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Recommended for you',
+                                      style: TextStyle(fontSize: height / 65, color: Colors.black45),
+                                    ),
+                                    Text(
+                                      recBookTitle!,
+                                      style: TextStyle(fontSize: height / 50, fontWeight: FontWeight.w600),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (recBookAuthor != null)
+                                      Text(recBookAuthor!, style: TextStyle(fontSize: height / 65, color: Colors.black54)),
+                                  ],
+                                )
+                              : Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'No recommendations yet',
+                                      style: TextStyle(fontSize: height / 55, fontWeight: FontWeight.w600),
+                                    ),
+                                    Text(
+                                      'Rate books & set genre prefs!',
+                                      style: TextStyle(fontSize: height / 65, color: Colors.black45),
+                                    ),
+                                  ],
+                                )),
                 ),
               ],
             ),
