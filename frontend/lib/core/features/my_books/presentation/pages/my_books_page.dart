@@ -10,6 +10,7 @@ import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import '../state_management/my_books_provider.dart';
 import '../widgets/my_book_card.dart';
+import 'package:readiculous_frontend/core/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
 
 class MyBooksPage extends ConsumerWidget {
   const MyBooksPage({super.key});
@@ -235,6 +236,7 @@ void _showRatingSheet(BuildContext context, WidgetRef ref, String bookId) {
                     status: 'read',
                     rating: selectedRating > 0 ? selectedRating : null,
                   );
+                  ref.invalidate(userRecommendationsProvider);
                   Navigator.pop(ctx);
                 },
                 style: ElevatedButton.styleFrom(
@@ -289,11 +291,14 @@ class _BookList extends ConsumerWidget {
           book: book,
           onDelete: () => ref.read(myBooksProvider.notifier).remove(bookId),
           onRate: status == 'read'
-              ? (rating) => ref.read(myBooksProvider.notifier).addOrUpdate(
+              ? (rating) {
+                  ref.read(myBooksProvider.notifier).addOrUpdate(
                     bookId: bookId,
                     status: 'read',
                     rating: rating,
-                  )
+                  );
+                  ref.invalidate(userRecommendationsProvider);
+                }
               : null,
           onMarkFinished: status == 'reading'
               ? () => _showRatingSheet(context, ref, bookId)
