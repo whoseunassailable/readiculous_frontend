@@ -85,43 +85,53 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        resizeToAvoidBottomInset: true,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _Logo(height: height),
-                _WelcomeText(height: height, s: s),
-                SizedBox(height: height / 70),
-                CrayonTextField(
-                  controller: _emailController,
-                  hint: s.email,
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              padding: const EdgeInsets.all(20.0),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Spacer(),
+                      _Logo(height: height),
+                      _WelcomeText(height: height, s: s),
+                      SizedBox(height: height / 70),
+                      CrayonTextField(
+                        controller: _emailController,
+                        hint: s.email,
+                      ),
+                      SizedBox(height: height / 70),
+                      CrayonTextField(
+                        controller: _passwordController,
+                        hint: s.password,
+                        obscureText: true,
+                      ),
+                      SizedBox(height: height / 35),
+                      const ForgotPasswordLink(),
+                      SizedBox(height: height / 70),
+                      CrayonButton(
+                        label: s.login,
+                        fill: Colors.white.withOpacity(0.92),
+                        textColor: const Color(0xFF6A5ACD),
+                        onPressed: isLoading ? null : _onLoginPressed,
+                      ),
+                      SizedBox(height: height / 70),
+                      CrayonButton(
+                        label: s.signUp,
+                        fill: Colors.white.withOpacity(0.92),
+                        textColor: const Color(0xFF6A5ACD),
+                        onPressed: isLoading ? null : _onSignUpPressed,
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
                 ),
-                SizedBox(height: height / 70),
-                CrayonTextField(
-                  controller: _passwordController,
-                  hint: s.password,
-                  obscureText: true,
-                ),
-                SizedBox(height: height / 35),
-                const ForgotPasswordLink(),
-                SizedBox(height: height / 70),
-                CrayonButton(
-                  label: s.login,
-                  fill: Colors.white.withOpacity(0.92),
-                  textColor: const Color(0xFF6A5ACD),
-                  // Disable the button while a request is in flight.
-                  onPressed: isLoading ? null : _onLoginPressed,
-                ),
-                SizedBox(height: height / 70),
-                CrayonButton(
-                  label: s.signUp,
-                  fill: Colors.white.withOpacity(0.92),
-                  textColor: const Color(0xFF6A5ACD),
-                  onPressed: isLoading ? null : _onSignUpPressed,
-                ),
-              ],
+              ),
             ),
           ),
         ),

@@ -12,20 +12,34 @@ const RETRAIN_SCRIPT = path.resolve(
 
 const PYTHON_BIN = process.env.PYTHON_BIN || "python3";
 
+function getRequiredEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} environment variable is required`);
+  }
+  return value;
+}
+
 // POST /api/ml/retrain
 exports.triggerRetrain = (req, res) => {
   logger.info({ script: RETRAIN_SCRIPT }, "triggerRetrain: starting");
 
-  // Pass DB credentials and CSV path through to the script via env
-  const env = {
-    ...process.env,
-    DB_HOST:      process.env.DB_HOST     || "localhost",
-    DB_USER:      process.env.DB_USER     || "root",
-    DB_PASSWORD:  process.env.DB_PASSWORD || "Jraonhvain11#",
-    DB_NAME:      process.env.DB_NAME     || "readiculous",
-    GOODREADS_CSV: process.env.GOODREADS_CSV || "",
-    MIN_NEW_ROWS: process.env.MIN_NEW_ROWS || "10",
-  };
+  let env;
+  try {
+    env = {
+      ...process.env,
+      DB_HOST: getRequiredEnv("DB_HOST"),
+      DB_USER: getRequiredEnv("DB_USER"),
+      DB_PASSWORD: getRequiredEnv("DB_PASSWORD"),
+      DB_NAME: getRequiredEnv("DB_NAME"),
+      GOODREADS_CSV: getRequiredEnv("GOODREADS_CSV"),
+      MIN_NEW_ROWS: process.env.MIN_NEW_ROWS || "10",
+      MIN_CF_ROWS: process.env.MIN_CF_ROWS || "10",
+    };
+  } catch (error) {
+    logger.warn({ error: error.message }, "triggerRetrain: missing required environment");
+    return res.status(500).json({ message: error.message });
+  }
 
   const child = spawn(PYTHON_BIN, [RETRAIN_SCRIPT], { env });
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:readiculous_frontend/core/widgets/question_box_containter.dart';
-import '../../l10n/app_localizations.dart';
+import '../../generated/l10n.dart';
 import '../constants/app_colors.dart';
 import '../utils/appbar.dart';
 import 'aesthetic_input_field.dart';
@@ -39,7 +39,7 @@ class QuestionnaireLayout extends StatelessWidget {
       resizeToAvoidBottomInset: true,
       backgroundColor: AppColors.bgColorForAppBar,
       appBar: StylishAppBar(
-        title: AppLocalizations.of(context).readiculous,
+        title: S.of(context).readiculous,
         homepage: false,
       ),
       body: Column(

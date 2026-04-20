@@ -4,6 +4,7 @@ import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readiculous_frontend/core/features/home/presentation/state_management/genres_provider.dart';
+import 'package:readiculous_frontend/core/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
 import 'package:readiculous_frontend/core/network/clients/genres_api_client.dart';
 import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
@@ -54,10 +55,14 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: Colors.black, width: 2),
                           boxShadow: const [
-                            BoxShadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 0),
+                            BoxShadow(
+                                color: Colors.black,
+                                offset: Offset(2, 2),
+                                blurRadius: 0),
                           ],
                         ),
-                        child: const Icon(MaterialCommunityIcons.arrow_left, color: Colors.black, size: 20),
+                        child: const Icon(MaterialCommunityIcons.arrow_left,
+                            color: Colors.black, size: 20),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -75,11 +80,16 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
               const SizedBox(height: 10),
               Expanded(
                 child: allGenresAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => _MessageCard(title: 'Could not load genres.', subtitle: '$e'),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => _MessageCard(
+                      title: 'Could not load genres.', subtitle: '$e'),
                   data: (allGenres) => preferencesAsync.when(
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => _MessageCard(title: 'Could not load your preferences.', subtitle: '$e'),
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => _MessageCard(
+                        title: 'Could not load your preferences.',
+                        subtitle: '$e'),
                     data: (prefs) {
                       final currentGenreIds = prefs
                           .map((g) => (g['genre_id'] ?? g['id']).toString())
@@ -96,8 +106,12 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                         children: [
                           _SummaryCard(
                             selectedCount: _selectedGenreIds.length,
-                            changed: _selectedGenreIds.difference(currentGenreIds).isNotEmpty ||
-                                currentGenreIds.difference(_selectedGenreIds).isNotEmpty,
+                            changed: _selectedGenreIds
+                                    .difference(currentGenreIds)
+                                    .isNotEmpty ||
+                                currentGenreIds
+                                    .difference(_selectedGenreIds)
+                                    .isNotEmpty,
                           ),
                           const SizedBox(height: 18),
                           Wrap(
@@ -115,7 +129,8 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
 
                               return _GenreToggleChip(
                                 label: genreName,
-                                selected: genreId != null && _selectedGenreIds.contains(genreId),
+                                selected: genreId != null &&
+                                    _selectedGenreIds.contains(genreId),
                                 color: _palette[index % _palette.length],
                                 onTap: () async {
                                   final resolvedId = await _resolveGenreId(
@@ -124,7 +139,8 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                                   );
                                   if (resolvedId == null) return;
                                   setState(() {
-                                    if (_selectedGenreIds.contains(resolvedId)) {
+                                    if (_selectedGenreIds
+                                        .contains(resolvedId)) {
                                       _selectedGenreIds.remove(resolvedId);
                                     } else {
                                       _selectedGenreIds.add(resolvedId);
@@ -146,19 +162,24 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                                 foregroundColor: Colors.black,
                                 elevation: 3,
                                 shadowColor: Colors.black,
-                                side: const BorderSide(color: Colors.black, width: 2),
+                                side: const BorderSide(
+                                    color: Colors.black, width: 2),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
                               child: _saving
                                   ? const SizedBox(
-                                      width: 20, height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.black),
                                     )
                                   : Text(
                                       'Save Preferences',
-                                      style: GoogleFonts.patrickHand(fontSize: 18, fontWeight: FontWeight.bold),
+                                      style: GoogleFonts.patrickHand(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
                                     ),
                             ),
                           ),
@@ -175,7 +196,8 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
     );
   }
 
-  Future<String?> _resolveGenreId({required String genreName, required String? existingId}) async {
+  Future<String?> _resolveGenreId(
+      {required String genreName, required String? existingId}) async {
     if (existingId != null) return existingId;
     final raw = await ref.read(_genreIdMapProvider.future);
     return raw[genreName];
@@ -189,13 +211,15 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
             currentGenreIds: currentGenreIds,
             nextGenreIds: _selectedGenreIds,
           );
+      await ref.read(userRecommendationsProvider.notifier).generate();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: const Color(0xFFF3A436),
           content: Text(
             'Genre preferences saved!',
-            style: GoogleFonts.patrickHand(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
+            style: GoogleFonts.patrickHand(
+                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           duration: const Duration(seconds: 2),
         ),
@@ -250,12 +274,16 @@ class _SummaryCard extends StatelessWidget {
         color: const Color(0xFFD7C6FF).withOpacity(0.85),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.black, width: 2.5),
-        boxShadow: const [BoxShadow(color: Colors.black, offset: Offset(4, 4), blurRadius: 0)],
+        boxShadow: const [
+          BoxShadow(color: Colors.black, offset: Offset(4, 4), blurRadius: 0)
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Tune Your Feed', style: GoogleFonts.patrickHand(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text('Tune Your Feed',
+              style: GoogleFonts.patrickHand(
+                  fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 6),
           Text(
             '$selectedCount genre${selectedCount == 1 ? '' : 's'} selected${changed ? ' • unsaved changes' : ''}',
@@ -273,7 +301,11 @@ class _GenreToggleChip extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _GenreToggleChip({required this.label, required this.selected, required this.color, required this.onTap});
+  const _GenreToggleChip(
+      {required this.label,
+      required this.selected,
+      required this.color,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -286,7 +318,10 @@ class _GenreToggleChip extends StatelessWidget {
           color: selected ? color : Colors.white.withOpacity(0.75),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: Colors.black, width: 2),
-          boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(2, 2), blurRadius: 0)],
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black26, offset: Offset(2, 2), blurRadius: 0)
+          ],
         ),
         child: Text(
           label,
@@ -315,9 +350,14 @@ class _MessageCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(title, textAlign: TextAlign.center, style: GoogleFonts.patrickHand(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.patrickHand(
+                    fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(subtitle, textAlign: TextAlign.center, style: GoogleFonts.patrickHand(fontSize: 14)),
+            Text(subtitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.patrickHand(fontSize: 14)),
           ],
         ),
       ),

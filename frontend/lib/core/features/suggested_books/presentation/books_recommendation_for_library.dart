@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../network/clients/recommendations_api_client.dart';
 import '../../../network/dio_client.dart';
+import '../../../session/session_provider.dart';
 import '../../../utils/appbar.dart';
+import '../../home/presentation/state_management/user_library_provider.dart';
 import 'state_management/library_recommendations_controller.dart';
 
 class BookRecommendationPageForLibrary extends ConsumerWidget {
@@ -14,7 +16,11 @@ class BookRecommendationPageForLibrary extends ConsumerWidget {
     final recsAsync = ref.watch(libraryRecommendationsControllerProvider);
 
     return Scaffold(
-      appBar: StylishAppBar(title: 'Library Picks', homepage: false),
+      appBar: StylishAppBar(
+        title: 'Library Picks',
+        homepage: false,
+        actions: [_RetrainButton()],
+      ),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -500,11 +506,147 @@ class _GenerateFabState extends ConsumerState<_GenerateFab> {
   }
 
   Future<void> _generate() async {
+    final userId = ref.read(sessionProvider).userId;
+    if (userId == null) return;
+
+    final library = ref.read(userLibraryProvider(userId)).asData?.value;
+    if (library == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade300,
+            content: Text(
+              'No library associated. Go to Choose Library first.',
+              style: GoogleFonts.patrickHand(color: Colors.black),
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _loading = true);
     try {
+      await DioClient.main.post(
+        '/recommendations/libraries/${library.libraryId}/generate',
+        data: {'top_n_books': 10},
+      );
       ref.invalidate(libraryRecommendationsControllerProvider);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade300,
+            content: Text(
+              'Could not generate picks. Is the ML service running?',
+              style: GoogleFonts.patrickHand(color: Colors.black),
+            ),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+}
+
+// ─── Retrain button ───────────────────────────────────────────────────────────
+
+class _RetrainButton extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_RetrainButton> createState() => _RetrainButtonState();
+}
+
+class _RetrainButtonState extends ConsumerState<_RetrainButton> {
+  bool _busy = false;
+
+  Future<void> _retrain() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          'Retrain ML models?',
+          style: GoogleFonts.patrickHand(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'This incorporates all new user ratings into the recommendation models. '
+          'It may take a minute.',
+          style: GoogleFonts.patrickHand(fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('Cancel', style: GoogleFonts.patrickHand()),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF3A436),
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('Retrain', style: GoogleFonts.patrickHand(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+    try {
+      await DioClient.main.post('/ml/retrain');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFBFE3C0),
+            content: Text(
+              'Models retrained successfully.',
+              style: GoogleFonts.patrickHand(
+                  color: Colors.black, fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
+        ref.invalidate(libraryRecommendationsControllerProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red.shade300,
+            content: Text(
+              'Retrain failed. Check the ML service.',
+              style: GoogleFonts.patrickHand(color: Colors.black),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: _busy
+          ? const Padding(
+              padding: EdgeInsets.all(14),
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: Colors.white),
+              ),
+            )
+          : IconButton(
+              tooltip: 'Retrain models',
+              icon: const Icon(Icons.model_training, color: Colors.white),
+              onPressed: _retrain,
+            ),
+    );
   }
 }

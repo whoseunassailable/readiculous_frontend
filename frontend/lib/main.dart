@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  GoogleFonts.config.allowRuntimeFetching = false;
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   final container = ProviderContainer();
   await container.read(sessionProvider.notifier).init();
@@ -29,10 +30,18 @@ Future<void> main() async {
   // responsive — pre-warming no longer competes with the initial render.
   WidgetsBinding.instance.addPostFrameCallback((_) {
     FlutterNativeSplash.remove();
-    unawaited(container.read(allLibrariesProvider.future).catchError((_) {}));
+    unawaited(
+      container
+          .read(allLibrariesProvider.future)
+          .catchError((_) => <Map<String, dynamic>>[]),
+    );
     final userId = container.read(sessionProvider).userId;
     if (userId != null) {
-      unawaited(container.read(myBooksProvider.future).catchError((_) {}));
+      unawaited(
+        container
+            .read(myBooksProvider.future)
+            .catchError((_) => <Map<String, dynamic>>[]),
+      );
     }
   });
 }

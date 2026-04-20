@@ -14,21 +14,47 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # ----- CONFIG -----
 
 MODEL_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.abspath(os.path.join(MODEL_DIR, "../../../.."))
 
-DATA_PATH = os.getenv("GOODREADS_CSV")
-if not DATA_PATH:
-    raise RuntimeError(
-        "GOODREADS_CSV environment variable is not set. "
-        "Example: export GOODREADS_CSV=/path/to/GoodReads_100k_books.csv"
-    )
+
+def _load_env_file(path):
+    if not os.path.exists(path):
+        return
+
+    with open(path, "r", encoding="utf-8") as env_file:
+        for raw_line in env_file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
+
+
+for candidate in (
+    os.path.join(PROJECT_ROOT, "backend", ".env"),
+    os.path.join(PROJECT_ROOT, "ml", ".env"),
+):
+    _load_env_file(candidate)
+
+
+def _required_env(name):
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"{name} environment variable is not set.")
+    return value
+
+
+DATA_PATH = _required_env("GOODREADS_CSV")
 
 DB_CONFIG = dict(
-    host     = os.getenv("DB_HOST",     "localhost"),
-    user     = os.getenv("DB_USER",     "root"),
-    password = os.getenv("DB_PASSWORD", "Jraonhvain11#"),
-    database = os.getenv("DB_NAME",     "readiculous"),
-    charset  = "utf8mb4",
-    cursorclass = pymysql.cursors.DictCursor,
+    host=_required_env("DB_HOST"),
+    user=_required_env("DB_USER"),
+    password=_required_env("DB_PASSWORD"),
+    database=_required_env("DB_NAME"),
+    charset="utf8mb4",
+    cursorclass=pymysql.cursors.DictCursor,
 )
 
 # Hybrid weight thresholds (content_weight, cf_weight)
@@ -39,11 +65,8 @@ MIN_CF  = 5
 MID_CF  = 15
 
 
-# ----- STARTUP: load CSV -----
+# ----- STARTUP: load CSV + clean -----
 
-books_df = pd.read_csv(DATA_PATH)
-
-# Add isbn13 column if the CSV only has isbn (ISBN-10)
 def _isbn10_to_isbn13(isbn10):
     clean = re.sub(r"[^0-9Xx]", "", str(isbn10))
     if len(clean) != 10:
@@ -59,9 +82,54 @@ def _isbn10_to_isbn13(isbn10):
     check = (10 - (total % 10)) % 10
     return prefix + str(check)
 
-if "isbn13" not in books_df.columns and "isbn" in books_df.columns:
-    print("[ML] Converting isbn-10 → isbn-13 for CF matching...", flush=True)
+def _clean_books_df(df):
+    """
+    Apply the same cleaning pipeline used during model training (mirrors the notebook).
+    Must be called AFTER isbn13 has already been computed on the dataframe.
+    """
+    print(f"[ML] Cleaning: {len(df)} raw rows...", flush=True)
+
+    # Keep only the columns the models were trained on (+ isbn13 we just computed)
+    keep = ["author", "bookformat", "genre", "isbn", "isbn13", "pages",
+            "rating", "reviews", "title", "totalratings",
+            "desc", "description", "Desc", "Description"]
+    df = df[[c for c in keep if c in df.columns]].copy()
+
+    # Drop rows missing any of the three features that the XGBoost model requires
+    df = df.dropna(subset=["rating", "genre", "author"]).reset_index(drop=True)
+
+    # Type alignment — matches what retrain.py / the notebook do
+    df["pages"]        = df["pages"].fillna(0).astype("int32")
+    df["reviews"]      = df["reviews"].fillna(0).astype("int32")
+    df["totalratings"] = df["totalratings"].fillna(0).astype("int32")
+    df["rating"]       = df["rating"].astype("float32")
+
+    # Filter out books whose titles are predominantly non-Latin (gibberish / foreign-script entries
+    # that were excluded from training but survive into raw CSV).
+    # Using a simple ASCII-ratio heuristic — faster than langdetect on 100k rows.
+    def _is_latin_title(text):
+        if not isinstance(text, str) or not text.strip():
+            return False
+        ascii_chars = sum(1 for c in text if ord(c) < 128)
+        return ascii_chars / len(text) >= 0.80
+
+    before = len(df)
+    df = df[df["title"].apply(_is_latin_title)].reset_index(drop=True)
+    print(f"[ML] Cleaning: {before - len(df)} non-Latin titles removed. "
+          f"{len(df)} rows remaining.", flush=True)
+
+    return df
+
+
+books_df = pd.read_csv(DATA_PATH)
+
+# The CSV has an isbn13 column but it contains garbage values (9780000000000.0).
+# Always recompute isbn13 from the isbn10 column using the same algorithm as the import script.
+if "isbn" in books_df.columns:
+    print("[ML] Computing isbn13 from isbn10 column...", flush=True)
     books_df["isbn13"] = books_df["isbn"].apply(_isbn10_to_isbn13)
+
+books_df = _clean_books_df(books_df)
 
 # Detect description and ISBN columns
 _DESC_COL = next((c for c in ["desc", "description", "Desc", "Description"] if c in books_df.columns), None)
@@ -446,6 +514,70 @@ def reload_models():
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/suggest", methods=["POST"])
+def suggest():
+    """
+    Library stocking suggestions based on aggregated community genre preferences.
+
+    This is the intended interface for the Node backend's mlService.getSuggestionsForLibrary().
+    The backend pre-computes which users belong to a library (by user_libraries or location),
+    then sends their genre lists here. Flask aggregates, picks the top genres, and recommends.
+
+    POST body:
+      {
+        "user_preferences": [
+          {"genres": ["Fantasy", "Mystery"]},
+          {"genres": "Science Fiction, Romance"},   // also accepts comma-string
+          ...
+        ],
+        "top_m_genres": 5,    // how many top genres to surface (default 5)
+        "top_n_books":  10    // how many books to return   (default 10)
+      }
+
+    Response:
+      {
+        "top_genres":      ["Fantasy", "Mystery", ...],
+        "recommendations": [ { title, author, genre, rating, final_score, ... }, ... ]
+      }
+    """
+    try:
+        data       = request.get_json()
+        user_prefs = data.get("user_preferences", [])
+        top_m      = int(data.get("top_m_genres", 5))
+        top_n      = int(data.get("top_n_books",  10))
+
+        if not user_prefs:
+            return jsonify({"error": "user_preferences is required and must be non-empty"}), 400
+
+        # Aggregate genre counts across all users in the community
+        genre_counts: dict = {}
+        for pref in user_prefs:
+            raw = pref.get("genres", [])
+            # Accept either a list or a comma-separated string
+            genres = raw if isinstance(raw, list) else [g.strip() for g in raw.split(",")]
+            for g in genres:
+                g = g.strip().lower()
+                if g:
+                    genre_counts[g] = genre_counts.get(g, 0) + 1
+
+        if not genre_counts:
+            return jsonify({"error": "No genres found in user_preferences"}), 400
+
+        top_genres = sorted(genre_counts, key=genre_counts.get, reverse=True)[:top_m]
+
+        key = _cache_key(top_genres, "__library__", "content", top_n)
+        if key not in _rec_cache:
+            _rec_cache[key] = _recommend_content(books_df, top_genres, top_n)
+
+        return jsonify({
+            "top_genres":      top_genres,
+            "recommendations": _rec_cache[key].to_dict(orient="records"),
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/")

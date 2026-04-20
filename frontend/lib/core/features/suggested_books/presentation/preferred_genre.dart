@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:multi_select_flutter/chip_display/multi_select_chip_display.dart';
 import 'package:multi_select_flutter/dialog/multi_select_dialog_field.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
-import '../../../../l10n/app_localizations.dart';
+import '../../../../generated/l10n.dart';
 import '../../../features/home/presentation/state_management/genres_provider.dart';
 import '../../../network/clients/genres_api_client.dart';
 import '../../../network/clients/user_genres_api_client.dart';
@@ -34,7 +34,9 @@ class _PreferredGenreState extends ConsumerState<PreferredGenre> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Text('Failed to load genres: $e'),
         data: (genres) => MultiSelectDialogField<String>(
-          items: genres.map((name) => MultiSelectItem<String>(name, name)).toList(),
+          items: genres
+              .map((name) => MultiSelectItem<String>(name, name))
+              .toList(),
           title: const Text('Select Genres'),
           selectedColor: Theme.of(context).primaryColor,
           decoration: BoxDecoration(
@@ -95,7 +97,7 @@ class _PreferredGenreState extends ConsumerState<PreferredGenre> {
         if (!context.mounted) return;
         context.go('/home_page');
       },
-      buttonText: AppLocalizations.of(context).next,
+      buttonText: S.of(context).next,
       hintTextForInputField: '',
       controller: null,
     );

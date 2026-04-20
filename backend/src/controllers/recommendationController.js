@@ -3,6 +3,20 @@ const logger = require("../config/logger");
 const mlService = require("../services/mlService");
 const googleBooksService = require("../services/googleBooksService");
 
+function hasMojibake(text) {
+  if (!text) return false;
+  return /[ÐÑÃ�]/.test(String(text));
+}
+
+function isUsableRecommendation(rec) {
+  const title = String(rec?.title ?? "").trim();
+  const author = String(rec?.author ?? "").trim();
+
+  if (!title) return false;
+  if (hasMojibake(title) || hasMojibake(author)) return false;
+  return true;
+}
+
 // ==========================
 // USER RECOMMENDATIONS
 // ==========================
@@ -21,19 +35,38 @@ exports.getUserRecommendations = async (req, res) => {
          b.title,
          b.author,
          b.cover_url,
+         GROUP_CONCAT(DISTINCT g.name ORDER BY g.name SEPARATOR ', ') AS genre,
          ur.score,
          ur.reason,
          ur.created_at,
          ur.updated_at
        FROM user_recommendations ur
        JOIN books b ON b.book_id = ur.book_id
+       LEFT JOIN book_genres bg ON bg.book_id = b.book_id
+       LEFT JOIN genres g ON g.genre_id = bg.genre_id
        WHERE ur.user_id = ?
+       GROUP BY
+         ur.recommendation_id,
+         ur.user_id,
+         ur.book_id,
+         b.title,
+         b.author,
+         b.cover_url,
+         ur.score,
+         ur.reason,
+         ur.created_at,
+         ur.updated_at
        ORDER BY ur.score DESC, ur.created_at DESC`,
       [user_id],
     );
 
-    logger.info({ user_id, count: rows.length }, "getUserRecommendations: fetched");
-    return res.json(rows);
+    const cleanedRows = rows.filter(isUsableRecommendation);
+
+    logger.info(
+      { user_id, count: cleanedRows.length, dropped: rows.length - cleanedRows.length },
+      "getUserRecommendations: fetched",
+    );
+    return res.json(cleanedRows);
   } catch (error) {
     logger.error(error, "getUserRecommendations: unexpected error");
     return res.status(500).json({ message: "Internal server error" });
@@ -361,19 +394,17 @@ exports.generateLibraryRecommendations = async (req, res) => {
   const { top_m_genres = 5, top_n_books = 10 } = req.body;
 
   try {
-    // 1. Get library location
+    // 1. Verify library exists
     const [libraries] = await db.execute(
-      "SELECT library_id, name, location FROM libraries WHERE library_id = ?",
+      "SELECT library_id, name FROM libraries WHERE library_id = ?",
       [library_id],
     );
     if (libraries.length === 0) {
       return res.status(404).json({ message: "Library not found" });
     }
-    const library = libraries[0];
 
-    // 2. Find users explicitly associated with this library.
-    // Fallback to the older location-based behavior so existing demo data still works.
-    let [users] = await db.execute(
+    // 2. Find members of this library via user_libraries
+    const [users] = await db.execute(
       `SELECT DISTINCT user_id
        FROM user_libraries
        WHERE library_id = ?`,
@@ -381,22 +412,8 @@ exports.generateLibraryRecommendations = async (req, res) => {
     );
 
     if (users.length === 0) {
-      [users] = await db.execute(
-        "SELECT user_id FROM users WHERE LOWER(?) LIKE CONCAT('%', LOWER(location), '%')",
-        [library.location || ""],
-      );
-    }
-
-    if (users.length === 0) {
-      // Cold start: new library with no local users — fall back to globally popular genres
-      logger.info({ library_id }, "generateLibraryRecommendations: no local users — using global user pool");
-      [users] = await db.execute(
-        "SELECT DISTINCT user_id FROM user_genres LIMIT 200",
-      );
-      if (users.length === 0) {
-        logger.warn({ library_id }, "generateLibraryRecommendations: no users in system at all");
-        return res.status(400).json({ message: "No users found in the system yet" });
-      }
+      logger.info({ library_id }, "generateLibraryRecommendations: no members yet");
+      return res.status(400).json({ message: "This library has no members yet. Add members first." });
     }
 
     const userIds = users.map((u) => u.user_id);
@@ -405,7 +422,7 @@ exports.generateLibraryRecommendations = async (req, res) => {
     const weightedGenres = await computeWeightedGenres(userIds, top_m_genres);
 
     if (weightedGenres.length === 0) {
-      return res.status(400).json({ message: "No genre preferences found for local users" });
+      return res.status(400).json({ message: "No genre preferences found for this library's members" });
     }
 
     // 3b. Boost genre scores with this library's accumulated trend signal
@@ -487,11 +504,20 @@ exports.generateUserRecommendations = async (req, res) => {
 
     // 2. Call Flask ML service — pass user_id to activate the hybrid CF layer
     logger.info({ user_id, genres }, "generateUserRecommendations: calling ML");
-    const recommendations = await mlService.getRecommendationsForUser(genres, user_id, top_n);
+    const recommendations = await mlService.getRecommendationsForUser(
+      genres,
+      user_id,
+      top_n,
+    );
+    const usableRecommendations = recommendations.filter(isUsableRecommendation);
+
+    await db.execute("DELETE FROM user_recommendations WHERE user_id = ?", [
+      user_id,
+    ]);
 
     // 3. Resolve each book and save to user_recommendations
     const saved = [];
-    for (const rec of recommendations) {
+    for (const rec of usableRecommendations) {
       const book_id = await resolveBook(rec.isbn13 ?? rec.isbn);
       if (!book_id) {
         logger.warn({ title: rec.title }, "generateUserRecommendations: could not resolve book, skipping");
@@ -503,7 +529,7 @@ exports.generateUserRecommendations = async (req, res) => {
         `INSERT INTO user_recommendations (user_id, book_id, score, reason)
          VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE score = VALUES(score)`,
-        [user_id, book_id, score, `Genres: ${genres.join(", ")}`],
+        [user_id, book_id, score, rec.reason ?? `Genres: ${genres.join(", ")}`],
       );
 
       // Return full details so the Flutter app doesn't need a second fetch
@@ -518,7 +544,14 @@ exports.generateUserRecommendations = async (req, res) => {
       });
     }
 
-    logger.info({ user_id, saved: saved.length }, "generateUserRecommendations: done");
+    logger.info(
+      {
+        user_id,
+        saved: saved.length,
+        dropped: recommendations.length - usableRecommendations.length,
+      },
+      "generateUserRecommendations: done",
+    );
     return res.status(201).json({
       message: `${saved.length} recommendations generated`,
       recommendations: saved,

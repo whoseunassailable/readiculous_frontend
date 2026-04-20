@@ -44,8 +44,7 @@ class MyBooksPage extends ConsumerWidget {
                           decoration: BoxDecoration(
                             color: const Color(0xFFF3A436),
                             borderRadius: BorderRadius.circular(10),
-                            border:
-                                Border.all(color: Colors.black, width: 2),
+                            border: Border.all(color: Colors.black, width: 2),
                             boxShadow: const [
                               BoxShadow(
                                 color: Colors.black,
@@ -54,10 +53,8 @@ class MyBooksPage extends ConsumerWidget {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                              MaterialCommunityIcons.arrow_left,
-                              color: Colors.black,
-                              size: 20),
+                          child: const Icon(MaterialCommunityIcons.arrow_left,
+                              color: Colors.black, size: 20),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -74,24 +71,24 @@ class MyBooksPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 14),
                 _CrayonTabBar(),
-              const SizedBox(height: 8),
-              Expanded(
-                child: booksAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(
-                    child: Text(
-                      'Could not load books.\nTry again.',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.patrickHand(fontSize: 16),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: booksAsync.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(
+                      child: Text(
+                        'Could not load books.\nTry again.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.patrickHand(fontSize: 16),
+                      ),
                     ),
+                    data: (books) => _BookTabView(books: books),
                   ),
-                  data: (books) => _BookTabView(books: books),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
         ),
         floatingActionButton: Builder(
           builder: (fabCtx) => FloatingActionButton(
@@ -102,7 +99,8 @@ class MyBooksPage extends ConsumerWidget {
             ),
             onPressed: () {
               final tabIndex = DefaultTabController.of(fabCtx).index;
-              final defaultStatus = ['reading', 'want_to_read', 'read'][tabIndex];
+              final defaultStatus =
+                  ['reading', 'want_to_read', 'read'][tabIndex];
               _showAddBookSheet(context, ref, defaultStatus: defaultStatus);
             },
             child: const Icon(Icons.add, color: Colors.black, size: 28),
@@ -112,7 +110,8 @@ class MyBooksPage extends ConsumerWidget {
     );
   }
 
-  void _showAddBookSheet(BuildContext context, WidgetRef ref, {String defaultStatus = 'want_to_read'}) {
+  void _showAddBookSheet(BuildContext context, WidgetRef ref,
+      {String defaultStatus = 'want_to_read'}) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -212,18 +211,26 @@ void _showRatingSheet(BuildContext context, WidgetRef ref, String bookId) {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('How was the book?', style: GoogleFonts.patrickHand(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF3A3329))),
+            Text('How was the book?',
+                style: GoogleFonts.patrickHand(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3A3329))),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (i) => GestureDetector(
-                onTap: () => setModal(() => selectedRating = i + 1.0),
-                child: Icon(
-                  (i + 1) <= selectedRating ? Icons.star_rounded : Icons.star_outline_rounded,
-                  size: 40,
-                  color: const Color(0xFFF3A436),
-                ),
-              )),
+              children: List.generate(
+                  5,
+                  (i) => GestureDetector(
+                        onTap: () => setModal(() => selectedRating = i + 1.0),
+                        child: Icon(
+                          (i + 1) <= selectedRating
+                              ? Icons.star_rounded
+                              : Icons.star_outline_rounded,
+                          size: 40,
+                          color: const Color(0xFFF3A436),
+                        ),
+                      )),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -232,22 +239,27 @@ void _showRatingSheet(BuildContext context, WidgetRef ref, String bookId) {
               child: ElevatedButton(
                 onPressed: () {
                   ref.read(myBooksProvider.notifier).addOrUpdate(
-                    bookId: bookId,
-                    status: 'read',
-                    rating: selectedRating > 0 ? selectedRating : null,
-                  );
-                  ref.invalidate(userRecommendationsProvider);
+                        bookId: bookId,
+                        status: 'read',
+                        rating: selectedRating > 0 ? selectedRating : null,
+                      );
+                  Future.microtask(() {
+                    ref.read(userRecommendationsProvider.notifier).generate();
+                  });
                   Navigator.pop(ctx);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFF3A436),
                   foregroundColor: Colors.black,
                   side: const BorderSide(color: Colors.black, width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   elevation: 3,
                   shadowColor: Colors.black,
                 ),
-                child: Text('Mark as Finished', style: GoogleFonts.patrickHand(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text('Mark as Finished',
+                    style: GoogleFonts.patrickHand(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -293,11 +305,13 @@ class _BookList extends ConsumerWidget {
           onRate: status == 'read'
               ? (rating) {
                   ref.read(myBooksProvider.notifier).addOrUpdate(
-                    bookId: bookId,
-                    status: 'read',
-                    rating: rating,
-                  );
-                  ref.invalidate(userRecommendationsProvider);
+                        bookId: bookId,
+                        status: 'read',
+                        rating: rating,
+                      );
+                  Future.microtask(() {
+                    ref.read(userRecommendationsProvider.notifier).generate();
+                  });
                 }
               : null,
           onMarkFinished: status == 'reading'

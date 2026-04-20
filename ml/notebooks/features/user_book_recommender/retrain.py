@@ -38,19 +38,51 @@ from surprise import accuracy as surprise_accuracy
 
 warnings.filterwarnings("ignore")
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../.."))
+
+
+def load_env_file(path: str):
+    if not os.path.exists(path):
+        return
+
+    with open(path, "r", encoding="utf-8") as env_file:
+        for raw_line in env_file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip().strip('"').strip("'")
+            os.environ.setdefault(key, value)
+
+
+for candidate in (
+    os.path.join(PROJECT_ROOT, "backend", ".env"),
+    os.path.join(PROJECT_ROOT, "ml", ".env"),
+):
+    load_env_file(candidate)
+
+
 # ──────────────────────────────────────────────
 # Config — all overridable via env vars
 # ──────────────────────────────────────────────
 
+def required_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"{name} environment variable is not set.")
+    return value
+
+
 DB_CONFIG = {
-    "host":     os.getenv("DB_HOST",     "localhost"),
-    "user":     os.getenv("DB_USER",     "root"),
-    "password": os.getenv("DB_PASSWORD", "Jraonhvain11#"),
-    "database": os.getenv("DB_NAME",     "readiculous"),
+    "host": required_env("DB_HOST"),
+    "user": required_env("DB_USER"),
+    "password": required_env("DB_PASSWORD"),
+    "database": required_env("DB_NAME"),
     "charset":  "utf8mb4",
 }
 
-KAGGLE_CSV       = os.getenv("GOODREADS_CSV", "/Users/whoseunassailable/Documents/datasets/GoodReads_100k_books.csv")
+KAGGLE_CSV       = required_env("GOODREADS_CSV")
 MODEL_DIR        = os.path.dirname(os.path.abspath(__file__))
 MIN_NEW_ROWS     = int(os.getenv("MIN_NEW_ROWS", "100"))    # skip XGBoost retrain if fewer signals
 MIN_CF_ROWS      = int(os.getenv("MIN_CF_ROWS",  "10"))     # skip CF retrain if fewer interactions
@@ -163,6 +195,69 @@ def pull_user_interactions():
 # 2. Merge signals into the Kaggle baseline
 # ──────────────────────────────────────────────
 
+def pull_mysql_books():
+    """
+    Pull books that exist in MySQL (added via Google Books API when users rated them)
+    but are not part of the Kaggle CSV. These are books users actually interacted with
+    that we want to fold into the training data so the model learns from them.
+
+    Returns a DataFrame with the same columns as the Kaggle CSV baseline.
+    Numeric fields absent from the books table default to 0.
+    """
+    conn = pymysql.connect(**DB_CONFIG)
+    try:
+        df = pd.read_sql(
+            """
+            SELECT
+                b.isbn13,
+                b.title,
+                b.author,
+                GROUP_CONCAT(g.name ORDER BY g.name SEPARATOR ', ') AS genre,
+                b.description
+            FROM books b
+            JOIN user_reads ur ON ur.book_id = b.book_id
+            LEFT JOIN book_genres bg ON bg.book_id = b.book_id
+            LEFT JOIN genres g ON g.genre_id = bg.genre_id
+            WHERE ur.rating IS NOT NULL
+              AND b.isbn13 IS NOT NULL
+            GROUP BY b.book_id
+            """,
+            conn,
+        )
+    finally:
+        conn.close()
+
+    if df.empty:
+        return pd.DataFrame()
+
+    # Fill in missing numeric columns with 0 — log1p(0)=0 is a safe neutral value
+    for col in ["pages", "reviews", "totalratings"]:
+        df[col] = 0
+    df["bookformat"] = "unknown"
+
+    # Seed rating from the average of user ratings for this book
+    conn = pymysql.connect(**DB_CONFIG)
+    try:
+        avg_ratings = pd.read_sql(
+            """
+            SELECT b.isbn13, AVG(ur.rating) AS rating
+            FROM user_reads ur
+            JOIN books b ON b.book_id = ur.book_id
+            WHERE ur.rating IS NOT NULL AND b.isbn13 IS NOT NULL
+            GROUP BY b.isbn13
+            """,
+            conn,
+        )
+    finally:
+        conn.close()
+
+    df = df.merge(avg_ratings, on="isbn13", how="left")
+    df["rating"] = df["rating"].fillna(3.0)   # neutral fallback if no ratings yet
+
+    return df[["isbn13", "title", "author", "genre", "rating",
+               "pages", "reviews", "totalratings", "bookformat"]].dropna(subset=["genre", "author"])
+
+
 def build_training_data(signals: pd.DataFrame):
     cols = ["author", "bookformat", "genre", "isbn", "pages", "rating", "reviews", "title", "totalratings"]
     df = pd.read_csv(KAGGLE_CSV, encoding="utf-8")
@@ -171,6 +266,16 @@ def build_training_data(signals: pd.DataFrame):
 
     if "isbn" in df.columns:
         df = df.rename(columns={"isbn": "isbn13"})
+
+    # Append books from MySQL that users have rated but aren't in the Kaggle CSV.
+    # This is the feedback loop: every book a user rates expands the training set.
+    mysql_books = pull_mysql_books()
+    if not mysql_books.empty and "isbn13" in df.columns:
+        kaggle_isbns  = set(df["isbn13"].dropna())
+        new_books     = mysql_books[~mysql_books["isbn13"].isin(kaggle_isbns)]
+        if not new_books.empty:
+            df = pd.concat([df, new_books], ignore_index=True)
+            print(f"[retrain] Appended {len(new_books)} MySQL-only books to training data.", flush=True)
 
     if signals.empty or "isbn13" not in df.columns:
         return df, np.ones(len(df), dtype="float32")

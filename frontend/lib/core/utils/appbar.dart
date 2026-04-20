@@ -4,12 +4,14 @@ import 'package:go_router/go_router.dart';
 
 class StylishAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  bool homepage = false;
+  final bool homepage;
+  final List<Widget>? actions;
 
-  StylishAppBar({
+  const StylishAppBar({
     super.key,
     required this.title,
     required this.homepage,
+    this.actions,
   });
 
   @override
@@ -29,6 +31,7 @@ class StylishAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: const Color(0xFFF3A436), // Background color
       elevation: 4.0, // Shadow for depth
       centerTitle: true,
+      actions: actions,
       leading: homepage
           ? IconButton(
               icon:

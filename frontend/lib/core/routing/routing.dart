@@ -21,6 +21,48 @@ import '../features/suggested_books/presentation/books_recommendation_for_librar
 import '../features/suggested_books/presentation/books_recommendation_page_for_user.dart';
 import '../features/suggested_books/presentation/preferred_genre.dart';
 import '../session/session_provider.dart';
+import '../session/session_state.dart';
+
+/// Pure redirect logic — extracted so it can be unit-tested without a widget tree.
+/// Returns the target path to navigate to, or null if no redirect is needed.
+///
+/// NOTE: GoRouter 17+ calls the top-level redirect only ONCE per navigation,
+/// so this function must compute the final destination in a single step (no
+/// redirect chains).
+String? computeAuthRedirect(SessionState session, String location) {
+  if (!session.initialized) return null;
+
+  final loggedIn = session.userId != null && session.role != null;
+  final isAtLogin = location == '/';
+  final isAtRegister = location == '/register_page';
+  final isAtOnboarding = location == '/preferred_location';
+  final needsOnboarding =
+      session.role == AppRoles.user && session.hasGenrePrefs != true;
+
+  // Guest user: allow only login and register pages
+  if (!loggedIn) {
+    return (isAtLogin || isAtRegister) ? null : '/';
+  }
+
+  // Logged-in user at login/register: jump directly to the right landing page
+  if (isAtLogin || isAtRegister) {
+    return needsOnboarding ? '/preferred_location' : '/home_page';
+  }
+
+  // User without genre prefs: block all pages except onboarding
+  if (needsOnboarding && !isAtOnboarding) {
+    return '/preferred_location';
+  }
+
+  // User with genre prefs: prevent revisiting onboarding
+  if (session.role == AppRoles.user &&
+      session.hasGenrePrefs == true &&
+      isAtOnboarding) {
+    return '/home_page';
+  }
+
+  return null;
+}
 
 /// GoRouter refresh bridge for Riverpod
 class GoRouterRefresh extends ChangeNotifier {
@@ -124,38 +166,7 @@ class Routing {
       ),
     ],
 
-    redirect: (context, state) {
-      final session = ref.read(sessionProvider);
-      if (!session.initialized) return null;
-      final loggedIn = session.userId != null && session.role != null;
-
-      final isAtLogin = state.matchedLocation == '/';
-      final isAtRegister = state.matchedLocation == '/register_page';
-      final isAtOnboarding = state.matchedLocation == '/preferred_location';
-
-      if (!loggedIn) {
-        return (isAtLogin || isAtRegister) ? null : '/';
-      }
-
-      if (loggedIn && (isAtLogin || isAtRegister)) {
-        return '/home_page';
-      }
-
-      // New user with no genre prefs → force onboarding
-      if (session.role == AppRoles.user &&
-          session.hasGenrePrefs != true &&
-          !isAtOnboarding) {
-        return '/preferred_location';
-      }
-
-      // User who finished onboarding tries to go back → block
-      if (session.role == AppRoles.user &&
-          session.hasGenrePrefs == true &&
-          isAtOnboarding) {
-        return '/home_page';
-      }
-
-      return null;
-    },
+    redirect: (context, state) =>
+        computeAuthRedirect(ref.read(sessionProvider), state.matchedLocation),
   );
 }
