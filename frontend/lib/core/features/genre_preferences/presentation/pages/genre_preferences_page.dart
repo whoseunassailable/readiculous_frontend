@@ -21,6 +21,7 @@ class GenrePreferencesPage extends ConsumerStatefulWidget {
 
 class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
   final Set<String> _selectedGenreIds = {};
+  final Map<String, String> _resolvedGenreIds = {}; // name -> id cache
   bool _initializedSelection = false;
   bool _saving = false;
 
@@ -29,6 +30,7 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
     final userId = ref.watch(sessionProvider).userId;
     final allGenresAsync = ref.watch(allGenresProvider);
     final preferencesAsync = ref.watch(genrePreferencesProvider);
+    final fullGenreIdMap = ref.watch(_genreIdMapProvider);
 
     return Scaffold(
       body: Container(
@@ -91,6 +93,22 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                         title: 'Could not load your preferences.',
                         subtitle: '$e'),
                     data: (prefs) {
+                      // Build name->id from prefs + full genre map
+                      final genreIdByName = <String, String>{};
+                      for (final item in prefs.cast<Map<String, dynamic>>()) {
+                        final name = item['name']?.toString();
+                        final id = (item['genre_id'] ?? item['id'])?.toString();
+                        if (name != null && id != null) genreIdByName[name] = id;
+                      }
+                      // Merge full genre map if available
+                      final fullMap = fullGenreIdMap.asData?.value;
+                      if (fullMap != null) {
+                        genreIdByName.addAll(fullMap);
+                        _resolvedGenreIds.addAll(fullMap);
+                      }
+                      // Also add any locally resolved IDs
+                      genreIdByName.addAll(_resolvedGenreIds);
+
                       final currentGenreIds = prefs
                           .map((g) => (g['genre_id'] ?? g['id']).toString())
                           .toSet();
@@ -114,42 +132,53 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                                     .isNotEmpty,
                           ),
                           const SizedBox(height: 18),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: List.generate(allGenres.length, (index) {
-                              final genreName = allGenres[index];
-                              final genreId = prefs
-                                  .cast<Map<String, dynamic>?>()
-                                  .firstWhere(
-                                    (g) => g?['name'] == genreName,
-                                    orElse: () => null,
-                                  )?['genre_id']
-                                  ?.toString();
+                          Builder(builder: (context) {
+                            // Sort: selected genres first, then the rest alphabetically
+                            final sortedGenres = List<String>.from(allGenres);
+                            sortedGenres.sort((a, b) {
+                              final aId = genreIdByName[a];
+                              final bId = genreIdByName[b];
+                              final aSelected = aId != null &&
+                                  _selectedGenreIds.contains(aId);
+                              final bSelected = bId != null &&
+                                  _selectedGenreIds.contains(bId);
+                              if (aSelected && !bSelected) return -1;
+                              if (!aSelected && bSelected) return 1;
+                              return a.compareTo(b);
+                            });
 
-                              return _GenreToggleChip(
-                                label: genreName,
-                                selected: genreId != null &&
-                                    _selectedGenreIds.contains(genreId),
-                                color: _palette[index % _palette.length],
-                                onTap: () async {
-                                  final resolvedId = await _resolveGenreId(
-                                    genreName: genreName,
-                                    existingId: genreId,
-                                  );
-                                  if (resolvedId == null) return;
-                                  setState(() {
-                                    if (_selectedGenreIds
-                                        .contains(resolvedId)) {
-                                      _selectedGenreIds.remove(resolvedId);
-                                    } else {
-                                      _selectedGenreIds.add(resolvedId);
-                                    }
-                                  });
-                                },
-                              );
-                            }),
-                          ),
+                            return Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: List.generate(sortedGenres.length, (index) {
+                                final genreName = sortedGenres[index];
+                                final genreId = genreIdByName[genreName];
+                                final originalIndex = allGenres.indexOf(genreName);
+
+                                return _GenreToggleChip(
+                                  label: genreName,
+                                  selected: genreId != null &&
+                                      _selectedGenreIds.contains(genreId),
+                                  color: _palette[originalIndex % _palette.length],
+                                  onTap: () async {
+                                    final resolvedId = await _resolveGenreId(
+                                      genreName: genreName,
+                                      existingId: genreId,
+                                    );
+                                    if (resolvedId == null) return;
+                                    setState(() {
+                                      if (_selectedGenreIds
+                                          .contains(resolvedId)) {
+                                        _selectedGenreIds.remove(resolvedId);
+                                      } else {
+                                        _selectedGenreIds.add(resolvedId);
+                                      }
+                                    });
+                                  },
+                                );
+                              }),
+                            );
+                          }),
                           const SizedBox(height: 22),
                           SizedBox(
                             height: 52,
@@ -199,8 +228,13 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
   Future<String?> _resolveGenreId(
       {required String genreName, required String? existingId}) async {
     if (existingId != null) return existingId;
+    if (_resolvedGenreIds.containsKey(genreName)) {
+      return _resolvedGenreIds[genreName];
+    }
     final raw = await ref.read(_genreIdMapProvider.future);
-    return raw[genreName];
+    final id = raw[genreName];
+    if (id != null) _resolvedGenreIds[genreName] = id;
+    return id;
   }
 
   Future<void> _save(String userId, Set<String> currentGenreIds) async {
@@ -315,21 +349,36 @@ class _GenreToggleChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? color : Colors.white.withOpacity(0.75),
+          color: selected ? color : Colors.white.withOpacity(0.82),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Colors.black, width: 2),
-          boxShadow: const [
+          border: Border.all(
+            color: Colors.black,
+            width: selected ? 3.2 : 2,
+          ),
+          boxShadow: [
             BoxShadow(
-                color: Colors.black26, offset: Offset(2, 2), blurRadius: 0)
+              color: Colors.black.withOpacity(selected ? 0.24 : 0.10),
+              offset: Offset(selected ? 5 : 2, selected ? 5 : 2),
+              blurRadius: 0,
+            )
           ],
         ),
-        child: Text(
-          label,
-          style: GoogleFonts.patrickHand(
-            fontSize: 15,
-            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-            color: Colors.black,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (selected) ...[
+              const Icon(Icons.check, size: 16, color: Colors.black),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: GoogleFonts.patrickHand(
+                fontSize: 15,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -27,10 +27,8 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
     final userId = session.userId;
 
     String subText;
-    bool hasLibrary = false;
     if (userId != null) {
       final libraryAsync = ref.watch(userLibraryProvider(userId));
-      libraryAsync.whenData((lib) => hasLibrary = lib != null);
       subText = libraryAsync.when(
         loading: () => 'Loading library…',
         error: (_, __) => 'No library assigned',
@@ -45,7 +43,7 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         widget.width * 0.16,
-        widget.height * 0.095,
+        widget.height * 0.085,
         widget.width * 0.12,
         0,
       ),
@@ -54,11 +52,7 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
         children: [
           Row(
             children: [
-              Image.asset(
-                'assets/icons/library_pulse_icon.png',
-                height: widget.height / 25,
-              ),
-              SizedBox(width: widget.width / 40),
+              SizedBox(width: widget.width / 20),
               Text(
                 S.of(context).libraryPulse,
                 style: TextStyle(
@@ -66,49 +60,54 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              SizedBox(width: widget.width / 40),
+              Image.asset(
+                'assets/icons/library_pulse_icon.png',
+                height: widget.height / 25,
+              ),
             ],
           ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  subText,
-                  style: TextStyle(fontSize: widget.height / 60),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              if (showChangeButton) ...[
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: () => context.pushNamed(RouteNames.libraryAssociation),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3A436),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: Colors.black, width: 1.5),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          offset: Offset(1, 1),
-                          blurRadius: 0,
-                        ),
-                      ],
+          const SizedBox(height: 6),
+          Padding(
+            padding: EdgeInsets.only(left: widget.width / 20),
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    subText,
+                    style: GoogleFonts.patrickHand(
+                      fontSize: widget.height / 60,
+                      color: const Color(0xFF3A3329).withValues(alpha: 0.7),
                     ),
-                    child: Text(
-                      hasLibrary ? 'Change' : 'Select',
-                      style: GoogleFonts.patrickHand(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (showChangeButton) ...[
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: () =>
+                        context.pushNamed(RouteNames.libraryAssociation),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7C6FF),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.black, width: 1.5),
+                      ),
+                      child: Text(
+                        'Change',
+                        style: GoogleFonts.patrickHand(
+                          fontSize: widget.height / 70,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3A3329),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ],
       ),

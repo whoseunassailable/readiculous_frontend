@@ -7,6 +7,7 @@ class MyBookCard extends StatelessWidget {
   final void Function(double rating)? onRate;
   final VoidCallback? onMarkFinished;
   final VoidCallback? onMoveToReading;
+  final VoidCallback? onAddToReading;
 
   const MyBookCard({
     super.key,
@@ -15,6 +16,7 @@ class MyBookCard extends StatelessWidget {
     this.onRate,
     this.onMarkFinished,
     this.onMoveToReading,
+    this.onAddToReading,
   });
 
   @override
@@ -83,11 +85,26 @@ class MyBookCard extends StatelessWidget {
             ),
             if (status == 'want_to_read') ...[
               const SizedBox(height: 10),
-              _StatusButton(
-                label: 'Remove',
-                color: const Color(0xFFFFC7C2),
-                icon: Icons.remove_circle_outline,
-                onTap: onDelete,
+              Row(
+                children: [
+                  if (onAddToReading != null) ...[
+                    Expanded(
+                      child: _StatusButton(
+                        label: 'ADD TO READING',
+                        color: const Color(0xFFD7C6FF),
+                        icon: Icons.menu_book_outlined,
+                        onTap: onAddToReading!,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  _StatusButton(
+                    label: 'Remove',
+                    color: const Color(0xFFFFC7C2),
+                    icon: Icons.remove_circle_outline,
+                    onTap: onDelete,
+                  ),
+                ],
               ),
             ],
             if (status == 'reading' && onMarkFinished != null) ...[

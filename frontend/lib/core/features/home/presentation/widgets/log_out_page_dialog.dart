@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
-import 'package:readiculous_frontend/core/constants/app_font_size.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../generated/l10n.dart';
 import '../../../../constants/routes.dart';
@@ -21,166 +20,158 @@ class LogOutPageDialog extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: SizedBox(
-        height: height / 2,
-        width: width * 0.8,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFE4C2B2), Color(0xFFD6B1A0)],
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      child: Container(
+        width: width * 0.85,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFDF3),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: Colors.black, width: 3),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black,
+              offset: Offset(4, 4),
+              blurRadius: 0,
             ),
-            border: Border.all(color: Colors.brown),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white70,
-                  border: Border.all(color: Colors.white70),
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const Icon(MaterialCommunityIcons.message_question),
-                    Text(
-                      S.of(context).logOut,
-                      style: TextStyle(fontSize: height * AppFontSize.ml),
-                    ),
-                    GestureDetector(
-                      child: const Icon(
-                        MaterialCommunityIcons.close_circle,
-                      ),
-                      onTap: () => context.pop(),
-                    ),
-                  ],
-                ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD7C6FF),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.black, width: 2),
               ),
-              const Divider(thickness: 2, color: Colors.brown),
-              Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  SizedBox(height: height / 30),
                   Text(
-                    S.of(context).areYouSureYouWantToLogOut,
-                    style: TextStyle(fontSize: height * AppFontSize.xs),
-                  ),
-                  Text(
-                    S.of(context).anyUnsavedChangesWillBeLost,
-                    style: TextStyle(fontSize: height * AppFontSize.xxs),
-                  ),
-                  SizedBox(height: height / 30),
-                  Container(
-                    width: width * 0.7,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFFE4C2B2), Color(0xFFD6B1A0)],
-                      ),
-                      border: Border.all(color: Colors.brown),
-                      borderRadius: BorderRadius.circular(12),
+                    S.of(context).logOut,
+                    style: GoogleFonts.patrickHand(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF3A3329),
                     ),
-                    child: Column(
-                      children: [
-                        SizedBox(height: height / 60),
-                        customizedButton(
-                            context: context,
-                            ref: ref,
-                            text: S.of(context).editProfile.toUpperCase(),
-                            outlined: true,
-                            pageName: RouteNames.profilePage),
-                        customizedButton(
-                          context: context,
-                          ref: ref,
-                          text: S.of(context).changePassword.toUpperCase(),
-                          outlined: true,
-                          pageName: RouteNames.homePage,
-                        ),
-                        customizedButton(
-                          context: context,
-                          ref: ref,
-                          text: S.of(context).logOut.toUpperCase(),
-                          outlined: false,
-                          pageName: RouteNames.loginPage,
-                        ),
-                        SizedBox(height: height / 60),
-                      ],
+                  ),
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFC7C2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.black, width: 1.5),
+                      ),
+                      child: const Icon(Icons.close, size: 18, color: Colors.black),
                     ),
                   ),
                 ],
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            // Message
+            Text(
+              S.of(context).areYouSureYouWantToLogOut,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.patrickHand(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF3A3329),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              S.of(context).anyUnsavedChangesWillBeLost,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.patrickHand(
+                fontSize: 14,
+                color: const Color(0xFF3A3329).withValues(alpha: 0.65),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Buttons
+            _DialogButton(
+              label: S.of(context).editProfile.toUpperCase(),
+              color: const Color(0xFFB7D8FF),
+              onTap: () {
+                context.pop();
+                context.pushNamed(RouteNames.profilePage);
+              },
+            ),
+            const SizedBox(height: 10),
+            _DialogButton(
+              label: S.of(context).changePassword.toUpperCase(),
+              color: const Color(0xFFFFE4A0),
+              onTap: () {
+                context.pop();
+                context.pushNamed(RouteNames.homePage);
+              },
+            ),
+            const SizedBox(height: 10),
+            _DialogButton(
+              label: S.of(context).logOut.toUpperCase(),
+              color: const Color(0xFFFFC7C2),
+              onTap: () async {
+                await ref.read(sessionProvider.notifier).clearSession();
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                context.goNamed(RouteNames.loginPage);
+              },
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  customizedButton({
-    required BuildContext context,
-    required WidgetRef ref,
-    required String text,
-    required bool outlined,
-    required String pageName,
-  }) {
-    return SizedBox(
-      width: outlined ? width * 0.6 : width * 0.5,
-      child: outlined
-          ? OutlinedButton(
-              onPressed: () => context.pushNamed(pageName),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: const BorderSide(
-                  color: Colors.brown,
-                  width: 2,
-                ),
-              ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: Colors.brown,
-                  fontSize: height * AppFontSize.xxs,
-                ),
-              ),
-            )
-          : ElevatedButton(
-              onPressed: () async {
-                await ref.read(sessionProvider.notifier).clearSession();
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-                context.goNamed(pageName);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                side: const BorderSide(
-                  color: Colors.brown,
-                  width: 2,
-                ),
-              ),
-              child: Text(
-                text,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: height * AppFontSize.xxs,
-                ),
-              ),
+class _DialogButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _DialogButton({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              offset: Offset(2, 2),
+              blurRadius: 0,
             ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.patrickHand(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF3A3329),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

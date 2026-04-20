@@ -323,6 +323,12 @@ class _BookList extends ConsumerWidget {
                     status: 'reading',
                   )
               : null,
+          onAddToReading: status == 'want_to_read'
+              ? () => ref.read(myBooksProvider.notifier).addOrUpdate(
+                    bookId: bookId,
+                    status: 'reading',
+                  )
+              : null,
         );
       },
     );

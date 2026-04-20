@@ -82,7 +82,7 @@ class BooksStockContainer extends ConsumerWidget {
     };
 
     return Container(
-      height: homePage ? height * 0.42 : height * 0.5,
+      height: homePage ? null : height * 0.5,
       width: width * 0.9,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
@@ -141,21 +141,11 @@ class BooksStockContainer extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Books to Read',
+                          'Top picks for you right now',
                           style: GoogleFonts.patrickHand(
                             fontSize: height / 55,
                             fontWeight: FontWeight.bold,
                             color: const Color(0xFF3A3329),
-                          ),
-                        ),
-                        Text(
-                          homePage
-                              ? 'Top picks for you right now'
-                              : 'Based on your saved recommendations',
-                          style: GoogleFonts.patrickHand(
-                            fontSize: height / 78,
-                            color:
-                                const Color(0xFF3A3329).withValues(alpha: 0.65),
                           ),
                         ),
                       ],
@@ -213,41 +203,39 @@ class BooksStockContainer extends ConsumerWidget {
                               ),
                             ),
                           )
-                        : ListView.separated(
-                            padding: EdgeInsets.zero,
-                            itemCount: userRecommendations.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 8),
-                            itemBuilder: (context, index) {
-                              final book = userRecommendations[index];
-                              final bookId = book['book_id']?.toString() ?? '';
-                              final status = readingStatusByBookId[bookId];
-                              return _UserRecommendationRow(
-                                height: height,
-                                book: book,
-                                status: status,
-                                onAdd: bookId.isEmpty
-                                    ? null
-                                    : () async {
-                                        await ref
-                                            .read(myBooksProvider.notifier)
-                                            .addOrUpdate(
-                                              bookId: bookId,
-                                              status: 'want_to_read',
-                                            );
-                                        if (!context.mounted) return;
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                              '${book['title']} added to Want to Read',
-                                            ),
-                                          ),
-                                        );
-                                      },
-                              );
-                            },
-                          ),
+                        : homePage
+                            ? Column(
+                                children: [
+                                  for (var index = 0;
+                                      index < userRecommendations.length;
+                                      index++) ...[
+                                    _buildUserRecommendationRow(
+                                      context,
+                                      ref,
+                                      height,
+                                      userRecommendations[index],
+                                      readingStatusByBookId,
+                                    ),
+                                    if (index != userRecommendations.length - 1)
+                                      const SizedBox(height: 8),
+                                  ],
+                                ],
+                              )
+                            : ListView.separated(
+                                padding: EdgeInsets.zero,
+                                itemCount: userRecommendations.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 8),
+                                itemBuilder: (context, index) {
+                                  return _buildUserRecommendationRow(
+                                    context,
+                                    ref,
+                                    height,
+                                    userRecommendations[index],
+                                    readingStatusByBookId,
+                                  );
+                                },
+                              ),
               ),
             ],
             // --- BOTTOM BUTTONS ---
@@ -412,9 +400,9 @@ class _UserRecommendationRow extends StatelessWidget {
                       border: Border.all(color: Colors.black, width: 1.8),
                     ),
                     child: Text(
-                      'Add',
+                      'ADD TO READING',
                       style: GoogleFonts.patrickHand(
-                        fontSize: height / 68,
+                        fontSize: height / 88,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF4D3277),
                       ),
@@ -425,6 +413,34 @@ class _UserRecommendationRow extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _buildUserRecommendationRow(
+  BuildContext context,
+  WidgetRef ref,
+  double height,
+  Map<String, dynamic> book,
+  Map<String?, String> readingStatusByBookId,
+) {
+  final bookId = book['book_id']?.toString() ?? '';
+  final status = readingStatusByBookId[bookId];
+  return _UserRecommendationRow(
+    height: height,
+    book: book,
+    status: status,
+    onAdd: bookId.isEmpty
+        ? null
+        : () async {
+            await ref.read(myBooksProvider.notifier).addOrUpdate(
+                  bookId: bookId,
+                  status: 'want_to_read',
+                );
+            if (!context.mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${book['title']} added to reading')),
+            );
+          },
+  );
 }
 
 bool _hasMojibake(String text) => RegExp(r'[ÐÑÃ�]').hasMatch(text);

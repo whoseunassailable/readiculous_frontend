@@ -3,6 +3,8 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:readiculous_frontend/core/cache/app_cache_service.dart';
+import 'package:readiculous_frontend/core/cache/app_cache_warmer.dart';
 
 import '../../data/data_sources/auth_remote_ds.dart';
 import '../../data/repositories/auth_repository_impl.dart';
@@ -39,11 +41,13 @@ class LoginController extends AsyncNotifier<void> {
     state = const AsyncLoading();
 
     final result = await _authRepo.login(email: email, password: password);
+    if (!ref.mounted) return;
 
     if (result.isSuccess) {
       final payload = result.data;
       final user = payload?['user'];
       if (user is! Map<String, dynamic>) {
+        if (!ref.mounted) return;
         state = AsyncError(
           ApiError(
             message: 'Invalid login response',
@@ -58,6 +62,7 @@ class LoginController extends AsyncNotifier<void> {
       final userId = userMap['user_id']?.toString();
       final role = userMap['role']?.toString();
       if (userId == null || userId.isEmpty || role == null || role.isEmpty) {
+        if (!ref.mounted) return;
         state = AsyncError(
           ApiError(
             message: 'Login response missing session fields',
@@ -72,26 +77,36 @@ class LoginController extends AsyncNotifier<void> {
             userId: userId,
             role: role,
             email: email,
+            password: password,
           );
+      if (!ref.mounted) return;
+      await AppCacheService.instance.saveCurrentUserProfile(userMap);
 
       if (role == 'user') {
         try {
           final genres = await UserGenresApiClient(DioClient.main)
               .getUserGenrePreferences(userId);
+          if (!ref.mounted) return;
           await ref
               .read(sessionProvider.notifier)
               .setGenrePrefsStatus(genres.isNotEmpty);
         } catch (_) {
+          if (!ref.mounted) return;
           await ref.read(sessionProvider.notifier).setGenrePrefsStatus(false);
         }
       } else {
+        if (!ref.mounted) return;
         await ref.read(sessionProvider.notifier).setGenrePrefsStatus(false);
       }
 
+      unawaited(AppCacheWarmer.warmForLoggedInUser(userId));
+
       // Signal success — the page will navigate in response.
+      if (!ref.mounted) return;
       state = const AsyncData(null);
     } else {
       final error = result.error!;
+      if (!ref.mounted) return;
       state = AsyncError(
         // Carry the original ApiError so the UI can display it.
         error,

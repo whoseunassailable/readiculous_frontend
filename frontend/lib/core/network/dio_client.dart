@@ -2,15 +2,16 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
+import 'package:readiculous_frontend/core/config/app_env.dart';
 
 class DioClient {
   DioClient._();
 
   static final Dio main = Dio(
     BaseOptions(
-      baseUrl: 'http://10.0.2.2:5000/api',
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      baseUrl: AppEnv.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -57,6 +58,11 @@ class _ApiLoggerInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (AppEnv.isProd) {
+      handler.next(options);
+      return;
+    }
+
     options.extra[_startTimeKey] = DateTime.now().millisecondsSinceEpoch;
 
     final buffer = StringBuffer()
@@ -83,6 +89,11 @@ class _ApiLoggerInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (AppEnv.isProd) {
+      handler.next(response);
+      return;
+    }
+
     final startedAt = response.requestOptions.extra[_startTimeKey] as int? ?? 0;
     final elapsedMs = startedAt == 0
         ? null
@@ -114,6 +125,11 @@ class _ApiLoggerInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
+    if (AppEnv.isProd) {
+      handler.next(err);
+      return;
+    }
+
     final startedAt = err.requestOptions.extra[_startTimeKey] as int? ?? 0;
     final elapsedMs = startedAt == 0
         ? null

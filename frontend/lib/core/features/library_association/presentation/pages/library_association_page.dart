@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:readiculous_frontend/core/cache/app_cache_service.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
 import 'package:readiculous_frontend/core/network/clients/librarians_api_client.dart';
 import 'package:readiculous_frontend/core/network/dio_client.dart';
@@ -306,6 +307,19 @@ class _LibraryAssociationPageState
           '/users/$userId/library',
           data: {'library_id': int.parse(_selectedLibraryId!)},
         );
+      }
+      final libraries = ref.read(allLibrariesProvider).asData?.value;
+      final selectedLibrary = libraries?.firstWhere(
+        (library) => library['library_id'].toString() == _selectedLibraryId,
+        orElse: () => <String, dynamic>{},
+      );
+      if (selectedLibrary != null && selectedLibrary.isNotEmpty) {
+        await AppCacheService.instance.saveCurrentUserLibrary({
+          'library_id': selectedLibrary['library_id'],
+          'name': selectedLibrary['name'],
+          'location': selectedLibrary['location'],
+          'verified': selectedLibrary['verified'],
+        });
       }
       ref.invalidate(userLibraryProvider(userId));
 

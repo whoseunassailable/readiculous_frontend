@@ -467,89 +467,97 @@ class _LibraryBookCard extends StatelessWidget {
             'stock_label': stockLabel,
           },
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 42,
-              height: 58,
-              decoration: BoxDecoration(
-                color: const Color(0xFFB7D8FF),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF7A5332), width: 2),
-              ),
-              child:
-                  const Icon(Icons.menu_book_rounded, color: Color(0xFF342116)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    book['title']?.toString() ?? 'Unknown Title',
-                    style: GoogleFonts.patrickHand(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF342116),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFB7D8FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF7A5332), width: 2),
                   ),
-                  Text(
-                    book['author']?.toString() ?? 'Unknown Author',
-                    style: GoogleFonts.patrickHand(
-                      fontSize: 14,
-                      color: const Color(0xFF5E4736),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
+                  child: const Icon(
+                      Icons.menu_book_rounded, color: Color(0xFF342116)),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if ((book['genres']?.toString() ?? '').isNotEmpty) ...[
-                        _MiniPill(
-                          label: book['genres'].toString().split(',').first.trim(),
-                          color: const Color(0xFFB7D8FF),
-                        ),
-                        const SizedBox(width: 8),
-                      ],
                       Text(
-                        '$available of $total available',
+                        book['title']?.toString() ?? 'Unknown Title',
+                        style: GoogleFonts.patrickHand(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF342116),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        book['author']?.toString() ?? 'Unknown Author',
                         style: GoogleFonts.patrickHand(
                           fontSize: 14,
-                          color: const Color(0xFF6A5039),
+                          color: const Color(0xFF5E4736),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if ((book['genres']?.toString() ?? '').isNotEmpty)
+                  _MiniPill(
+                    label: book['genres'].toString().split(',').first.trim(),
+                    color: const Color(0xFFB7D8FF),
+                  ),
+                Text(
+                  '$available of $total available',
+                  style: GoogleFonts.patrickHand(
+                    fontSize: 14,
+                    color: const Color(0xFF6A5039),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: stockColor,
+                    borderRadius: BorderRadius.circular(999),
+                    border:
+                        Border.all(color: const Color(0xFF7A5332), width: 1.5),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(stockIcon,
+                          size: 16, color: const Color(0xFF342116)),
+                      const SizedBox(width: 4),
+                      Text(
+                        stockLabel,
+                        style: GoogleFonts.patrickHand(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF342116),
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: stockColor,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: const Color(0xFF7A5332), width: 1.5),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(stockIcon, size: 16, color: const Color(0xFF342116)),
-                  const SizedBox(width: 4),
-                  Text(
-                    stockLabel,
-                    style: GoogleFonts.patrickHand(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF342116),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

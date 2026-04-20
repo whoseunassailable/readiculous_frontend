@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:readiculous_frontend/core/cache/app_cache_service.dart';
 import '../../../../../generated/l10n.dart';
-import '../../../../constants/app_font_size.dart';
 import '../../../../constants/routes.dart';
 import '../../../../network/dio_client.dart';
 import '../../../../network/clients/users_api_client.dart';
@@ -17,17 +17,30 @@ final currentUserProfileProvider =
     return null;
   }
 
+  final cached = await AppCacheService.instance.getCurrentUserProfile();
+  final hasCompleteCachedProfile = cached != null &&
+      cached['user_id']?.toString() == userId &&
+      (cached['phone']?.toString().trim().isNotEmpty ?? false) &&
+      (cached['date_of_birth']?.toString().trim().isNotEmpty ?? false);
+  if (hasCompleteCachedProfile) {
+    return cached;
+  }
+
   final users = await UsersApiClient(DioClient.main).getAllUsers();
   for (final user in users.cast<Map<String, dynamic>>()) {
     if (user['user_id']?.toString() == userId) {
+      await AppCacheService.instance.saveCurrentUserProfile(user);
       return user;
     }
   }
 
-  return {
+  final fallback = {
+    'user_id': userId,
     'email': session.email,
     'role': session.role,
   };
+  await AppCacheService.instance.saveCurrentUserProfile(fallback);
+  return fallback;
 });
 
 class ProfilePage extends ConsumerWidget {
@@ -74,7 +87,7 @@ class ProfilePage extends ConsumerWidget {
                   child: Text(
                     S.of(context).profileInformation,
                     style: GoogleFonts.patrickHand(
-                      fontSize: height * AppFontSize.m,
+                      fontSize: height * 0.033,
                       fontWeight: FontWeight.bold,
                       color: const Color(0xFF3A3329),
                     ),
@@ -169,16 +182,16 @@ class ProfilePage extends ConsumerWidget {
         textAlignVertical: TextAlignVertical.center,
         style: GoogleFonts.patrickHand(
           color: const Color(0xFF3A3329),
-          fontSize: height / 40,
+          fontSize: height / 52,
           fontWeight: FontWeight.w700,
         ),
         decoration: InputDecoration(
           labelText: label,
-          contentPadding:
-              EdgeInsets.symmetric(horizontal: height / 50, vertical: height / 90),
+          contentPadding: EdgeInsets.symmetric(
+              horizontal: height / 50, vertical: height / 90),
           labelStyle: GoogleFonts.patrickHand(
             color: const Color(0xFF7B5A3D),
-            fontSize: height / 52,
+            fontSize: height / 60,
             fontWeight: FontWeight.w700,
           ),
           border: OutlineInputBorder(

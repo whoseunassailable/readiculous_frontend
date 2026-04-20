@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:readiculous_frontend/core/config/app_env.dart';
+import 'package:readiculous_frontend/core/utils/app_logger.dart';
 
 import '../suggested_books/domain/user_specific_genre_model.dart';
 import '../suggested_books/domain/add_user_genre.dart';
@@ -7,14 +9,19 @@ import '../suggested_books/domain/get_all_user_preferences.dart';
 class ApiService {
   final Dio _dio = Dio(
     BaseOptions(
-      baseUrl: 'http://10.0.2.2:5000/api', // For Android Emulator
+      baseUrl: AppEnv.apiBaseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
     ),
   );
 
-  // Flask/Python back-end on port 6000
-  final Dio _flask = Dio(BaseOptions(
-    baseUrl: 'http://10.0.2.2:6000',
-  ));
+  final Dio _flask = Dio(
+    BaseOptions(
+      baseUrl: AppEnv.mlBaseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+    ),
+  );
 
   // Create a user
   Future<Response> createUser({required Map<String, dynamic> data}) async {
@@ -89,7 +96,7 @@ class ApiService {
           genre['genre_id'] as int: genre['name'] as String,
       };
     } catch (e) {
-      print('Error fetching genres: $e');
+      AppLogger.e('Error fetching genres', error: e);
       throw Exception('Failed to fetch genres');
     }
   }

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../utils/book_info_card.dart';
+import '../../../features/my_books/presentation/state_management/my_books_provider.dart';
 import 'state_management/user_recommendations_controller.dart';
 
 class BookRecommendationPageForUser extends ConsumerStatefulWidget {
@@ -21,8 +21,6 @@ class _BookRecommendationPageForUserState
 
   @override
   Widget build(BuildContext context) {
-    final h = MediaQuery.of(context).size.height;
-    final w = MediaQuery.of(context).size.width;
     final recsAsync = ref.watch(userRecommendationsProvider);
 
     return Scaffold(
@@ -270,19 +268,9 @@ class _BookRecommendationPageForUserState
                                       const SizedBox(height: 14),
                                   itemBuilder: (context, i) {
                                     final book = visibleBooks[i];
-                                    return BookInfoCard(
-                                      height: h * 0.15,
-                                      width: w * 0.9,
-                                      title: book['title']?.toString() ??
-                                          'Unknown Title',
-                                      author: book['author']?.toString() ??
-                                          'Unknown Author',
-                                      genre: _formatGenre(
-                                        book['genre']?.toString(),
-                                      ),
-                                      rating: (book['rating'] as num?)
-                                              ?.toDouble() ??
-                                          0.0,
+                                    return _RecommendationCard(
+                                      book: book,
+                                      formatGenre: _formatGenre,
                                     );
                                   },
                                 ),
@@ -331,5 +319,142 @@ class _BookRecommendationPageForUserState
     final genreList = _extractGenres(genre);
     if (genreList.isEmpty) return 'Unknown Genre';
     return genreList.take(maxGenres).join(', ');
+  }
+}
+
+class _RecommendationCard extends ConsumerWidget {
+  final Map<String, dynamic> book;
+  final String Function(String?) formatGenre;
+
+  const _RecommendationCard({
+    required this.book,
+    required this.formatGenre,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final title = book['title']?.toString() ?? 'Unknown Title';
+    final author = book['author']?.toString() ?? 'Unknown Author';
+    final genre = formatGenre(book['genre']?.toString());
+    final rating = (book['rating'] as num?)?.toDouble() ?? 0.0;
+    final bookId = book['book_id']?.toString() ?? '';
+
+    final myBooks = ref.watch(myBooksProvider).asData?.value ?? const [];
+    final isAdded = myBooks.any((b) => b['book_id']?.toString() == bookId);
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF9F0),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFB98A5D), width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.patrickHand(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3A3329),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (rating > 0)
+                Text(
+                  '${rating.toStringAsFixed(1)} ⭐',
+                  style: GoogleFonts.patrickHand(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFFF3A436),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'by $author',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.patrickHand(
+              fontSize: 14,
+              color: const Color(0xFF3A3329).withValues(alpha: 0.7),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            genre,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.patrickHand(
+              fontSize: 13,
+              color: const Color(0xFF3A3329).withValues(alpha: 0.6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: isAdded
+                ? Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFDDE8A6),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: Colors.black, width: 1.6),
+                    ),
+                    child: Text(
+                      'Added',
+                      style: GoogleFonts.patrickHand(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF3A3329),
+                      ),
+                    ),
+                  )
+                : GestureDetector(
+                    onTap: bookId.isEmpty
+                        ? null
+                        : () async {
+                            await ref.read(myBooksProvider.notifier).addOrUpdate(
+                                  bookId: bookId,
+                                  status: 'want_to_read',
+                                );
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                  content: Text('$title added to reading')),
+                            );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7C6FF),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Colors.black, width: 1.8),
+                      ),
+                      child: Text(
+                        'ADD TO READING',
+                        style: GoogleFonts.patrickHand(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4D3277),
+                        ),
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -1,5 +1,6 @@
 // lib/core/utils/app_logger.dart
 
+import 'package:readiculous_frontend/core/config/app_env.dart';
 import 'package:logger/logger.dart';
 
 class AppLogger {
@@ -15,11 +16,17 @@ class AppLogger {
     ),
   );
 
-  static void v(String message) => _logger.t(message);
+  static void v(String message) {
+    if (AppEnv.isDev) _logger.t(message);
+  }
 
-  static void d(String message) => _logger.d(message);
+  static void d(String message) {
+    if (AppEnv.isDev) _logger.d(message);
+  }
 
-  static void i(String message) => _logger.i(message);
+  static void i(String message) {
+    if (AppEnv.isDev) _logger.i(message);
+  }
 
   static void w(String message) => _logger.w(message);
 
