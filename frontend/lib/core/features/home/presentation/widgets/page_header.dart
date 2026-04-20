@@ -67,50 +67,107 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Padding(
-            padding: EdgeInsets.only(left: widget.width / 20),
-            child: Row(
-              children: [
-                Flexible(
-                  child: Text(
-                    subText,
-                    style: GoogleFonts.patrickHand(
-                      fontSize: widget.height / 60,
-                      color: const Color(0xFF3A3329).withValues(alpha: 0.7),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (showChangeButton) ...[
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () =>
-                        context.pushNamed(RouteNames.libraryAssociation),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD7C6FF),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: Colors.black, width: 1.5),
-                      ),
-                      child: Text(
-                        'Change',
-                        style: GoogleFonts.patrickHand(
-                          fontSize: widget.height / 70,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF3A3329),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+          SizedBox(height: widget.height / 30),
+          LibraryLocationSelector(
+            height: widget.height,
+            libraryName: subText,
+            showChangeButton: showChangeButton,
           ),
         ],
       ),
+    );
+  }
+}
+
+class LibraryLocationSelector extends StatelessWidget {
+  final double height;
+  final String libraryName;
+  final bool showChangeButton;
+
+  const LibraryLocationSelector({
+    super.key,
+    required this.height,
+    required this.libraryName,
+    required this.showChangeButton,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.location_on_outlined,
+                size: height / 25, color: Colors.black),
+            Text(
+              'Select location',
+              style: TextStyle(
+                  fontSize: height / 30, fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFBFE3C0),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: Colors.black, width: 2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    offset: Offset(2, 2),
+                    blurRadius: 0,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(width: 6),
+                  Text(
+                    libraryName,
+                    style: GoogleFonts.patrickHand(
+                      fontSize: height / 55,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            if (showChangeButton) ...[
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: () =>
+                    context.pushNamed(RouteNames.libraryAssociation),
+                child: Container(
+                  padding: const EdgeInsets.all(7),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF3A436).withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.black, width: 1.5),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        offset: Offset(1, 1),
+                        blurRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.tune_rounded,
+                      size: 18, color: Colors.black),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

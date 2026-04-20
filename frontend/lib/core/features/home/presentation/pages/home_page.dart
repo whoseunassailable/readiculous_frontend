@@ -74,7 +74,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             child: Column(
               children: [
                 PageHeader(height: height, width: width),
-                SizedBox(height: height / 25),
+                SizedBox(height: height / 80),
                 HeadingWithLogo(
                   height: height,
                   width: width,
