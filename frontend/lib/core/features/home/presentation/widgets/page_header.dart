@@ -40,17 +40,17 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
 
     final showChangeButton = userId != null && userRole != AppRoles.librarian;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        widget.width * 0.16,
-        widget.height * 0.085,
-        widget.width * 0.12,
-        0,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(
+            widget.width * 0.16,
+            widget.height * 0.085,
+            widget.width * 0.12,
+            0,
+          ),
+          child: Row(
             children: [
               SizedBox(width: widget.width / 20),
               Text(
@@ -67,107 +67,117 @@ class _PageHeaderState extends ConsumerState<PageHeader> {
               ),
             ],
           ),
-          SizedBox(height: widget.height / 30),
-          LibraryLocationSelector(
-            height: widget.height,
-            libraryName: subText,
-            showChangeButton: showChangeButton,
-          ),
-        ],
-      ),
+        ),
+        SizedBox(height: widget.height / 30),
+        LibraryLocationSelector(
+          height: widget.height,
+          width: widget.width,
+          libraryName: subText,
+          showChangeButton: showChangeButton,
+        ),
+      ],
     );
   }
 }
 
 class LibraryLocationSelector extends StatelessWidget {
   final double height;
+  final double width;
   final String libraryName;
   final bool showChangeButton;
 
   const LibraryLocationSelector({
     super.key,
     required this.height,
+    required this.width,
     required this.libraryName,
     required this.showChangeButton,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(Icons.location_on_outlined,
-                size: height / 25, color: Colors.black),
-            Text(
-              'Select location',
-              style: TextStyle(
-                  fontSize: height / 30, fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFBFE3C0),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: Colors.black, width: 2),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    offset: Offset(2, 2),
-                    blurRadius: 0,
-                  ),
-                ],
+    return Padding(
+      padding: EdgeInsets.only(left: width / 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.location_on_outlined,
+                  size: height / 25, color: Colors.black),
+              SizedBox(width: width / 20),
+              Text(
+                'Library',
+                style: TextStyle(
+                    fontSize: height / 30, fontWeight: FontWeight.w500),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 6),
-                  Text(
-                    libraryName,
-                    style: GoogleFonts.patrickHand(
-                      fontSize: height / 55,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (showChangeButton) ...[
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: () =>
-                    context.pushNamed(RouteNames.libraryAssociation),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
                 child: Container(
-                  padding: const EdgeInsets.all(7),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3A436).withValues(alpha: 0.9),
+                    color: const Color(0xFFBFE3C0),
                     borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: Colors.black, width: 1.5),
+                    border: Border.all(color: Colors.black, width: 2),
                     boxShadow: const [
                       BoxShadow(
                         color: Colors.black26,
-                        offset: Offset(1, 1),
+                        offset: Offset(2, 2),
                         blurRadius: 0,
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.tune_rounded,
-                      size: 18, color: Colors.black),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          libraryName,
+                          maxLines: 1,
+                          style: GoogleFonts.patrickHand(
+                            fontSize: height / 55,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              if (showChangeButton) ...[
+                const SizedBox(width: 10),
+                GestureDetector(
+                  onTap: () => context.pushNamed(RouteNames.libraryAssociation),
+                  child: Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF3A436).withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: Colors.black, width: 1.5),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          offset: Offset(1, 1),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.tune_rounded,
+                        size: 18, color: Colors.black),
+                  ),
+                ),
+              ],
             ],
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

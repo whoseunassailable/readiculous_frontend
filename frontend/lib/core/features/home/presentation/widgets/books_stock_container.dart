@@ -82,7 +82,7 @@ class BooksStockContainer extends ConsumerWidget {
     };
 
     return Container(
-      height: homePage ? null : height * 0.5,
+      height: homePage ? _homeContainerHeight(height) : height * 0.5,
       width: width * 0.9,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
@@ -92,226 +92,242 @@ class BooksStockContainer extends ConsumerWidget {
           fit: BoxFit.fitHeight,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isLibrarian) ...[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Image.asset("assets/icons/blue_book_icon.png",
-                      height: height / 12),
-                  SizedBox(width: width / 40),
-                  Expanded(
-                    child: pendingBookTitle != null
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                pendingBookTitle,
-                                style: TextStyle(
-                                    fontSize: height / 50,
-                                    fontWeight: FontWeight.w600),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              if (pendingBookAuthor != null)
-                                Text(pendingBookAuthor,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final visibleRecommendationCount = homePage
+              ? _homePreviewCountForHeight(
+                  constraints.maxHeight,
+                  userRecommendations.length,
+                )
+              : userRecommendations.length;
+          final visibleRecommendations = userRecommendations
+              .take(visibleRecommendationCount)
+              .toList(growable: false);
+
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isLibrarian) ...[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset("assets/icons/blue_book_icon.png",
+                          height: height / 12),
+                      SizedBox(width: width / 40),
+                      Expanded(
+                        child: pendingBookTitle != null
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    pendingBookTitle,
                                     style: TextStyle(
-                                        fontSize: height / 65,
-                                        color: Colors.black54)),
-                            ],
-                          )
-                        : Text('No pending picks',
-                            style: TextStyle(
-                                fontSize: height / 55, color: Colors.black45)),
-                  ),
-                ],
-              ),
-              const Divider(color: Colors.brown, thickness: 2),
-              const Spacer(),
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Top picks for you right now',
-                          style: GoogleFonts.patrickHand(
-                            fontSize: height / 55,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF3A3329),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (homePage)
-                    GestureDetector(
-                      onTap: () => context.pushNamed(
-                        RouteNames.bookRecommendationPageForUser,
+                                        fontSize: height / 50,
+                                        fontWeight: FontWeight.w600),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (pendingBookAuthor != null)
+                                    Text(pendingBookAuthor,
+                                        style: TextStyle(
+                                            fontSize: height / 65,
+                                            color: Colors.black54)),
+                                ],
+                              )
+                            : Text('No pending picks',
+                                style: TextStyle(
+                                    fontSize: height / 55,
+                                    color: Colors.black45)),
                       ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFD7C6FF),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: Colors.black, width: 1.5),
-                        ),
-                        child: Text(
-                          'See all',
-                          style: GoogleFonts.patrickHand(
-                            fontSize: height / 80,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF3A3329),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Expanded(
-                child: recLoading
-                    ? const Center(
-                        child: SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Color(0xFFB8743A),
-                          ),
-                        ),
-                      )
-                    : userRecommendations.isEmpty
-                        ? Center(
-                            child: Text(
-                              'No recommendations yet.\nRate books and update genres first.',
-                              textAlign: TextAlign.center,
+                    ],
+                  ),
+                  const Divider(color: Colors.brown, thickness: 2),
+                  const Spacer(),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Top picks for you right now',
                               style: GoogleFonts.patrickHand(
-                                fontSize: height / 65,
-                                color: const Color(0xFF3A3329)
-                                    .withValues(alpha: 0.7),
+                                fontSize: height / 55,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF3A3329),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (homePage)
+                        GestureDetector(
+                          onTap: () => context.pushNamed(
+                            RouteNames.bookRecommendationPageForUser,
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFD7C6FF),
+                              borderRadius: BorderRadius.circular(999),
+                              border:
+                                  Border.all(color: Colors.black, width: 1.5),
+                            ),
+                            child: Text(
+                              'See all',
+                              style: GoogleFonts.patrickHand(
+                                fontSize: height / 80,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF3A3329),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: recLoading
+                        ? const Center(
+                            child: SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: Color(0xFFB8743A),
                               ),
                             ),
                           )
-                        : homePage
-                            ? Column(
+                        : userRecommendations.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'No recommendations yet.\nRate books and update genres first.',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.patrickHand(
+                                    fontSize: height / 65,
+                                    color: const Color(0xFF3A3329)
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              )
+                            : Column(
                                 children: [
                                   for (var index = 0;
-                                      index < userRecommendations.length;
+                                      index < visibleRecommendations.length;
                                       index++) ...[
+                                    if (index > 0) const SizedBox(height: 8),
                                     _buildUserRecommendationRow(
                                       context,
                                       ref,
                                       height,
-                                      userRecommendations[index],
+                                      visibleRecommendations[index],
                                       readingStatusByBookId,
                                     ),
-                                    if (index != userRecommendations.length - 1)
-                                      const SizedBox(height: 8),
                                   ],
                                 ],
-                              )
-                            : ListView.separated(
-                                padding: EdgeInsets.zero,
-                                itemCount: userRecommendations.length,
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(height: 8),
-                                itemBuilder: (context, index) {
-                                  return _buildUserRecommendationRow(
-                                    context,
-                                    ref,
-                                    height,
-                                    userRecommendations[index],
-                                    readingStatusByBookId,
-                                  );
-                                },
                               ),
-              ),
-            ],
-            // --- BOTTOM BUTTONS ---
-
-            if (isLibrarian)
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 10,
-                children: [
-                  _ActionChip(
-                    width: width * 0.22,
-                    height: height / 18,
-                    label: 'Picks',
-                    color: const Color(0xFFD7C6FF),
-                    onTap: () => context.pushNamed(
-                      RouteNames.bookRecommendationPageForLibrary,
-                    ),
-                  ),
-                  _ActionChip(
-                    width: width * 0.22,
-                    height: height / 18,
-                    label: 'Trends',
-                    color: const Color(0xFFFFE4A0),
-                    onTap: () => context.pushNamed(RouteNames.genreTrends),
-                  ),
-                  _ActionChip(
-                    width: width * 0.22,
-                    height: height / 18,
-                    label: 'Stock',
-                    color: const Color(0xFFFFC7C2),
-                    onTap: () => context.pushNamed(RouteNames.libraryInventory),
-                  ),
-                  _ActionChip(
-                    width: width * 0.22,
-                    height: height / 18,
-                    label: 'Database',
-                    color: const Color(0xFFB7D8FF),
-                    onTap: () => context.pushNamed(RouteNames.viewDatabase),
-                  ),
-                  _ActionChip(
-                    width: width * 0.22,
-                    height: height / 18,
-                    label: 'Library',
-                    color: const Color(0xFFBFE3C0),
-                    onTap: () =>
-                        context.pushNamed(RouteNames.libraryAssociation),
                   ),
                 ],
-              )
-            else
-              Row(
-                children: [
-                  Expanded(
-                    child: _ActionChip(
-                      height: height / 18,
-                      label: 'My Books',
-                      color: const Color(0xFFBFE3C0),
-                      onTap: () => context.pushNamed(RouteNames.myBooks),
-                    ),
+                const SizedBox(height: 12),
+                if (isLibrarian)
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 8,
+                    runSpacing: 10,
+                    children: [
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Picks',
+                        color: const Color(0xFFD7C6FF),
+                        onTap: () => context.pushNamed(
+                          RouteNames.bookRecommendationPageForLibrary,
+                        ),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Trends',
+                        color: const Color(0xFFFFE4A0),
+                        onTap: () => context.pushNamed(RouteNames.genreTrends),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Stock',
+                        color: const Color(0xFFFFC7C2),
+                        onTap: () =>
+                            context.pushNamed(RouteNames.libraryInventory),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Database',
+                        color: const Color(0xFFB7D8FF),
+                        onTap: () => context.pushNamed(RouteNames.viewDatabase),
+                      ),
+                      _ActionChip(
+                        width: width * 0.22,
+                        height: height / 18,
+                        label: 'Library',
+                        color: const Color(0xFFBFE3C0),
+                        onTap: () =>
+                            context.pushNamed(RouteNames.libraryAssociation),
+                      ),
+                    ],
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ActionChip(
+                          height: height / 18,
+                          label: 'My Books',
+                          color: const Color(0xFFBFE3C0),
+                          onTap: () => context.pushNamed(RouteNames.myBooks),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _ActionChip(
+                          height: height / 18,
+                          label: 'Library',
+                          color: const Color(0xFFB7D8FF),
+                          onTap: () => context.pushNamed(RouteNames.viewDatabase),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _ActionChip(
-                      height: height / 18,
-                      label: 'Library',
-                      color: const Color(0xFFB7D8FF),
-                      onTap: () => context.pushNamed(RouteNames.viewDatabase),
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
+              ],
+            ),
+          );
+        },
       ),
     );
+  }
+
+  static int _homePreviewCountForHeight(double containerHeight, int availableCount) {
+    final desiredCount = switch (containerHeight) {
+      < 320 => 1,
+      < 420 => 2,
+      _ => 3,
+    };
+    return availableCount < desiredCount ? availableCount : desiredCount;
+  }
+
+  static double _homeContainerHeight(double height) {
+    return switch (height) {
+      < 700 => height * 0.36,
+      < 840 => height * 0.42,
+      _ => height * 0.46,
+    };
   }
 }
 

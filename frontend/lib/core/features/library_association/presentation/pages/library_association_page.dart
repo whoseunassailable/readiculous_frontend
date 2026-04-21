@@ -366,73 +366,96 @@ class _LibraryCard extends StatelessWidget {
     final location = library['location']?.toString();
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFFBFE3C0).withOpacity(0.88)
-              : Colors.white.withOpacity(0.72),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.black,
-            width: selected ? 2.5 : 1.8,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              offset: Offset(selected ? 3 : 2, selected ? 3 : 2),
-              blurRadius: 0,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final textWidth = constraints.maxWidth.clamp(0, 320) * 0.66;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: selected
+                  ? const Color(0xFFBFE3C0).withOpacity(0.88)
+                  : Colors.white.withOpacity(0.72),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.black,
+                width: selected ? 2.5 : 1.8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black,
+                  offset: Offset(selected ? 3 : 2, selected ? 3 : 2),
+                  blurRadius: 0,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(
-              isCurrent ? Icons.verified : Icons.local_library_outlined,
-              color: Colors.black,
-              size: 22,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    library['name']?.toString() ?? 'Unnamed Library',
-                    style: GoogleFonts.patrickHand(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3A3329),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  isCurrent ? Icons.verified : Icons.local_library_outlined,
+                  color: Colors.black,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: textWidth,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        library['name']?.toString() ?? 'Unnamed Library',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.patrickHand(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF3A3329),
+                        ),
+                      ),
+                      if (location != null && location.isNotEmpty)
+                        Row(
+                          children: [
+                            const Icon(Icons.place_outlined,
+                                size: 13, color: Colors.black54),
+                            const SizedBox(width: 3),
+                            Expanded(
+                              child: Text(
+                                location,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.patrickHand(
+                                  fontSize: 13,
+                                  color: const Color(0xFF3A3329)
+                                      .withOpacity(0.65),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                SizedBox(
+                  width: 24,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 150),
+                      child: selected
+                          ? const Icon(Icons.check_circle,
+                              key: ValueKey('check'),
+                              color: Colors.black,
+                              size: 22)
+                          : const SizedBox.shrink(key: ValueKey('empty')),
                     ),
                   ),
-                  if (location != null && location.isNotEmpty)
-                    Row(
-                      children: [
-                        const Icon(Icons.place_outlined,
-                            size: 13, color: Colors.black54),
-                        const SizedBox(width: 3),
-                        Text(
-                          location,
-                          style: GoogleFonts.patrickHand(
-                            fontSize: 13,
-                            color: const Color(0xFF3A3329).withOpacity(0.65),
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
+                ),
+              ],
             ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 150),
-              child: selected
-                  ? const Icon(Icons.check_circle,
-                      key: ValueKey('check'), color: Colors.black, size: 22)
-                  : const SizedBox.shrink(key: ValueKey('empty')),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

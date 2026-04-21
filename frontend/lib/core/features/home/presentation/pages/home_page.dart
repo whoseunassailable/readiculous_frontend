@@ -79,7 +79,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   height: height,
                   width: width,
                   imageAssetName: 'assets/icons/trending_genres_icon.png',
-                  heading: S.of(context).trendingGenres,
+                  heading: S.of(context).genre,
                   trailing: isLibrarian
                       ? null
                       : GestureDetector(
@@ -120,7 +120,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                             .toList() ??
                         const <String>[];
                     final selectedGenres = preferredGenres.toSet();
-                    // Only show selected genres on home page
                     final displayGenres =
                         preferredGenres.isNotEmpty ? preferredGenres : genres;
                     final genreColors = _buildGenreColors(genres);

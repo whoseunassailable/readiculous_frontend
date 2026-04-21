@@ -19,6 +19,7 @@ Future<void> bootstrap(AppFlavor flavor) async {
   AppEnv.flavor = flavor;
   AppLogger.i(
     'Bootstrapping app: flavor=${AppEnv.name} '
+    'devConnectionMode=${AppEnv.isDev ? AppEnv.devConnectionMode.name : 'n/a'} '
     'apiBaseUrl=${AppEnv.apiBaseUrl} mlBaseUrl=${AppEnv.mlBaseUrl}',
   );
 
