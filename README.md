@@ -48,6 +48,12 @@ The result: libraries that feel alive, shelves that reflect what their community
 | ML Model | Python / Flask |
 | ML Training Data | Kaggle book ratings dataset |
 
+## Demo
+
+Project demo video:
+
+- [Watch the demo video](docs/demo/readiculous-demo.mp4)
+
 ## Getting Started
 
 This project uses [FVM](https://fvm.app/) for Flutter version management.
