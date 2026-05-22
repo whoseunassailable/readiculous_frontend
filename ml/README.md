@@ -55,14 +55,19 @@ Readiculous is split across three layers:
 
 The recommendation engine lives in `notebooks/features/user_book_recommender/good_reads_books_100k.ipynb` and is served via `recommender.py`.
 
-It uses a hybrid approach combining two models:
+It uses a hybrid approach combining content-based ranking and collaborative filtering:
 
 | Model                     | Role                                                                                |
 | ------------------------- | ----------------------------------------------------------------------------------- |
-| XGBoost                   | Classifies books as high/low quality based on ratings, review count, format, author |
-| SVD + Logistic Regression | Reduces feature space and scores books in latent genre space                        |
+| XGBoost                   | Scores books from metadata and popularity features such as rating, reviews, genre, format, and author |
+| TF-IDF + Cosine Similarity | Builds a genre-profile text representation from book descriptions and measures content similarity |
+| Surprise SVD             | Learns user-book interaction patterns for collaborative filtering when enough user history exists |
 
-Final score = `0.5 × XGBoost probability + 0.5 × SVD probability`
+In production, the `/recommend` endpoint blends those signals dynamically:
+
+- Cold start users: content-only recommendations
+- Users with some history: hybrid recommendations weighted toward content
+- Users with richer history: hybrid recommendations weighted toward collaborative filtering
 
 The dataset is sourced from Kaggle — 100k GoodReads books with ratings, genres, review counts, and metadata.
 
@@ -77,6 +82,16 @@ The dataset is sourced from Kaggle — 100k GoodReads books with ratings, genres
 
 - Input: reading preferences from all users in the library's area
 - Output: top trending genres + top-N books per genre — what the librarian should consider ordering
+
+## Evaluation
+
+Model evaluation is handled in `notebooks/features/user_book_recommender/retrain.py`.
+
+- The XGBoost ranker is trained with an 80/20 train-test split and reports classification accuracy on the held-out set.
+- The collaborative filtering model uses Surprise SVD with its own 80/20 split over user-book interactions and reports RMSE on held-out predictions.
+- The `/compare` endpoint in `recommender.py` returns content-only, collaborative-filtering-only, and hybrid results side by side so recommendation quality can be inspected during testing.
+
+The retraining pipeline writes these metrics to stdout as structured JSON, including fields such as `xgb_accuracy`, `cf_rmse`, `cf_unique_users`, and `cf_unique_books`.
 
 ---
 
@@ -205,6 +220,15 @@ pip install flask flask-cors pandas numpy scikit-learn xgboost joblib
 python notebooks/features/user_book_recommender/recommender.py
 # Runs on http://localhost:6000
 ```
+
+## Deployment
+
+This repository is the Python Flask ML microservice in the broader Readiculous stack.
+
+- The service loads trained artifacts from `notebooks/features/user_book_recommender/*.pkl` at startup.
+- It expects environment variables for the GoodReads dataset path and the shared MySQL database: `GOODREADS_CSV`, `DB_HOST`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME`.
+- The Node.js backend calls this service internally for recommendation generation and model retraining.
+- A `/reload` endpoint is available to refresh model artifacts in memory after retraining without restarting the process.
 
 ### Endpoints
 
