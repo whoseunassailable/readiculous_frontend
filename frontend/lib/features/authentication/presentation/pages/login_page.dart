@@ -33,17 +33,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   /// Reacts to state changes from [LoginController]:
   ///   • AsyncData  → navigate to home
   ///   • AsyncError → show a snackbar with the error message
-  void _onLoginStateChanged(AsyncValue<void>? previous, AsyncValue<void> next) {
-    next.whenOrNull(
-      data: (_) => context.go('/home_page'),
-      error: (error, _) {
-        AppLogger.e(error.toString(), error: error);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
-      },
-    );
-  }
+  void _onLoginStateChanged(
+          AsyncValue<void>? previous, AsyncValue<void> next) =>
+      next.whenOrNull(
+        data: (_) => context.go('/home_page'),
+        error: (error, _) {
+          AppLogger.e(error.toString(), error: error);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(error.toString())),
+          );
+        },
+      );
 
   // ── Actions ──────────────────────────────────────────────────────────────
 

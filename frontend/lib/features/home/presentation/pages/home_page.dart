@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
-import 'package:readiculous_frontend/features/genre_preferences/presentation/state_management/genre_preferences_provider.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/genres_provider.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
+import 'package:readiculous_frontend/shared/genres/presentation/state_management/genres_providers.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/user_recommendations_notifier.dart';
 import 'package:readiculous_frontend/features/home/presentation/widgets/books_stock_container.dart';
 import 'package:readiculous_frontend/features/home/presentation/widgets/bottom_navigation_for_home_page.dart';
 import 'package:readiculous_frontend/features/home/presentation/widgets/heading_with_logo.dart';
@@ -26,26 +25,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     Future.microtask(() {
+      // Only readers see personal recommendations on the dashboard.
+      if (ref.read(sessionProvider).role == AppRoles.librarian) return;
       ref.read(userRecommendationsProvider.notifier).refresh();
     });
-  }
-
-  static const _palette = [
-    Color(0xFFB7D8FF), // soft blue
-    Color(0xFFBFE3C0), // muted green
-    Color(0xFFD7C6FF), // lavender
-    Color(0xFFFFC7C2), // peach/pink
-    Color(0xFFE8D2B0), // tan
-    Color(0xFFFFE4A0), // pale yellow
-    Color(0xFFFFCCE5), // light pink
-    Color(0xFFB2EBF2), // light cyan
-  ];
-
-  Map<String, Color> _buildGenreColors(List<String> genres) {
-    return {
-      for (var i = 0; i < genres.length; i++)
-        genres[i]: _palette[i % _palette.length],
-    };
   }
 
   @override
@@ -55,8 +38,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final session = ref.watch(sessionProvider);
     final isLibrarian = session.role == AppRoles.librarian;
-    final genresAsync = ref.watch(allGenresProvider);
-    final preferredGenresAsync = ref.watch(genrePreferencesProvider);
 
     return Scaffold(
       body: Container(
@@ -75,66 +56,38 @@ class _HomePageState extends ConsumerState<HomePage> {
               children: [
                 PageHeader(height: height, width: width),
                 SizedBox(height: height / 80),
-                HeadingWithLogo(
-                  height: height,
-                  width: width,
-                  imageAssetName: 'assets/icons/trending_genres_icon.png',
-                  heading: S.of(context).genre,
-                  trailing: isLibrarian
-                      ? null
-                      : GestureDetector(
-                          onTap: () =>
-                              context.pushNamed(RouteNames.genrePreferences),
-                          child: Container(
-                            padding: const EdgeInsets.all(7),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3A436)
-                                  .withValues(alpha: 0.9),
-                              borderRadius: BorderRadius.circular(999),
-                              border:
-                                  Border.all(color: Colors.black, width: 1.5),
-                              boxShadow: const [
-                                BoxShadow(
-                                    color: Colors.black26,
-                                    offset: Offset(1, 1),
-                                    blurRadius: 0)
-                              ],
-                            ),
-                            child: const Icon(Icons.tune_rounded,
-                                size: 18, color: Colors.black),
-                          ),
+                // Readers only: librarians have no genre preferences.
+                if (!isLibrarian) ...[
+                  HeadingWithLogo(
+                    height: height,
+                    width: width,
+                    imageAssetName: 'assets/icons/trending_genres_icon.png',
+                    heading: S.of(context).genre,
+                    trailing: GestureDetector(
+                      onTap: () =>
+                          context.pushNamed(RouteNames.genrePreferences),
+                      child: Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3A436).withValues(alpha: 0.9),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Colors.black, width: 1.5),
+                          boxShadow: const [
+                            BoxShadow(
+                                color: Colors.black26,
+                                offset: Offset(1, 1),
+                                blurRadius: 0)
+                          ],
                         ),
-                ),
-                SizedBox(height: height / 60),
-                genresAsync.when(
-                  loading: () => const SizedBox(
-                    height: 40,
-                    child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  error: (_, __) => const SizedBox.shrink(),
-                  data: (genres) {
-                    final preferredGenres = preferredGenresAsync.asData?.value
-                            .map((genre) => genre['name']?.toString() ?? '')
-                            .where((name) => name.isNotEmpty)
-                            .toList() ??
-                        const <String>[];
-                    final selectedGenres = preferredGenres.toSet();
-                    final displayGenres =
-                        preferredGenres.isNotEmpty ? preferredGenres : genres;
-                    final genreColors = _buildGenreColors(genres);
-                    return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: height / 30),
-                      child: CrayonGenreChipRow(
-                        genres: displayGenres,
-                        selected: selectedGenres,
-                        genreColors: genreColors,
-                        onChanged: (_) {},
+                        child: const Icon(Icons.tune_rounded,
+                            size: 18, color: Colors.black),
                       ),
-                    );
-                  },
-                ),
-                SizedBox(height: height / 60),
+                    ),
+                  ),
+                  SizedBox(height: height / 60),
+                  _ReaderGenres(height: height),
+                  SizedBox(height: height / 60),
+                ],
                 HeadingWithLogo(
                   height: height,
                   width: width,
@@ -158,5 +111,54 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       bottomNavigationBar: const BottomNavigationForHomePage(),
     );
+  }
+}
+
+/// The reader's preferred genres (all genres until they pick some).
+class _ReaderGenres extends ConsumerWidget {
+  final double height;
+
+  const _ReaderGenres({required this.height});
+
+  static const _palette = [
+    Color(0xFFB7D8FF), // soft blue
+    Color(0xFFBFE3C0), // muted green
+    Color(0xFFD7C6FF), // lavender
+    Color(0xFFFFC7C2), // peach/pink
+    Color(0xFFE8D2B0), // tan
+    Color(0xFFFFE4A0), // pale yellow
+    Color(0xFFFFCCE5), // light pink
+    Color(0xFFB2EBF2), // light cyan
+  ];
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final preferredGenresAsync = ref.watch(userGenresProvider);
+    return ref.watch(allGenresProvider).when(
+          loading: () => const SizedBox(
+            height: 40,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (allGenres) {
+            final genres = allGenres.map((g) => g.name).toList();
+            final preferredGenres = preferredGenresAsync.asData?.value
+                    .map((genre) => genre.name)
+                    .toList() ??
+                const <String>[];
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: height / 30),
+              child: CrayonGenreChipRow(
+                genres: preferredGenres.isNotEmpty ? preferredGenres : genres,
+                selected: preferredGenres.toSet(),
+                genreColors: {
+                  for (var i = 0; i < genres.length; i++)
+                    genres[i]: _palette[i % _palette.length],
+                },
+                onChanged: (_) {},
+              ),
+            );
+          },
+        );
   }
 }

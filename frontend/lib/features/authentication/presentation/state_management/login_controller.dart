@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:readiculous_frontend/core/cache/app_cache_warmer.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/utils/app_logger.dart';
@@ -44,7 +43,8 @@ class LoginController extends AsyncNotifier<void> {
       bool hasGenrePrefs = false;
       if (user.role == AppRoles.user) {
         try {
-          final genres = await ref.read(getUserGenresProvider).call(user.userId);
+          final genres =
+              await ref.read(getUserGenresProvider).call(user.userId);
           hasGenrePrefs = genres.isNotEmpty;
         } catch (e, st) {
           AppLogger.e('Failed to fetch genre prefs during login: $e',
@@ -59,8 +59,6 @@ class LoginController extends AsyncNotifier<void> {
             email: email,
             hasGenrePrefs: hasGenrePrefs,
           );
-
-      AppCacheWarmer.warmForLoggedInUser(user.userId);
 
       // Signal success — the page will navigate in response.
       if (!ref.mounted) return;

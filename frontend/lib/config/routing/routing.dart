@@ -10,14 +10,16 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/library_database/presentation/pages/view_book_details.dart';
 import '../../features/library_database/presentation/pages/view_database.dart';
 import '../../features/genre_trends/presentation/pages/genre_trends_page.dart';
+import '../../features/genre_preferences/presentation/pages/genre_onboarding_page.dart';
 import '../../features/genre_preferences/presentation/pages/genre_preferences_page.dart';
 import '../../features/my_books/presentation/pages/my_books_page.dart';
 import '../../features/library_association/presentation/pages/library_association_page.dart';
 import '../../features/library_inventory/presentation/pages/library_inventory_page.dart';
+import '../../features/settings/presentation/pages/change_password_page.dart';
+import '../../features/settings/presentation/pages/edit_profile_page.dart';
 import '../../features/settings/presentation/pages/profile_page.dart';
-import '../../features/suggested_books/presentation/books_recommendation_for_library.dart';
-import '../../features/suggested_books/presentation/books_recommendation_page_for_user.dart';
-import '../../features/suggested_books/presentation/preferred_genre.dart';
+import '../../features/suggested_books/presentation/pages/library_picks_page.dart';
+import '../../features/suggested_books/presentation/pages/user_recommendations_page.dart';
 import '../../core/session/session_provider.dart';
 import '../../core/session/session_state.dart';
 
@@ -39,7 +41,9 @@ String? computeAuthRedirect(SessionState session, String location) {
 
   // Guest user: allow only login and register pages
   if (!loggedIn) {
-    return (isAtLogin || isAtRegister) ? null : '/';
+    return (isAtLogin || isAtRegister)
+        ? null
+        : '/'; // if user not logged in then send them to the / path which is basically the login page.
   }
 
   // Logged-in user at login/register: jump directly to the right landing page
@@ -59,16 +63,29 @@ String? computeAuthRedirect(SessionState session, String location) {
     return '/home_page';
   }
 
+  // Librarians have no genre preferences: keep them off both genre pages.
+  if (session.role == AppRoles.librarian &&
+      (isAtOnboarding || location == '/genre_preferences')) {
+    return '/home_page';
+  }
+
   return null;
 }
 
-/// GoRouter refresh bridge for Riverpod
+/// GoRouter refresh bridge for Riverpod.
+///
+/// Refreshes only when a field [computeAuthRedirect] reads changes. Other
+/// session updates (e.g. a new email after a profile edit) must not re-run
+/// routing: a refresh racing a `pop()` restores the popped page.
 class GoRouterRefresh extends ChangeNotifier {
   GoRouterRefresh(WidgetRef ref) {
     // listenManual works outside of build (no debugDoingBuild assertion)
-    ref.listenManual(sessionProvider, (prev, next) {
-      notifyListeners();
-    });
+    ref.listenManual(
+      sessionProvider.select(
+        (s) => (s.initialized, s.userId, s.role, s.hasGenrePrefs),
+      ),
+      (prev, next) => notifyListeners(),
+    );
   }
 }
 
@@ -110,22 +127,32 @@ class Routing {
       GoRoute(
         path: '/preferred_location',
         name: RouteNames.preferredGenre,
-        builder: (context, state) => const PreferredGenre(),
+        builder: (context, state) => const GenreOnboardingPage(),
       ),
       GoRoute(
         path: '/book_recommendation_page_for_user',
         name: RouteNames.bookRecommendationPageForUser,
-        builder: (context, state) => const BookRecommendationPageForUser(),
+        builder: (context, state) => const UserRecommendationsPage(),
       ),
       GoRoute(
         path: '/book_recommendation_page_for_library',
         name: RouteNames.bookRecommendationPageForLibrary,
-        builder: (context, state) => const BookRecommendationPageForLibrary(),
+        builder: (context, state) => const LibraryPicksPage(),
       ),
       GoRoute(
         path: '/profile_page',
         name: RouteNames.profilePage,
         builder: (context, state) => const ProfilePage(),
+      ),
+      GoRoute(
+        path: '/edit_profile',
+        name: RouteNames.editProfile,
+        builder: (context, state) => const EditProfilePage(),
+      ),
+      GoRoute(
+        path: '/change_password',
+        name: RouteNames.changePassword,
+        builder: (context, state) => const ChangePasswordPage(),
       ),
       GoRoute(
         path: '/my_books',

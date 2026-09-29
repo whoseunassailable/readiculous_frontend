@@ -3,13 +3,14 @@ import 'package:readiculous_frontend/core/network/clients/library_books_api_clie
 import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 
-import '../../../home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 
 class LibraryInventoryNotifier
     extends AsyncNotifier<List<Map<String, dynamic>>> {
   @override
   Future<List<Map<String, dynamic>>> build() async {
-    final userId = ref.read(sessionProvider).userId;
+    // Watch (not read) so another user logging in rebuilds this state.
+    final userId = ref.watch(sessionProvider.select((s) => s.userId));
     if (userId == null) return [];
 
     final library = await ref.read(userLibraryProvider(userId).future);
@@ -31,9 +32,10 @@ class LibraryInventoryNotifier
     return items;
   }
 
+  /// Refetches the inventory (e.g. after a save).
   Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(build);
+    ref.invalidateSelf();
+    await future;
   }
 
   Future<void> saveInventoryItem({
@@ -63,7 +65,9 @@ class LibraryInventoryNotifier
   }
 }
 
-final libraryInventoryProvider =
-    AsyncNotifierProvider<LibraryInventoryNotifier, List<Map<String, dynamic>>>(
+/// Refetched on each visit to Stock: ordering copies from Library Picks
+/// changes it too.
+final libraryInventoryProvider = AsyncNotifierProvider.autoDispose<
+    LibraryInventoryNotifier, List<Map<String, dynamic>>>(
   LibraryInventoryNotifier.new,
 );

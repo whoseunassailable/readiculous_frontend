@@ -33,8 +33,7 @@ class _ReadsApiClient implements ReadsApiClient {
   @override
   Future<void> removeFromReadingList(String userId, String bookId) async {
     await _dio.fetch<dynamic>(
-      Options(method: 'DELETE')
-          .compose(_dio.options, '/reads/$userId/$bookId'),
+      Options(method: 'DELETE').compose(_dio.options, '/reads/$userId/$bookId'),
     );
   }
 }

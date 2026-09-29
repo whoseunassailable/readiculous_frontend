@@ -53,10 +53,14 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Choose Your Language"),
         "close": MessageLookupByLibrary.simpleMessage("Close"),
         "compareScores": MessageLookupByLibrary.simpleMessage("Compare Scores"),
+        "confirmNewPassword":
+            MessageLookupByLibrary.simpleMessage("Confirm new password"),
         "confirmPassword":
             MessageLookupByLibrary.simpleMessage("Confirm Password"),
         "countryPreferences":
             MessageLookupByLibrary.simpleMessage("Country Preferences"),
+        "currentPassword":
+            MessageLookupByLibrary.simpleMessage("Current password"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
         "deleteBooks": MessageLookupByLibrary.simpleMessage("Delete Books"),
         "didntReceiveCode":
@@ -99,6 +103,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "four_hundred_fifty_to_six_hundred":
             MessageLookupByLibrary.simpleMessage("450 - 600"),
         "genre": MessageLookupByLibrary.simpleMessage("Genre"),
+        "genrePreferencesSaved":
+            MessageLookupByLibrary.simpleMessage("Genre preferences saved!"),
         "germany": MessageLookupByLibrary.simpleMessage("Germany"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Get Started"),
         "gpa": MessageLookupByLibrary.simpleMessage("GPA"),
@@ -141,18 +147,25 @@ class MessageLookup extends MessageLookupByLibrary {
         "loginToYourAccount":
             MessageLookupByLibrary.simpleMessage("Login to your account!"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),
+        "newPassword": MessageLookupByLibrary.simpleMessage("New password"),
+        "newPasswordMustBeDifferent": MessageLookupByLibrary.simpleMessage(
+            "New password must be different from the current one"),
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
         "passwordAndConfirmPasswordDoNotMatch":
             MessageLookupByLibrary.simpleMessage(
                 "Password and confirm password do not match"),
+        "passwordUpdated":
+            MessageLookupByLibrary.simpleMessage("Password updated"),
         "patrickRothfus":
             MessageLookupByLibrary.simpleMessage("Patrick Rothfus"),
         "phd": MessageLookupByLibrary.simpleMessage("PhD"),
         "phoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
         "pleaseCheckYourEmail":
             MessageLookupByLibrary.simpleMessage("Please Check Your Email!"),
+        "pleaseEnterCurrentPassword": MessageLookupByLibrary.simpleMessage(
+            "Please enter your current password"),
         "pleaseEnterValidDOB": MessageLookupByLibrary.simpleMessage(
             "Please select your date of birth"),
         "pleaseEnterValidEmail":
@@ -165,11 +178,15 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Please enter valid Password"),
         "pleaseEnterValidPhoneNumber": MessageLookupByLibrary.simpleMessage(
             "Please enter valid phone number"),
+        "pleaseSelectAtLeastOneGenre": MessageLookupByLibrary.simpleMessage(
+            "Please select at least one genre"),
         "preferredStudyLevel":
             MessageLookupByLibrary.simpleMessage("Preferred Study Level"),
         "profile": MessageLookupByLibrary.simpleMessage("Profile"),
         "profileInformation":
             MessageLookupByLibrary.simpleMessage("Profile Information"),
+        "profileUpdated":
+            MessageLookupByLibrary.simpleMessage("Profile updated"),
         "readiculous": MessageLookupByLibrary.simpleMessage("READICULOUS"),
         "register": MessageLookupByLibrary.simpleMessage("Register"),
         "registerAccount":

@@ -43,7 +43,12 @@ void main() {
       });
 
       test('redirects to login from any protected route', () {
-        for (final path in ['/home_page', '/my_books', '/view_database', '/profile_page']) {
+        for (final path in [
+          '/home_page',
+          '/my_books',
+          '/view_database',
+          '/profile_page'
+        ]) {
           expect(
             computeAuthRedirect(_guest, path),
             '/',
@@ -59,7 +64,8 @@ void main() {
       });
 
       test('redirects away from register page to home', () {
-        expect(computeAuthRedirect(_userWithPrefs, '/register_page'), '/home_page');
+        expect(computeAuthRedirect(_userWithPrefs, '/register_page'),
+            '/home_page');
       });
 
       test('stays on home page', () {
@@ -73,22 +79,27 @@ void main() {
       });
 
       test('blocks revisiting the onboarding route', () {
-        expect(computeAuthRedirect(_userWithPrefs, '/preferred_location'), '/home_page');
+        expect(computeAuthRedirect(_userWithPrefs, '/preferred_location'),
+            '/home_page');
       });
     });
 
     group('authenticated user without genre preferences', () {
       test('is redirected from home to genre preferences onboarding', () {
-        expect(computeAuthRedirect(_userNoPrefs, '/home_page'), '/preferred_location');
+        expect(computeAuthRedirect(_userNoPrefs, '/home_page'),
+            '/preferred_location');
       });
 
       test('is redirected from any protected page to onboarding', () {
-        expect(computeAuthRedirect(_userNoPrefs, '/my_books'), '/preferred_location');
-        expect(computeAuthRedirect(_userNoPrefs, '/view_database'), '/preferred_location');
+        expect(computeAuthRedirect(_userNoPrefs, '/my_books'),
+            '/preferred_location');
+        expect(computeAuthRedirect(_userNoPrefs, '/view_database'),
+            '/preferred_location');
       });
 
       test('stays on the onboarding page', () {
-        expect(computeAuthRedirect(_userNoPrefs, '/preferred_location'), isNull);
+        expect(
+            computeAuthRedirect(_userNoPrefs, '/preferred_location'), isNull);
       });
 
       test('redirects away from login directly to onboarding (single hop)', () {
@@ -111,6 +122,13 @@ void main() {
         // Librarians skip the genre-prefs gate entirely
         expect(computeAuthRedirect(_librarian, '/home_page'), isNull);
         expect(computeAuthRedirect(_librarian, '/view_database'), isNull);
+      });
+
+      test('is kept off both genre pages (librarians have no genres)', () {
+        expect(computeAuthRedirect(_librarian, '/preferred_location'),
+            '/home_page');
+        expect(computeAuthRedirect(_librarian, '/genre_preferences'),
+            '/home_page');
       });
     });
   });

@@ -6,6 +6,8 @@ class RouteNames {
   static const viewDatabase = 'view_database';
   static const preferredGenre = 'preferred_genre';
   static const profilePage = 'profile_page';
+  static const editProfile = 'edit_profile';
+  static const changePassword = 'change_password';
   static const bookRecommendationPageForUser =
       'book_recommendation_page_for_user';
   static const bookRecommendationPageForLibrary =

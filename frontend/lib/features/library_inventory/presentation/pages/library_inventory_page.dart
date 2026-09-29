@@ -1,12 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/core/network/clients/books_api_client.dart';
-import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/utils/appbar.dart';
 
-import '../../../home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
+import '../state_management/catalog_providers.dart';
 import '../state_management/library_inventory_provider.dart';
 
 class LibraryInventoryPage extends ConsumerWidget {
@@ -20,7 +21,7 @@ class LibraryInventoryPage extends ConsumerWidget {
         userId == null ? null : ref.watch(userLibraryProvider(userId));
 
     return Scaffold(
-      appBar: const StylishAppBar(title: 'Library Inventory', homepage: false),
+      appBar: const StylishAppBar(title: 'Library Inventory'),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -47,29 +48,34 @@ class LibraryInventoryPage extends ConsumerWidget {
               );
             }
 
-            return ListView(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
-              children: [
-                _InventoryHeader(
-                  libraryName: libraryName,
-                  totalTitles: items.length,
-                  lowStockCount: items.where(_isLowStock).length,
-                ),
-                const SizedBox(height: 18),
-                if (items.isEmpty)
-                  const _CenteredMessage(
+            // Built lazily: only the cards on screen (a library stocks
+            // hundreds of titles).
+            return ListView.builder(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 90),
+              itemCount: 1 + (items.isEmpty ? 1 : items.length),
+              itemBuilder: (_, index) {
+                if (index == 0) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 18),
+                    child: _InventoryHeader(
+                      libraryName: libraryName,
+                      totalTitles: items.length,
+                      lowStockCount: items.where(_isLowStock).length,
+                    ),
+                  );
+                }
+                if (items.isEmpty) {
+                  return const _CenteredMessage(
                     title: 'No inventory tracked yet.',
                     subtitle:
                         'Add your first title to start monitoring copy counts.',
-                  )
-                else
-                  ...items.map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _InventoryCard(item: item),
-                    ),
-                  ),
-              ],
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _InventoryCard(item: items[index - 1]),
+                );
+              },
             );
           },
         ),
@@ -358,17 +364,19 @@ class _InventoryEditorSheetState extends ConsumerState<_InventoryEditorSheet> {
   final _totalCtrl = TextEditingController();
   final _availableCtrl = TextEditingController();
   final _thresholdCtrl = TextEditingController();
-  List<Map<String, dynamic>> _books = [];
-  List<Map<String, dynamic>> _filteredBooks = [];
   String? _selectedBookId;
-  bool _loadingBooks = true;
   bool _saving = false;
+
+  /// What the catalog is searched for: the search text once typing pauses.
+  String _query = '';
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     final item = widget.existingItem;
     if (item != null) {
+      // Updating counts: the book is fixed, so the catalog isn't needed.
       _selectedBookId = item['book_id'].toString();
       _totalCtrl.text =
           ((item['copies_total'] as num?)?.toInt() ?? 0).toString();
@@ -376,46 +384,24 @@ class _InventoryEditorSheetState extends ConsumerState<_InventoryEditorSheet> {
           ((item['copies_available'] as num?)?.toInt() ?? 0).toString();
       _thresholdCtrl.text =
           ((item['low_stock_threshold'] as num?)?.toInt() ?? 1).toString();
-      _searchCtrl.text = item['title']?.toString() ?? '';
     } else {
       _totalCtrl.text = '1';
       _availableCtrl.text = '1';
       _thresholdCtrl.text = '1';
-    }
-    _searchCtrl.addListener(_filterBooks);
-    _loadBooks();
-  }
-
-  Future<void> _loadBooks() async {
-    try {
-      final raw = await BooksApiClient(DioClient.main).getAllBooks();
-      if (!mounted) return;
-      setState(() {
-        _books = raw.cast<Map<String, dynamic>>();
-        _filteredBooks = _books;
-        _loadingBooks = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _loadingBooks = false);
+      _searchCtrl.addListener(_onSearchChanged);
     }
   }
 
-  void _filterBooks() {
-    final q = _searchCtrl.text.toLowerCase();
-    setState(() {
-      _filteredBooks = q.isEmpty
-          ? _books
-          : _books.where((book) {
-              final title = (book['title']?.toString() ?? '').toLowerCase();
-              final author = (book['author']?.toString() ?? '').toLowerCase();
-              return title.contains(q) || author.contains(q);
-            }).toList();
+  void _onSearchChanged() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      if (mounted) setState(() => _query = _searchCtrl.text.trim());
     });
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchCtrl.dispose();
     _totalCtrl.dispose();
     _availableCtrl.dispose();
@@ -426,6 +412,7 @@ class _InventoryEditorSheetState extends ConsumerState<_InventoryEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
+    final item = widget.existingItem;
     return Container(
       height: height * 0.88,
       decoration: const BoxDecoration(
@@ -453,9 +440,7 @@ class _InventoryEditorSheetState extends ConsumerState<_InventoryEditorSheet> {
             ),
             const SizedBox(height: 14),
             Text(
-              widget.existingItem == null
-                  ? 'Add Inventory Item'
-                  : 'Update Inventory',
+              item == null ? 'Add Inventory Item' : 'Update Inventory',
               style: GoogleFonts.patrickHand(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -463,58 +448,28 @@ class _InventoryEditorSheetState extends ConsumerState<_InventoryEditorSheet> {
               ),
             ),
             const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: TextField(
-                controller: _searchCtrl,
-                decoration: _inputDecoration('Search title or author'),
+            if (item == null) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _searchCtrl,
+                  decoration: _inputDecoration('Search title or author'),
+                ),
               ),
-            ),
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
+            ],
             Expanded(
-              child: _loadingBooks
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView.builder(
+              child: item == null
+                  ? _buildSearchResults()
+                  : ListView(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _filteredBooks.length,
-                      itemBuilder: (_, index) {
-                        final book = _filteredBooks[index];
-                        final bookId = book['book_id'].toString();
-                        final selected = _selectedBookId == bookId;
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            tileColor: selected
-                                ? const Color(0xFFB7D8FF)
-                                : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              side: const BorderSide(
-                                  color: Colors.black, width: 1.5),
-                            ),
-                            title: Text(
-                              book['title']?.toString() ?? 'Unknown Title',
-                              style: GoogleFonts.patrickHand(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            subtitle: Text(
-                              book['author']?.toString() ?? 'Unknown Author',
-                              style: GoogleFonts.patrickHand(fontSize: 13),
-                            ),
-                            trailing: selected
-                                ? const Icon(Icons.check_circle,
-                                    color: Colors.black)
-                                : null,
-                            onTap: () => setState(() {
-                              _selectedBookId = bookId;
-                              _searchCtrl.text =
-                                  book['title']?.toString() ?? '';
-                            }),
-                          ),
-                        );
-                      },
+                      children: [
+                        _bookTile(
+                          title: item['title']?.toString() ?? 'Unknown Title',
+                          author: item['author']?.toString(),
+                          selected: true,
+                        ),
+                      ],
                     ),
             ),
             Padding(
@@ -634,6 +589,79 @@ class _InventoryEditorSheetState extends ConsumerState<_InventoryEditorSheet> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  /// Catalog matches for [_query], or a hint while there's nothing to search.
+  Widget _buildSearchResults() {
+    if (_query.length < minCatalogQueryLength) {
+      return _hint('Type a title or author to find the book.');
+    }
+    return ref.watch(catalogSearchProvider(_query)).when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => _hint('Could not search books: $e'),
+          data: (books) {
+            if (books.isEmpty) return _hint('No books match "$_query".');
+            return ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: books.length,
+              itemBuilder: (_, index) {
+                final book = books[index];
+                final bookId = '${book.bookId}';
+                return _bookTile(
+                  title: book.title,
+                  author: book.author,
+                  selected: _selectedBookId == bookId,
+                  onTap: () => setState(() => _selectedBookId = bookId),
+                );
+              },
+            );
+          },
+        );
+  }
+
+  Widget _hint(String text) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: GoogleFonts.patrickHand(
+            fontSize: 16,
+            color: const Color(0xFF3A3329).withValues(alpha: 0.6),
+          ),
+        ),
+      );
+
+  Widget _bookTile({
+    required String title,
+    required String? author,
+    required bool selected,
+    VoidCallback? onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        tileColor: selected ? const Color(0xFFB7D8FF) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: Colors.black, width: 1.5),
+        ),
+        title: Text(
+          title,
+          style: GoogleFonts.patrickHand(
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          author ?? 'Unknown Author',
+          style: GoogleFonts.patrickHand(fontSize: 13),
+        ),
+        trailing: selected
+            ? const Icon(Icons.check_circle, color: Colors.black)
+            : null,
+        onTap: onTap,
+      ),
+    );
   }
 
   InputDecoration _inputDecoration(String label) {

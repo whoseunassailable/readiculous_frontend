@@ -3,14 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/core/cache/app_cache_service.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
-import 'package:readiculous_frontend/core/network/clients/librarians_api_client.dart';
-import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
+import 'package:readiculous_frontend/shared/library/domain/entities/library.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 
-import '../../../home/presentation/state_management/user_library_provider.dart';
-import '../state_management/libraries_provider.dart';
+import '../state_management/library_association_controller.dart';
 
 class LibraryAssociationPage extends ConsumerStatefulWidget {
   const LibraryAssociationPage({super.key});
@@ -22,8 +20,7 @@ class LibraryAssociationPage extends ConsumerStatefulWidget {
 
 class _LibraryAssociationPageState
     extends ConsumerState<LibraryAssociationPage> {
-  String? _selectedLibraryId;
-  bool _saving = false;
+  int? _selectedLibraryId;
   final _searchCtrl = TextEditingController();
 
   @override
@@ -38,24 +35,61 @@ class _LibraryAssociationPageState
     super.dispose();
   }
 
-  List<Map<String, dynamic>> _filter(List<Map<String, dynamic>> libraries) {
+  List<Library> _filter(List<Library> libraries) {
     final q = _searchCtrl.text.trim().toLowerCase();
     if (q.isEmpty) return libraries;
-    return libraries.where((lib) {
-      final name = (lib['name']?.toString() ?? '').toLowerCase();
-      final location = (lib['location']?.toString() ?? '').toLowerCase();
-      return name.contains(q) || location.contains(q);
-    }).toList();
+    return libraries
+        .where((lib) =>
+            lib.name.toLowerCase().contains(q) ||
+            (lib.location ?? '').toLowerCase().contains(q))
+        .toList();
+  }
+
+  /// Saved → confirm and go back; failed → say why (e.g. "Library not
+  /// found") and stay.
+  void _onSaveStateChanged(AsyncValue<void>? previous, AsyncValue<void> next) {
+    next.whenOrNull(
+      data: (_) {
+        if (previous?.isLoading != true) return;
+        final isLibrarian =
+            ref.read(sessionProvider).role == AppRoles.librarian;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFF3A436),
+            content: Text(
+              isLibrarian
+                  ? 'Library association saved.'
+                  : 'Preferred library saved.',
+              style: GoogleFonts.patrickHand(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
+          ),
+        );
+        context.pop();
+      },
+      error: (error, _) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not save library: $error')),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AsyncValue<void>>(
+      libraryAssociationControllerProvider,
+      _onSaveStateChanged,
+    );
+    final saving = ref.watch(
+      libraryAssociationControllerProvider.select((s) => s.isLoading),
+    );
     final session = ref.watch(sessionProvider);
-    final librariesAsync = ref.watch(allLibrariesProvider);
     final userId = session.userId;
-    final role = session.role;
+    final isLibrarian = session.role == AppRoles.librarian;
     final currentLibraryAsync =
         userId == null ? null : ref.watch(userLibraryProvider(userId));
+    final currentLibrary = currentLibraryAsync?.asData?.value;
 
     return Scaffold(
       body: Container(
@@ -106,145 +140,7 @@ class _LibraryAssociationPageState
                 ),
               ),
               const SizedBox(height: 14),
-              // ── Search bar ──
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.80),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.black, width: 2),
-                    boxShadow: const [
-                      BoxShadow(
-                          color: Colors.black26,
-                          offset: Offset(2, 2),
-                          blurRadius: 0),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _searchCtrl,
-                    style: GoogleFonts.patrickHand(fontSize: 15),
-                    decoration: InputDecoration(
-                      hintText: 'Search by city, zip, name…',
-                      hintStyle: GoogleFonts.patrickHand(
-                          color: Colors.black38, fontSize: 14),
-                      prefixIcon:
-                          const Icon(Icons.search, color: Colors.black54),
-                      suffixIcon: _searchCtrl.text.isNotEmpty
-                          ? GestureDetector(
-                              onTap: () => _searchCtrl.clear(),
-                              child: const Icon(Icons.close,
-                                  color: Colors.black45, size: 20),
-                            )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // ── List ──
-              Expanded(
-                child: librariesAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (e, _) => Center(
-                    child: Text(
-                      'Could not load libraries.\n$e',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.patrickHand(fontSize: 16),
-                    ),
-                  ),
-                  data: (libraries) {
-                    final currentLibrary = currentLibraryAsync?.maybeWhen(
-                      data: (library) => library,
-                      orElse: () => null,
-                    );
-                    _selectedLibraryId ??=
-                        currentLibrary?.libraryId.toString();
-
-                    final filtered = _filter(libraries);
-
-                    return ListView(
-                      padding:
-                          const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                      children: [
-                        // Current association banner
-                        if (currentLibrary != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFB7D8FF).withOpacity(0.80),
-                              borderRadius: BorderRadius.circular(14),
-                              border:
-                                  Border.all(color: Colors.black, width: 2),
-                              boxShadow: const [
-                                BoxShadow(
-                                    color: Colors.black26,
-                                    offset: Offset(2, 2),
-                                    blurRadius: 0),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.verified,
-                                    color: Colors.black, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Current: ${currentLibrary.name}',
-                                    style: GoogleFonts.patrickHand(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF3A3329),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                        ],
-                        if (filtered.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 40),
-                            child: Center(
-                              child: Text(
-                                'No libraries match\n"${_searchCtrl.text}"',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.patrickHand(
-                                  fontSize: 17,
-                                  color: const Color(0xFF3A3329)
-                                      .withOpacity(0.55),
-                                ),
-                              ),
-                            ),
-                          )
-                        else
-                          ...filtered.map(
-                            (library) => Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _LibraryCard(
-                                library: library,
-                                selected: _selectedLibraryId ==
-                                    library['library_id'].toString(),
-                                isCurrent:
-                                    currentLibrary?.libraryId.toString() ==
-                                        library['library_id'].toString(),
-                                onTap: () => setState(
-                                  () => _selectedLibraryId =
-                                      library['library_id'].toString(),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    );
-                  },
-                ),
-              ),
+              Expanded(child: _buildPicker(currentLibrary, isLibrarian)),
             ],
           ),
         ),
@@ -259,11 +155,12 @@ class _LibraryAssociationPageState
                 side: const BorderSide(color: Colors.black, width: 2),
               ),
               elevation: 4,
-              onPressed: _saving
+              onPressed: saving
                   ? null
-                  : () => _saveAssociation(
-                      context, userId, role ?? AppRoles.user),
-              label: _saving
+                  : () => ref
+                      .read(libraryAssociationControllerProvider.notifier)
+                      .save(_selectedLibraryId!),
+              label: saving
                   ? const SizedBox(
                       width: 20,
                       height: 20,
@@ -271,85 +168,183 @@ class _LibraryAssociationPageState
                           strokeWidth: 2, color: Colors.black),
                     )
                   : Text(
-                      role == AppRoles.librarian
-                          ? 'Save Association'
-                          : 'Save Library',
+                      isLibrarian ? 'Save Association' : 'Save Library',
                       style: GoogleFonts.patrickHand(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-              icon: _saving ? const SizedBox.shrink() : const Icon(Icons.save_outlined),
+              icon: saving
+                  ? const SizedBox.shrink()
+                  : const Icon(Icons.save_outlined),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Future<void> _saveAssociation(
-    BuildContext context,
-    String userId,
-    String role,
-  ) async {
-    if (_selectedLibraryId == null || _saving) return;
-
-    setState(() => _saving = true);
-    try {
-      if (role == AppRoles.librarian) {
-        await LibrariansApiClient(DioClient.main).assignLibrarian({
-          'user_id': userId,
-          'library_id': int.parse(_selectedLibraryId!),
-          'verified': 1,
-        });
-        await ref.read(sessionProvider.notifier).setRole(AppRoles.librarian);
-      } else {
-        await DioClient.main.post(
-          '/users/$userId/library',
-          data: {'library_id': int.parse(_selectedLibraryId!)},
-        );
-      }
-      final libraries = ref.read(allLibrariesProvider).asData?.value;
-      final selectedLibrary = libraries?.firstWhere(
-        (library) => library['library_id'].toString() == _selectedLibraryId,
-        orElse: () => <String, dynamic>{},
-      );
-      if (selectedLibrary != null && selectedLibrary.isNotEmpty) {
-        await AppCacheService.instance.saveCurrentUserLibrary({
-          'library_id': selectedLibrary['library_id'],
-          'name': selectedLibrary['name'],
-          'location': selectedLibrary['location'],
-          'verified': selectedLibrary['verified'],
-        });
-      }
-      ref.invalidate(userLibraryProvider(userId));
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFFF3A436),
-          content: Text(
-            role == AppRoles.librarian
-                ? 'Library association saved.'
-                : 'Preferred library saved.',
-            style: GoogleFonts.patrickHand(
-                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
+  /// Search bar and library list.
+  Widget _buildPicker(Library? currentLibrary, bool isLibrarian) {
+    final librariesAsync = ref.watch(allLibrariesProvider);
+    return Column(
+      children: [
+        // ── Search bar ──
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.80),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.black, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                    color: Colors.black26, offset: Offset(2, 2), blurRadius: 0),
+              ],
+            ),
+            child: TextField(
+              controller: _searchCtrl,
+              style: GoogleFonts.patrickHand(fontSize: 15),
+              decoration: InputDecoration(
+                hintText: 'Search by city, zip, name…',
+                hintStyle: GoogleFonts.patrickHand(
+                    color: Colors.black38, fontSize: 14),
+                prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                suffixIcon: _searchCtrl.text.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () => _searchCtrl.clear(),
+                        child: const Icon(Icons.close,
+                            color: Colors.black45, size: 20),
+                      )
+                    : null,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
           ),
         ),
-      );
-      if (context.mounted) context.pop();
-    } catch (_) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not save library association.')),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+        if (isLibrarian)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+            child: Text(
+              "Pick the library you manage. You can't change it later.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.patrickHand(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF3A3329),
+              ),
+            ),
+          ),
+        const SizedBox(height: 12),
+        // ── List ──
+        Expanded(
+          child: librariesAsync.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(
+              child: Text(
+                'Could not load libraries.\n$e',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.patrickHand(fontSize: 16),
+              ),
+            ),
+            data: (libraries) {
+              _selectedLibraryId ??= currentLibrary?.libraryId;
+
+              final filtered = _filter(libraries);
+              final hasBanner = currentLibrary != null;
+
+              // Built lazily: the full list is ~16.5k libraries.
+              return ListView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                itemCount: (hasBanner ? 1 : 0) +
+                    (filtered.isEmpty ? 1 : filtered.length),
+                itemBuilder: (context, index) {
+                  if (currentLibrary != null) {
+                    if (index == 0) {
+                      return _CurrentLibraryBanner(name: currentLibrary.name);
+                    }
+                    index--;
+                  }
+                  if (filtered.isEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 40),
+                      child: Center(
+                        child: Text(
+                          'No libraries match\n"${_searchCtrl.text}"',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.patrickHand(
+                            fontSize: 17,
+                            color:
+                                const Color(0xFF3A3329).withValues(alpha: 0.55),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  final library = filtered[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _LibraryCard(
+                      library: library,
+                      selected: _selectedLibraryId == library.libraryId,
+                      isCurrent: currentLibrary?.libraryId == library.libraryId,
+                      onTap: () => setState(
+                          () => _selectedLibraryId = library.libraryId),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CurrentLibraryBanner extends StatelessWidget {
+  final String name;
+
+  const _CurrentLibraryBanner({required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFB7D8FF).withValues(alpha: 0.80),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.black, width: 2),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black26, offset: Offset(2, 2), blurRadius: 0),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.verified, color: Colors.black, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Current: $name',
+                style: GoogleFonts.patrickHand(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF3A3329),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
 class _LibraryCard extends StatelessWidget {
-  final Map<String, dynamic> library;
+  final Library library;
   final bool selected;
   final bool isCurrent;
   final VoidCallback? onTap;
@@ -363,7 +358,7 @@ class _LibraryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = library['location']?.toString();
+    final location = library.location;
     return GestureDetector(
       onTap: onTap,
       child: LayoutBuilder(
@@ -374,8 +369,8 @@ class _LibraryCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: selected
-                  ? const Color(0xFFBFE3C0).withOpacity(0.88)
-                  : Colors.white.withOpacity(0.72),
+                  ? const Color(0xFFBFE3C0).withValues(alpha: 0.88)
+                  : Colors.white.withValues(alpha: 0.72),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: Colors.black,
@@ -404,7 +399,7 @@ class _LibraryCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        library['name']?.toString() ?? 'Unnamed Library',
+                        library.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.patrickHand(
@@ -427,7 +422,7 @@ class _LibraryCard extends StatelessWidget {
                                 style: GoogleFonts.patrickHand(
                                   fontSize: 13,
                                   color: const Color(0xFF3A3329)
-                                      .withOpacity(0.65),
+                                      .withValues(alpha: 0.65),
                                 ),
                               ),
                             ),

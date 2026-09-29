@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
 import 'package:readiculous_frontend/core/constants/routes.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 
 import '../../../../generated/l10n.dart';

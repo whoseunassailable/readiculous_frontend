@@ -197,7 +197,11 @@ class _StatusButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _StatusButton({required this.label, required this.color, required this.icon, required this.onTap});
+  const _StatusButton(
+      {required this.label,
+      required this.color,
+      required this.icon,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -209,14 +213,21 @@ class _StatusButton extends StatelessWidget {
           color: color,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(color: Colors.black, width: 1.8),
-          boxShadow: const [BoxShadow(color: Colors.black26, offset: Offset(2, 2), blurRadius: 0)],
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black26, offset: Offset(2, 2), blurRadius: 0)
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: Colors.black87),
             const SizedBox(width: 6),
-            Text(label, style: GoogleFonts.patrickHand(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black)),
+            Text(label,
+                style: GoogleFonts.patrickHand(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black)),
           ],
         ),
       ),

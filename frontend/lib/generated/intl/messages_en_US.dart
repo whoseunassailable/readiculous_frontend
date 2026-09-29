@@ -33,10 +33,14 @@ class MessageLookup extends MessageLookupByLibrary {
         "chooseYourLanguage":
             MessageLookupByLibrary.simpleMessage("Choose Your Language"),
         "compareScores": MessageLookupByLibrary.simpleMessage("Compare Scores"),
+        "confirmNewPassword":
+            MessageLookupByLibrary.simpleMessage("Confirm new password"),
         "confirmPassword":
             MessageLookupByLibrary.simpleMessage("Confirm Password"),
         "countryPreferences":
             MessageLookupByLibrary.simpleMessage("Country Preferences"),
+        "currentPassword":
+            MessageLookupByLibrary.simpleMessage("Current password"),
         "delete": MessageLookupByLibrary.simpleMessage("Delete"),
         "didntReceiveCode":
             MessageLookupByLibrary.simpleMessage("Didnt receive code?"),
@@ -71,6 +75,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Forgot Password?"),
         "four_hundred_fifty_to_six_hundred":
             MessageLookupByLibrary.simpleMessage("450 - 600"),
+        "genrePreferencesSaved":
+            MessageLookupByLibrary.simpleMessage("Genre preferences saved!"),
         "germany": MessageLookupByLibrary.simpleMessage("Germany"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Get Started"),
         "gpa": MessageLookupByLibrary.simpleMessage("GPA"),
@@ -109,16 +115,23 @@ class MessageLookup extends MessageLookupByLibrary {
         "loginToYourAccount":
             MessageLookupByLibrary.simpleMessage("Login to your account!"),
         "name": MessageLookupByLibrary.simpleMessage("Name"),
+        "newPassword": MessageLookupByLibrary.simpleMessage("New password"),
+        "newPasswordMustBeDifferent": MessageLookupByLibrary.simpleMessage(
+            "New password must be different from the current one"),
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "no": MessageLookupByLibrary.simpleMessage("No"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
         "passwordAndConfirmPasswordDoNotMatch":
             MessageLookupByLibrary.simpleMessage(
                 "Password and Confirm Password do not match"),
+        "passwordUpdated":
+            MessageLookupByLibrary.simpleMessage("Password updated"),
         "phd": MessageLookupByLibrary.simpleMessage("PhD"),
         "phoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
         "pleaseCheckYourEmail":
             MessageLookupByLibrary.simpleMessage("Please Check Your Email!"),
+        "pleaseEnterCurrentPassword": MessageLookupByLibrary.simpleMessage(
+            "Please enter your current password"),
         "pleaseEnterValidDOB": MessageLookupByLibrary.simpleMessage(
             "Please select your date of birth"),
         "pleaseEnterValidEmail":
@@ -131,8 +144,12 @@ class MessageLookup extends MessageLookupByLibrary {
             "Password must be at least 8 characters with uppercase, lowercase, number, and special character"),
         "pleaseEnterValidPhoneNumber": MessageLookupByLibrary.simpleMessage(
             "Please enter a valid Phone Number"),
+        "pleaseSelectAtLeastOneGenre": MessageLookupByLibrary.simpleMessage(
+            "Please select at least one genre"),
         "preferredStudyLevel":
             MessageLookupByLibrary.simpleMessage("Preferred Study Level"),
+        "profileUpdated":
+            MessageLookupByLibrary.simpleMessage("Profile updated"),
         "readiculous": MessageLookupByLibrary.simpleMessage("READICULOUS"),
         "register": MessageLookupByLibrary.simpleMessage("Register"),
         "registerAccount":

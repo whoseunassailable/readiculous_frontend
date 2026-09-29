@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:logger/logger.dart';
 import 'package:readiculous_frontend/config/app_env.dart';
 
@@ -22,6 +23,51 @@ class DioClient {
     ..interceptors.add(_ApiLoggerInterceptor());
 }
 
+/// A copy of [data] with the value of every key containing "password"
+/// (password, current_password, new_password, …) masked, at any depth, so
+/// credentials never reach the log.
+@visibleForTesting
+Object? redactPasswords(Object? data) {
+  if (data is Map) {
+    return {
+      for (final entry in data.entries)
+        entry.key: '${entry.key}'.toLowerCase().contains('password')
+            ? '***'
+            : redactPasswords(entry.value),
+    };
+  }
+  if (data is List) return data.map(redactPasswords).toList();
+  return data;
+}
+
+/// A response body as the dev log shows it. Pretty-printing runs on the UI
+/// thread, so large bodies are summarised: a list logs its length and first
+/// item (some endpoints return tens of thousands of rows), and anything
+/// else is cut after [maxChars] characters.
+@visibleForTesting
+String summarizeBody(Object? data, {int maxChars = 4000}) {
+  String pretty(Object? value) {
+    if (value == null) return 'null';
+    try {
+      final text = const JsonEncoder.withIndent('  ').convert(value);
+      return text.length <= maxChars
+          ? text
+          : '${text.substring(0, maxChars)}\n… (${text.length} characters)';
+    } catch (_) {
+      return value.toString();
+    }
+  }
+
+  if (data is List) {
+    if (data.isEmpty) return '[]';
+    return 'List of ${data.length} item(s). First:\n${pretty(data.first)}';
+  }
+  if (data is String && data.length > maxChars) {
+    return '${data.substring(0, maxChars)}\n… (${data.length} characters)';
+  }
+  return pretty(data);
+}
+
 class _ApiLoggerInterceptor extends Interceptor {
   static final Logger _logger = Logger(
     printer: PrettyPrinter(
@@ -35,12 +81,6 @@ class _ApiLoggerInterceptor extends Interceptor {
   );
 
   static const String _startTimeKey = '__api_log_start_time__';
-
-  bool _suppressResponseBody(RequestOptions options) {
-    final normalizedPath = options.path.replaceAll(RegExp(r'/+$'), '');
-    return options.method.toUpperCase() == 'GET' &&
-        normalizedPath == '/libraries';
-  }
 
   String _pretty(Object? value) {
     if (value == null) return 'null';
@@ -80,7 +120,7 @@ class _ApiLoggerInterceptor extends Interceptor {
     if (options.method.toUpperCase() != 'GET' && options.data != null) {
       buffer
         ..writeln('Body:')
-        ..writeln(_pretty(options.data));
+        ..writeln(_pretty(redactPasswords(options.data)));
     }
 
     _logger.i(buffer.toString());
@@ -109,15 +149,9 @@ class _ApiLoggerInterceptor extends Interceptor {
         '${elapsedMs != null ? ' | ${elapsedMs}ms' : ''}',
       )
       ..writeln('Headers:')
-      ..writeln(_headers(response.headers.map));
-
-    if (_suppressResponseBody(response.requestOptions)) {
-      buffer.writeln('Body: <suppressed for GET /libraries>');
-    } else {
-      buffer
-        ..writeln('Body:')
-        ..writeln(_pretty(response.data));
-    }
+      ..writeln(_headers(response.headers.map))
+      ..writeln('Body:')
+      ..writeln(summarizeBody(response.data));
 
     _logger.i(buffer.toString());
     handler.next(response);
@@ -148,15 +182,9 @@ class _ApiLoggerInterceptor extends Interceptor {
     if (err.response != null) {
       buffer
         ..writeln('Headers:')
-        ..writeln(_headers(err.response!.headers.map));
-
-      if (_suppressResponseBody(err.requestOptions)) {
-        buffer.writeln('Body: <suppressed for GET /libraries>');
-      } else {
-        buffer
-          ..writeln('Body:')
-          ..writeln(_pretty(err.response?.data));
-      }
+        ..writeln(_headers(err.response!.headers.map))
+        ..writeln('Body:')
+        ..writeln(summarizeBody(err.response?.data));
     }
 
     _logger.e(buffer.toString());

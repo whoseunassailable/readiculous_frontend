@@ -10,6 +10,10 @@ class CustomTextFormField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
 
+  /// Shows [hintText] as a floating label, so the field stays identifiable
+  /// once it has a value (useful for pre-filled edit forms).
+  final bool showLabel;
+
   const CustomTextFormField({
     super.key,
     required this.hintText,
@@ -19,6 +23,7 @@ class CustomTextFormField extends StatelessWidget {
     this.keyboardType,
     this.readOnly = false,
     this.onTap,
+    this.showLabel = false,
     this.obscureText =
         false, // Default value is false, unless you want to specify it
   });
@@ -35,7 +40,8 @@ class CustomTextFormField extends StatelessWidget {
       obscureText: obscureText, // Use the obscureText parameter
       decoration: InputDecoration(
         prefixIcon: prefixIcon,
-        hintText: hintText,
+        labelText: showLabel ? hintText : null,
+        hintText: showLabel ? null : hintText,
         border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(borderRadius))),
         fillColor: Colors.white,

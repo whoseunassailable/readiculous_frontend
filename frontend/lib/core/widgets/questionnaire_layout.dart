@@ -17,6 +17,9 @@ class QuestionnaireLayout extends StatelessWidget {
   final String buttonText;
   final Widget? customInputField; // ✅ New parameter
 
+  /// Shows a spinner on the button and ignores taps while work is running.
+  final bool isLoading;
+
   const QuestionnaireLayout({
     super.key,
     required this.title,
@@ -28,6 +31,7 @@ class QuestionnaireLayout extends StatelessWidget {
     this.hintTextForInputField,
     this.additionalFields,
     this.customInputField, // ✅ In constructor
+    this.isLoading = false,
   });
 
   @override
@@ -40,7 +44,6 @@ class QuestionnaireLayout extends StatelessWidget {
       backgroundColor: AppColors.bgColorForAppBar,
       appBar: StylishAppBar(
         title: S.of(context).readiculous,
-        homepage: false,
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -101,6 +104,7 @@ class QuestionnaireLayout extends StatelessWidget {
 
                       MinimalistButton(
                         onPressed: onTapOfButton,
+                        isLoading: isLoading,
                         text: buttonText,
                       ),
                     ],

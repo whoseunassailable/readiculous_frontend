@@ -5,7 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readiculous_frontend/features/my_books/presentation/pages/my_books_page.dart';
 import 'package:readiculous_frontend/features/my_books/presentation/state_management/my_books_provider.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
+import 'package:readiculous_frontend/shared/recommendations/domain/entities/user_recommendation.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/user_recommendations_notifier.dart';
 import 'package:readiculous_frontend/core/session/session_notifier.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/session/session_state.dart';
@@ -43,12 +44,12 @@ class _FakeMyBooksNotifier extends MyBooksNotifier {
 /// Tracks how many times its build() is called.
 /// Capturing [_log] by reference lets us observe re-builds caused by
 /// ref.invalidate() even though each invalidation creates a new notifier.
-class _TrackingRecsController extends UserRecommendationsController {
+class _TrackingRecsController extends UserRecommendationsNotifier {
   final List<int> _log;
   _TrackingRecsController(this._log);
 
   @override
-  Future<List<dynamic>> build() async {
+  Future<List<UserRecommendation>> build() async {
     _log.add(_log.length);
     return [];
   }

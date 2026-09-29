@@ -5,7 +5,7 @@
 /// SharedPreferences or any network API.
 ///
 /// We also override every data-fetching provider referenced by the landing
-/// pages (HomePage, PreferredGenre) with stubs that return empty data
+/// pages (HomePage, GenreOnboardingPage) with stubs that return empty data
 /// immediately, so pages render without a backend.
 library;
 
@@ -19,17 +19,18 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readiculous_frontend/features/authentication/presentation/pages/login_page.dart';
 import 'package:readiculous_frontend/features/home/presentation/pages/home_page.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/genres_provider.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/library_recommendations_provider.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/user_library_provider.dart';
 import 'package:readiculous_frontend/features/my_books/presentation/state_management/my_books_provider.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/preferred_genre.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
+import 'package:readiculous_frontend/features/genre_preferences/presentation/pages/genre_onboarding_page.dart';
+import 'package:readiculous_frontend/shared/recommendations/domain/entities/user_recommendation.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/user_recommendations_notifier.dart';
 import 'package:readiculous_frontend/config/routing/routing.dart';
 import 'package:readiculous_frontend/core/session/session_notifier.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/session/session_state.dart';
 import 'package:readiculous_frontend/generated/l10n.dart';
+import 'package:readiculous_frontend/shared/genres/domain/entities/genre.dart';
+import 'package:readiculous_frontend/shared/genres/presentation/state_management/genres_providers.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 
 // ── Fake notifiers ────────────────────────────────────────────────────────────
 
@@ -50,9 +51,9 @@ class _FakeMyBooksNotifier extends MyBooksNotifier {
   Future<void> remove(String bookId) async {}
 }
 
-class _FakeRecsController extends UserRecommendationsController {
+class _FakeRecsController extends UserRecommendationsNotifier {
   @override
-  Future<List<dynamic>> build() async => [];
+  Future<List<UserRecommendation>> build() async => [];
 }
 
 // ── TestApp ───────────────────────────────────────────────────────────────────
@@ -99,13 +100,11 @@ Widget _testApp(SessionState session) => ProviderScope(
         sessionProvider.overrideWith(() => _FakeSessionNotifier(session)),
         myBooksProvider.overrideWith(() => _FakeMyBooksNotifier()),
         userRecommendationsProvider.overrideWith(() => _FakeRecsController()),
-        allGenresProvider.overrideWith((ref) async => <String>[]),
-        if (session.userId != null) ...[
+        allGenresProvider.overrideWith((ref) async => <Genre>[]),
+        // No library ⇒ the librarian dashboard never asks for recommendations.
+        if (session.userId != null)
           userLibraryProvider(session.userId!)
               .overrideWith((ref) async => null),
-          libraryRecommendationsProvider(session.userId!)
-              .overrideWith((ref) async => <dynamic>[]),
-        ],
       ],
       child: const _TestApp(),
     );
@@ -175,7 +174,7 @@ void main() {
       await tester.pumpWidget(_testApp(session));
       await tester.pumpAndSettle();
 
-      expect(find.byType(PreferredGenre), findsOneWidget);
+      expect(find.byType(GenreOnboardingPage), findsOneWidget);
       expect(find.byType(LoginPage), findsNothing);
     });
 

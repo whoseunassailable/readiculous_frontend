@@ -3,14 +3,13 @@ import 'package:readiculous_frontend/core/network/clients/reads_api_client.dart'
 import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 
-class MyBooksNotifier
-    extends AsyncNotifier<List<Map<String, dynamic>>> {
+class MyBooksNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
   @override
   Future<List<Map<String, dynamic>>> build() async {
-    final userId = ref.read(sessionProvider).userId;
+    // Watch (not read) so another user logging in rebuilds this state.
+    final userId = ref.watch(sessionProvider.select((s) => s.userId));
     if (userId == null) return [];
-    final raw =
-        await ReadsApiClient(DioClient.main).getUserReadingList(userId);
+    final raw = await ReadsApiClient(DioClient.main).getUserReadingList(userId);
     return raw.cast<Map<String, dynamic>>();
   }
 
@@ -33,8 +32,7 @@ class MyBooksNotifier
   Future<void> remove(String bookId) async {
     final userId = ref.read(sessionProvider).userId;
     if (userId == null) return;
-    await ReadsApiClient(DioClient.main)
-        .removeFromReadingList(userId, bookId);
+    await ReadsApiClient(DioClient.main).removeFromReadingList(userId, bookId);
     ref.invalidateSelf();
   }
 }

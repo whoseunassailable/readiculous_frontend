@@ -14,9 +14,11 @@ class SessionNotifier extends Notifier<SessionState> {
   static const _kTokenKey = 'token';
   static const _kHasGenrePrefsKey = 'has_genre_prefs';
 
-  /// Older builds cached the login password here in plain text. Nothing reads
-  /// it any more; [init] deletes it from devices that still have it.
-  static const _kLegacyPasswordKey = 'session_password';
+  /// Entries older builds left behind that nothing reads any more; [init]
+  /// deletes them from devices that still have them:
+  /// - `session_password`: the login password, in plain text.
+  /// - `cache_libraries`: every library (~2.8 MB), downloaded on each start.
+  static const _kLegacyKeys = ['session_password', 'cache_libraries'];
 
   @override
   SessionState build() {
@@ -26,7 +28,9 @@ class SessionNotifier extends Notifier<SessionState> {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
-    await prefs.remove(_kLegacyPasswordKey);
+    for (final key in _kLegacyKeys) {
+      await prefs.remove(key);
+    }
     final isLoggedIn = prefs.getBool(_kIsLoggedInKey) ?? false;
     final role = isLoggedIn ? prefs.getString(_kRoleKey) : null;
     final email = isLoggedIn ? prefs.getString(_kEmailKey) : null;

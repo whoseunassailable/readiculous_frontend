@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/utils/appbar.dart';
-import '../state_management/genre_trends_provider.dart';
+import '../../domain/entities/genre_trend.dart';
+import '../state_management/trends_providers.dart';
 
 class GenreTrendsPage extends ConsumerWidget {
   const GenreTrendsPage({super.key});
@@ -36,7 +37,7 @@ class GenreTrendsPage extends ConsumerWidget {
         'Your Library';
 
     return Scaffold(
-      appBar: const StylishAppBar(title: 'Genre Trends', homepage: false),
+      appBar: const StylishAppBar(title: 'Genre Trends'),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -67,7 +68,7 @@ class GenreTrendsPage extends ConsumerWidget {
 // ─── Body ─────────────────────────────────────────────────────────────────────
 
 class _TrendsBody extends StatelessWidget {
-  final List<Map<String, dynamic>> trends;
+  final List<GenreTrend> trends;
   final String libraryName;
   final List<Color> palette;
 
@@ -109,8 +110,7 @@ class _TrendsBody extends StatelessWidget {
       );
     }
 
-    final maxScore =
-        (trends.first['score'] as double).clamp(0.001, double.infinity);
+    final maxScore = trends.first.score.clamp(0.001, double.infinity);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
@@ -134,18 +134,16 @@ class _TrendsBody extends StatelessWidget {
 
           // ── Bar chart ──
           ...List.generate(trends.length, (i) {
-            final item = trends[i];
-            final name = item['name'] as String;
-            final score = (item['score'] as double);
-            final ratio = score / maxScore;
+            final trend = trends[i];
+            final ratio = trend.score / maxScore;
             final color = palette[i % palette.length];
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: _TrendBar(
                 rank: i + 1,
-                name: name,
-                score: score,
+                name: trend.name,
+                score: trend.score,
                 ratio: ratio,
                 color: color,
                 animDelay: Duration(milliseconds: 60 * i),

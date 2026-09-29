@@ -41,7 +41,8 @@ class _BooksApiClient implements BooksApiClient {
   Future<Map<String, dynamic>> updateBook(
       String bookId, Map<String, dynamic> body) async {
     final response = await _dio.fetch<Map<String, dynamic>>(
-      Options(method: 'PUT').compose(_dio.options, '/books/$bookId', data: body),
+      Options(method: 'PUT')
+          .compose(_dio.options, '/books/$bookId', data: body),
     );
     return response.data!;
   }

@@ -23,7 +23,8 @@ void main() {
       expect(s.hasGenrePrefs, isNull);
     });
 
-    test('init with no persisted data produces empty initialized session', () async {
+    test('init with no persisted data produces empty initialized session',
+        () async {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -91,13 +92,15 @@ void main() {
       expect(s.initialized, true);
     });
 
-    test('init deletes the legacy plain-text password and keeps the session',
-        () async {
+    test(
+        'init deletes the legacy password and libraries cache, '
+        'and keeps the session', () async {
       SharedPreferences.setMockInitialValues({
         'is_logged_in': true,
         'user_id': 'u42',
         'role': 'user',
         'session_password': 'hunter2',
+        'cache_libraries': '[{"library_id":4,"name":"Chinatown"}]',
       });
       final container = ProviderContainer();
       addTearDown(container.dispose);
@@ -106,6 +109,7 @@ void main() {
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.containsKey('session_password'), false);
+      expect(prefs.containsKey('cache_libraries'), false);
       expect(container.read(sessionProvider).userId, 'u42');
     });
 
@@ -114,11 +118,11 @@ void main() {
       addTearDown(container.dispose);
 
       await container.read(sessionProvider.notifier).setSession(
-        userId: 'u99',
-        role: 'user',
-        email: 'x@x.com',
-        token: 'tok_xyz',
-      );
+            userId: 'u99',
+            role: 'user',
+            email: 'x@x.com',
+            token: 'tok_xyz',
+          );
 
       final s = container.read(sessionProvider);
       expect(s.userId, 'u99');
@@ -132,11 +136,11 @@ void main() {
       addTearDown(container.dispose);
 
       await container.read(sessionProvider.notifier).setSession(
-        userId: 'u99',
-        role: 'user',
-        email: 'x@x.com',
-        token: 'tok_xyz',
-      );
+            userId: 'u99',
+            role: 'user',
+            email: 'x@x.com',
+            token: 'tok_xyz',
+          );
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('user_id'), 'u99');

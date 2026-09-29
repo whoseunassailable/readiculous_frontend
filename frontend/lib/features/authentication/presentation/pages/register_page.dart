@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_font_size.dart';
 import '../../../../core/constants/app_roles.dart';
 import '../../../../core/utils/animated_text.dart';
 import '../../../../core/utils/custom_text_form_field.dart';
+import '../../../../core/utils/date_of_birth_picker.dart';
 import '../../../../core/utils/display_snackbar.dart';
 import '../../../../core/utils/regex_patterns.dart';
 import '../../../../core/widgets/minimalistic_button.dart';
@@ -278,19 +278,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
         );
   }
 
-  Future<void> _pickDateOfBirth() async {
-    final now = DateTime.now();
-    final current = DateTime.tryParse(_dobController.text);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: current ?? DateTime(now.year - 20),
-      firstDate: DateTime(1900),
-      lastDate: now,
-    );
-    if (picked == null) return;
-    _dobController.text = DateFormat('yyyy-MM-dd').format(picked);
-  }
-
   Widget listOfTextFormFields({
     required double height,
     required double width,
@@ -329,7 +316,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             focusNode: dobFocus,
             controller: _dobController,
             readOnly: true,
-            onTap: _pickDateOfBirth,
+            onTap: () => pickDateOfBirth(context, _dobController),
             prefixIcon: const Icon(MaterialCommunityIcons.calendar),
           ),
           spacing,

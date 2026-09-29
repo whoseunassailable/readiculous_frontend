@@ -102,7 +102,7 @@ class LogOutPageDialog extends ConsumerWidget {
               color: const Color(0xFFB7D8FF),
               onTap: () {
                 context.pop();
-                context.pushNamed(RouteNames.profilePage);
+                context.pushNamed(RouteNames.editProfile);
               },
             ),
             const SizedBox(height: 10),
@@ -111,7 +111,7 @@ class LogOutPageDialog extends ConsumerWidget {
               color: const Color(0xFFFFE4A0),
               onTap: () {
                 context.pop();
-                context.pushNamed(RouteNames.homePage);
+                context.pushNamed(RouteNames.changePassword);
               },
             ),
             const SizedBox(height: 10),

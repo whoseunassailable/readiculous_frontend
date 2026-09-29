@@ -48,6 +48,15 @@ class _FakeGenresRepository implements GenresRepository {
   _FakeGenresRepository(this.genres);
 
   @override
+  Future<List<Genre>> getAllGenres() async => genres;
+
+  @override
+  Future<void> addUserGenres(String userId, List<int> genreIds) async {}
+
+  @override
+  Future<void> removeUserGenre(String userId, int genreId) async {}
+
+  @override
   Future<List<Genre>> getUserGenres(String userId) async {
     calls++;
     if (fail) throw const ApiError(message: 'boom');
@@ -89,10 +98,6 @@ ProviderContainer _container(
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
-  // Blocks real network calls: the post-login cache warm-up hits the API
-  // and must not reach a real server from a unit test.
-  TestWidgetsFlutterBinding.ensureInitialized();
-
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('LoginController', () {

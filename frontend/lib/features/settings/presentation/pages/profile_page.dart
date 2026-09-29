@@ -2,46 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/core/cache/app_cache_service.dart';
 import '../../../../generated/l10n.dart';
 import '../../../../core/constants/routes.dart';
-import '../../../../core/network/dio_client.dart';
-import '../../../../core/network/clients/users_api_client.dart';
-import '../../../../core/session/session_provider.dart';
-
-final currentUserProfileProvider =
-    FutureProvider.autoDispose<Map<String, dynamic>?>((ref) async {
-  final session = ref.watch(sessionProvider);
-  final userId = session.userId;
-  if (userId == null) {
-    return null;
-  }
-
-  final cached = await AppCacheService.instance.getCurrentUserProfile();
-  final hasCompleteCachedProfile = cached != null &&
-      cached['user_id']?.toString() == userId &&
-      (cached['phone']?.toString().trim().isNotEmpty ?? false) &&
-      (cached['date_of_birth']?.toString().trim().isNotEmpty ?? false);
-  if (hasCompleteCachedProfile) {
-    return cached;
-  }
-
-  final users = await UsersApiClient(DioClient.main).getAllUsers();
-  for (final user in users.cast<Map<String, dynamic>>()) {
-    if (user['user_id']?.toString() == userId) {
-      await AppCacheService.instance.saveCurrentUserProfile(user);
-      return user;
-    }
-  }
-
-  final fallback = {
-    'user_id': userId,
-    'email': session.email,
-    'role': session.role,
-  };
-  await AppCacheService.instance.saveCurrentUserProfile(fallback);
-  return fallback;
-});
+import '../state_management/profile_providers.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -72,93 +35,119 @@ class ProfilePage extends ConsumerWidget {
             ),
           ),
           data: (profile) {
-            final firstName = profile?['first_name']?.toString() ?? '';
-            final lastName = profile?['last_name']?.toString() ?? '';
-            final email = profile?['email']?.toString() ?? '';
-            final phone = profile?['phone']?.toString() ?? '';
-            final dateOfBirth =
-                _formatDate(profile?['date_of_birth']?.toString());
-            return Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(height: height / 6.6),
-                Center(
-                  child: Text(
-                    S.of(context).profileInformation,
-                    style: GoogleFonts.patrickHand(
-                      fontSize: height * 0.033,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3A3329),
+            final firstName = profile?.firstName ?? '';
+            final lastName = profile?.lastName ?? '';
+            final email = profile?.email ?? '';
+            final phone = profile?.phone ?? '';
+            final dateOfBirth = profile?.dateOfBirth ?? '';
+            final location = profile?.location ?? '';
+            // Scrolls so the actions stay reachable on short screens.
+            return SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: height / 30),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: height / 6.6),
+                  Center(
+                    child: Text(
+                      S.of(context).profileInformation,
+                      style: GoogleFonts.patrickHand(
+                        fontSize: height * 0.033,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF3A3329),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: height / 20),
-                CircleAvatar(
-                  backgroundImage:
-                      const AssetImage('assets/icons/girl_avatar.png'),
-                  radius: height / 12,
-                ),
-                Container(
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image:
-                          AssetImage('assets/images/container_for_books.png'),
-                      fit: BoxFit.fitHeight,
+                  SizedBox(height: height / 20),
+                  CircleAvatar(
+                    backgroundImage:
+                        const AssetImage('assets/icons/girl_avatar.png'),
+                    radius: height / 12,
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image:
+                            AssetImage('assets/images/container_for_books.png'),
+                        fit: BoxFit.fitHeight,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        SizedBox(height: height / 30),
+                        _buildField(
+                          label: 'First name',
+                          value: firstName,
+                          height: height,
+                        ),
+                        _buildField(
+                          label: 'Last name',
+                          value: lastName,
+                          height: height,
+                        ),
+                        _buildField(
+                          label: 'Date of birth',
+                          value: dateOfBirth,
+                          height: height,
+                        ),
+                        _buildField(
+                          label: 'Email',
+                          value: email,
+                          height: height,
+                        ),
+                        _buildField(
+                          label: 'Phone',
+                          value: phone,
+                          height: height,
+                        ),
+                        _buildField(
+                          label: 'Location',
+                          value: location,
+                          height: height,
+                        ),
+                        SizedBox(height: height / 30),
+                      ],
                     ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.max,
+                  SizedBox(height: height / 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      SizedBox(height: height / 30),
-                      _buildField(
-                        label: 'First name',
-                        value: firstName,
-                        height: height,
+                      _ActionButton(
+                        label: S.of(context).editProfile,
+                        onPressed: () =>
+                            context.pushNamed(RouteNames.editProfile),
                       ),
-                      _buildField(
-                        label: 'Last name',
-                        value: lastName,
-                        height: height,
+                      const SizedBox(width: 12),
+                      _ActionButton(
+                        label: S.of(context).changePassword,
+                        onPressed: () =>
+                            context.pushNamed(RouteNames.changePassword),
                       ),
-                      _buildField(
-                        label: 'Date of birth',
-                        value: dateOfBirth,
-                        height: height,
-                      ),
-                      _buildField(
-                        label: 'Email',
-                        value: email,
-                        height: height,
-                      ),
-                      _buildField(
-                        label: 'Phone',
-                        value: phone,
-                        height: height,
-                      ),
-                      SizedBox(height: height / 30),
                     ],
                   ),
-                ),
-                SizedBox(height: height / 30),
-                ElevatedButton(
-                  onPressed: () => context.pushNamed(RouteNames.homePage),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                  SizedBox(height: height / 80),
+                  ElevatedButton(
+                    onPressed: () => context.pushNamed(RouteNames.homePage),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      side: const BorderSide(
+                        color: Colors.brown,
+                        width: 2,
+                      ),
                     ),
-                    side: const BorderSide(
-                      color: Colors.brown,
-                      width: 2,
+                    child: Text(
+                      S.of(context).home,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
-                  child: Text(
-                    S.of(context).home,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -177,6 +166,9 @@ class ProfilePage extends ConsumerWidget {
       margin: EdgeInsets.fromLTRB(
           height / 30, height / 80, height / 30, height / 80),
       child: TextFormField(
+        // initialValue is only read when the field is created, so a new
+        // value (after an edit) needs a new field.
+        key: ValueKey('$label:$value'),
         enabled: false,
         initialValue: value,
         textAlignVertical: TextAlignVertical.center,
@@ -213,9 +205,24 @@ class ProfilePage extends ConsumerWidget {
       ),
     );
   }
+}
 
-  String _formatDate(String? raw) {
-    if (raw == null || raw.trim().isEmpty) return '';
-    return raw.split(' ').first.split('T').first;
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final VoidCallback onPressed;
+
+  const _ActionButton({required this.label, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFFFFBF3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        side: const BorderSide(color: Color(0xFFB8743A), width: 2),
+      ),
+      child: Text(label, style: const TextStyle(color: Color(0xFF3A3329))),
+    );
   }
 }

@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 import 'package:readiculous_frontend/core/network/clients/books_api_client.dart';
 import 'package:readiculous_frontend/core/network/clients/library_books_api_client.dart';
 import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import '../state_management/my_books_provider.dart';
 import '../widgets/my_book_card.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/user_recommendations_notifier.dart';
 
 class MyBooksPage extends ConsumerWidget {
   const MyBooksPage({super.key});

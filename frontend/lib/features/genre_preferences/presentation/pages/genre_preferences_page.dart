@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_vector_icons/flutter_vector_icons.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/genres_provider.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
-import 'package:readiculous_frontend/core/network/clients/genres_api_client.dart';
-import 'package:readiculous_frontend/core/network/dio_client.dart';
-import 'package:readiculous_frontend/core/session/session_provider.dart';
+import 'package:readiculous_frontend/generated/l10n.dart';
+import 'package:readiculous_frontend/shared/genres/domain/entities/genre.dart';
+import 'package:readiculous_frontend/shared/genres/presentation/state_management/genres_providers.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/user_recommendations_notifier.dart';
 
-import '../state_management/genre_preferences_provider.dart';
+import '../state_management/genre_preferences_controller.dart';
 
 class GenrePreferencesPage extends ConsumerStatefulWidget {
   const GenrePreferencesPage({super.key});
@@ -20,17 +19,67 @@ class GenrePreferencesPage extends ConsumerStatefulWidget {
 }
 
 class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
-  final Set<String> _selectedGenreIds = {};
-  final Map<String, String> _resolvedGenreIds = {}; // name -> id cache
-  bool _initializedSelection = false;
-  bool _saving = false;
+  /// The reader's picks on this screen; null until their saved genres load.
+  Set<int>? _selected;
+
+  /// Saved → regenerate recommendations for the new tastes and go back;
+  /// failed → say why and stay.
+  void _onSaveStateChanged(AsyncValue<void>? previous, AsyncValue<void> next) {
+    next.whenOrNull(
+      data: (_) {
+        if (previous?.isLoading != true) return;
+        ref.read(userRecommendationsProvider.notifier).generate();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFF3A436),
+            content: Text(
+              S.of(context).genrePreferencesSaved,
+              style: GoogleFonts.patrickHand(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        context.pop();
+      },
+      error: (error, _) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      ),
+    );
+  }
+
+  void _onSavePressed() {
+    final selected = _selected;
+    if (selected == null) return;
+    if (selected.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context).pleaseSelectAtLeastOneGenre)),
+      );
+      return;
+    }
+    ref.read(genrePreferencesControllerProvider.notifier).save(selected);
+  }
+
+  void _toggle(int genreId) {
+    setState(() {
+      final selected = _selected!;
+      if (!selected.remove(genreId)) selected.add(genreId);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final userId = ref.watch(sessionProvider).userId;
+    ref.listen<AsyncValue<void>>(
+      genrePreferencesControllerProvider,
+      _onSaveStateChanged,
+    );
+    final saving = ref.watch(
+      genrePreferencesControllerProvider.select((s) => s.isLoading),
+    );
     final allGenresAsync = ref.watch(allGenresProvider);
-    final preferencesAsync = ref.watch(genrePreferencesProvider);
-    final fullGenreIdMap = ref.watch(_genreIdMapProvider);
+    final userGenresAsync = ref.watch(userGenresProvider);
 
     return Scaffold(
       body: Container(
@@ -86,139 +135,13 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
                       const Center(child: CircularProgressIndicator()),
                   error: (e, _) => _MessageCard(
                       title: 'Could not load genres.', subtitle: '$e'),
-                  data: (allGenres) => preferencesAsync.when(
+                  data: (allGenres) => userGenresAsync.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
                     error: (e, _) => _MessageCard(
                         title: 'Could not load your preferences.',
                         subtitle: '$e'),
-                    data: (prefs) {
-                      // Build name->id from prefs + full genre map
-                      final genreIdByName = <String, String>{};
-                      for (final item in prefs.cast<Map<String, dynamic>>()) {
-                        final name = item['name']?.toString();
-                        final id = (item['genre_id'] ?? item['id'])?.toString();
-                        if (name != null && id != null)
-                          genreIdByName[name] = id;
-                      }
-                      // Merge full genre map if available
-                      final fullMap = fullGenreIdMap.asData?.value;
-                      if (fullMap != null) {
-                        genreIdByName.addAll(fullMap);
-                        _resolvedGenreIds.addAll(fullMap);
-                      }
-                      // Also add any locally resolved IDs
-                      genreIdByName.addAll(_resolvedGenreIds);
-
-                      final currentGenreIds = prefs
-                          .map((g) => (g['genre_id'] ?? g['id']).toString())
-                          .toSet();
-                      if (!_initializedSelection) {
-                        _selectedGenreIds
-                          ..clear()
-                          ..addAll(currentGenreIds);
-                        _initializedSelection = true;
-                      }
-
-                      return ListView(
-                        padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
-                        children: [
-                          _SummaryCard(
-                            selectedCount: _selectedGenreIds.length,
-                            changed: _selectedGenreIds
-                                    .difference(currentGenreIds)
-                                    .isNotEmpty ||
-                                currentGenreIds
-                                    .difference(_selectedGenreIds)
-                                    .isNotEmpty,
-                          ),
-                          const SizedBox(height: 18),
-                          Builder(builder: (context) {
-                            // Sort: selected genres first, then the rest alphabetically
-                            final sortedGenres = List<String>.from(allGenres);
-                            sortedGenres.sort((a, b) {
-                              final aId = genreIdByName[a];
-                              final bId = genreIdByName[b];
-                              final aSelected = aId != null &&
-                                  _selectedGenreIds.contains(aId);
-                              final bSelected = bId != null &&
-                                  _selectedGenreIds.contains(bId);
-                              if (aSelected && !bSelected) return -1;
-                              if (!aSelected && bSelected) return 1;
-                              return a.compareTo(b);
-                            });
-
-                            return Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children:
-                                  List.generate(sortedGenres.length, (index) {
-                                final genreName = sortedGenres[index];
-                                final genreId = genreIdByName[genreName];
-                                final originalIndex =
-                                    allGenres.indexOf(genreName);
-
-                                return _GenreToggleChip(
-                                  label: genreName,
-                                  selected: genreId != null &&
-                                      _selectedGenreIds.contains(genreId),
-                                  color:
-                                      _palette[originalIndex % _palette.length],
-                                  onTap: () async {
-                                    final resolvedId = await _resolveGenreId(
-                                      genreName: genreName,
-                                      existingId: genreId,
-                                    );
-                                    if (resolvedId == null) return;
-                                    setState(() {
-                                      if (_selectedGenreIds
-                                          .contains(resolvedId)) {
-                                        _selectedGenreIds.remove(resolvedId);
-                                      } else {
-                                        _selectedGenreIds.add(resolvedId);
-                                      }
-                                    });
-                                  },
-                                );
-                              }),
-                            );
-                          }),
-                          const SizedBox(height: 22),
-                          SizedBox(
-                            height: 52,
-                            child: ElevatedButton(
-                              onPressed: userId == null || _saving
-                                  ? null
-                                  : () => _save(userId, currentGenreIds),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFF3A436),
-                                foregroundColor: Colors.black,
-                                elevation: 3,
-                                shadowColor: Colors.black,
-                                side: const BorderSide(
-                                    color: Colors.black, width: 2),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: _saving
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2, color: Colors.black),
-                                    )
-                                  : Text(
-                                      'Save Preferences',
-                                      style: GoogleFonts.patrickHand(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                    data: (saved) => _buildBody(allGenres, saved, saving),
                   ),
                 ),
               ),
@@ -229,63 +152,75 @@ class _GenrePreferencesPageState extends ConsumerState<GenrePreferencesPage> {
     );
   }
 
-  Future<String?> _resolveGenreId(
-      {required String genreName, required String? existingId}) async {
-    if (existingId != null) return existingId;
-    if (_resolvedGenreIds.containsKey(genreName)) {
-      return _resolvedGenreIds[genreName];
-    }
-    final raw = await ref.read(_genreIdMapProvider.future);
-    final id = raw[genreName];
-    if (id != null) _resolvedGenreIds[genreName] = id;
-    return id;
-  }
+  Widget _buildBody(List<Genre> allGenres, List<Genre> saved, bool saving) {
+    final savedIds = saved.map((g) => g.genreId).toSet();
+    final selected = _selected ??= {...savedIds};
+    final changed =
+        selected.length != savedIds.length || !selected.containsAll(savedIds);
 
-  Future<void> _save(String userId, Set<String> currentGenreIds) async {
-    setState(() => _saving = true);
-    try {
-      await ref.read(genrePreferencesProvider.notifier).replaceSelections(
-            userId: userId,
-            currentGenreIds: currentGenreIds,
-            nextGenreIds: _selectedGenreIds,
-          );
-      await ref.read(userRecommendationsProvider.notifier).generate();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFFF3A436),
-          content: Text(
-            'Genre preferences saved!',
-            style: GoogleFonts.patrickHand(
-                fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-          duration: const Duration(seconds: 2),
+    // Selected genres first, then alphabetical. Colours follow each genre's
+    // position in the catalog so they don't jump around when re-sorted.
+    final colorIndex = {
+      for (var i = 0; i < allGenres.length; i++) allGenres[i].genreId: i,
+    };
+    final sorted = [...allGenres]..sort((a, b) {
+        final aSelected = selected.contains(a.genreId);
+        final bSelected = selected.contains(b.genreId);
+        if (aSelected != bSelected) return aSelected ? -1 : 1;
+        return a.name.compareTo(b.name);
+      });
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
+      children: [
+        _SummaryCard(selectedCount: selected.length, changed: changed),
+        const SizedBox(height: 18),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final genre in sorted)
+              _GenreToggleChip(
+                label: genre.name,
+                selected: selected.contains(genre.genreId),
+                color: _palette[colorIndex[genre.genreId]! % _palette.length],
+                onTap: () => _toggle(genre.genreId),
+              ),
+          ],
         ),
-      );
-      await Future.delayed(const Duration(milliseconds: 1800));
-      if (!mounted) return;
-      context.go('/home_page');
-    } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not update preferences.')),
-      );
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+        const SizedBox(height: 22),
+        SizedBox(
+          height: 52,
+          child: ElevatedButton(
+            onPressed: saving ? null : _onSavePressed,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFF3A436),
+              foregroundColor: Colors.black,
+              elevation: 3,
+              shadowColor: Colors.black,
+              side: const BorderSide(color: Colors.black, width: 2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: saving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.black),
+                  )
+                : Text(
+                    'Save Preferences',
+                    style: GoogleFonts.patrickHand(
+                        fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+          ),
+        ),
+      ],
+    );
   }
 }
-
-final _genreIdMapProvider = FutureProvider<Map<String, String>>((ref) async {
-  final raw = await GenresApiClient(DioClient.main).getAllGenres();
-  final map = <String, String>{};
-  for (final item in raw.cast<Map<String, dynamic>>()) {
-    final name = item['name']?.toString();
-    final id = (item['genre_id'] ?? item['id'])?.toString();
-    if (name != null && id != null) map[name] = id;
-  }
-  return map;
-});
 
 const _palette = [
   Color(0xFFB7D8FF),

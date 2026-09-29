@@ -16,8 +16,7 @@ class _LibraryBooksApiClient implements LibraryBooksApiClient {
   @override
   Future<List<dynamic>> getBooksInLibrary(String libraryId) async {
     final response = await _dio.fetch<List<dynamic>>(
-      Options(method: 'GET')
-          .compose(_dio.options, '/library-books/$libraryId'),
+      Options(method: 'GET').compose(_dio.options, '/library-books/$libraryId'),
     );
     return response.data!;
   }

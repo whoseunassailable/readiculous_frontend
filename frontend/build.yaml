@@ -1,0 +1,16 @@
+# Retrofit code generation only runs for the layered code in features/ and
+# shared/. The legacy clients in lib/core/network/clients/ return
+# List<dynamic>, which retrofit_generator 10 can't generate; their checked-in
+# .g.dart files are used as-is until each one is replaced, then this file can
+# go.
+targets:
+  $default:
+    builders:
+      retrofit_generator:retrofit_generator:
+        generate_for:
+          - lib/features/**
+          - lib/shared/**
+      source_gen:combining_builder:
+        generate_for:
+          - lib/features/**
+          - lib/shared/**

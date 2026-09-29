@@ -1559,6 +1559,96 @@ class S {
       args: [],
     );
   }
+
+  /// `Current password`
+  String get currentPassword {
+    return Intl.message(
+      'Current password',
+      name: 'currentPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New password`
+  String get newPassword {
+    return Intl.message(
+      'New password',
+      name: 'newPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Confirm new password`
+  String get confirmNewPassword {
+    return Intl.message(
+      'Confirm new password',
+      name: 'confirmNewPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please enter your current password`
+  String get pleaseEnterCurrentPassword {
+    return Intl.message(
+      'Please enter your current password',
+      name: 'pleaseEnterCurrentPassword',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New password must be different from the current one`
+  String get newPasswordMustBeDifferent {
+    return Intl.message(
+      'New password must be different from the current one',
+      name: 'newPasswordMustBeDifferent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Profile updated`
+  String get profileUpdated {
+    return Intl.message(
+      'Profile updated',
+      name: 'profileUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Password updated`
+  String get passwordUpdated {
+    return Intl.message(
+      'Password updated',
+      name: 'passwordUpdated',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please select at least one genre`
+  String get pleaseSelectAtLeastOneGenre {
+    return Intl.message(
+      'Please select at least one genre',
+      name: 'pleaseSelectAtLeastOneGenre',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Genre preferences saved!`
+  String get genrePreferencesSaved {
+    return Intl.message(
+      'Genre preferences saved!',
+      name: 'genrePreferencesSaved',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

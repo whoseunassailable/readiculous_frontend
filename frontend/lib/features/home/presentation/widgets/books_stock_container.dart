@@ -7,9 +7,9 @@ import '../../../../core/constants/app_roles.dart';
 import '../../../../core/constants/routes.dart';
 import '../../../../core/session/session_provider.dart';
 import '../../../../core/widgets/crayon_genre_chip.dart';
-import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
-import '../state_management/library_recommendations_provider.dart';
-import '../state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/user_recommendations_notifier.dart';
+import 'package:readiculous_frontend/shared/recommendations/domain/entities/user_recommendation.dart';
+import 'package:readiculous_frontend/shared/recommendations/presentation/state_management/recommendations_providers.dart';
 
 class BooksStockContainer extends ConsumerWidget {
   final double height;
@@ -31,45 +31,28 @@ class BooksStockContainer extends ConsumerWidget {
 
     final isLibrarian = userRole == AppRoles.librarian && userId != null;
 
-    // Librarians: resolve pending ML recommendation
+    // Librarians: the first pick still waiting for a decision
     String? pendingBookTitle;
     String? pendingBookAuthor;
     if (isLibrarian) {
-      final library = ref.watch(userLibraryProvider(userId)).asData?.value;
-      if (library != null) {
-        final recs = ref
-            .watch(libraryRecommendationsProvider(library.libraryId.toString()))
-            .asData
-            ?.value;
-        if (recs != null) {
-          final pending = recs
-              .cast<Map<String, dynamic>>()
-              .where((r) => r['state'] == 'NEW' || r['state'] == null)
-              .toList();
-          if (pending.isNotEmpty) {
-            pendingBookTitle = pending.first['title'] as String?;
-            pendingBookAuthor = pending.first['author'] as String?;
-          }
-        }
-      }
+      final pending = ref
+          .watch(currentLibraryRecommendationsProvider)
+          .asData
+          ?.value
+          .where((r) => r.isPending)
+          .firstOrNull;
+      pendingBookTitle = pending?.title;
+      pendingBookAuthor = pending?.author;
     }
 
     // Users: resolve top recommendations
     bool recLoading = false;
-    List<Map<String, dynamic>> userRecommendations = const [];
+    List<UserRecommendation> userRecommendations = const [];
     if (!isLibrarian) {
       final recsAsync = ref.watch(userRecommendationsProvider);
       recLoading = recsAsync is AsyncLoading;
-      final recs = recsAsync.asData?.value;
-      if (recs != null && recs.isNotEmpty) {
-        userRecommendations = recs
-            .cast<Map<String, dynamic>>()
-            .where(_isDisplayableRecommendation)
-            .toList();
-        if (homePage && userRecommendations.length > 3) {
-          userRecommendations = userRecommendations.take(3).toList();
-        }
-      }
+      final recs = recsAsync.asData?.value ?? const [];
+      userRecommendations = homePage ? recs.take(3).toList() : recs;
     }
 
     final readingList = !isLibrarian
@@ -137,7 +120,7 @@ class BooksStockContainer extends ConsumerWidget {
                                             color: Colors.black54)),
                                 ],
                               )
-                            : Text('No pending picks',
+                            : Text('No picks to review',
                                 style: TextStyle(
                                     fontSize: height / 55,
                                     color: Colors.black45)),
@@ -273,14 +256,9 @@ class BooksStockContainer extends ConsumerWidget {
                         color: const Color(0xFFB7D8FF),
                         onTap: () => context.pushNamed(RouteNames.viewDatabase),
                       ),
-                      _ActionChip(
-                        width: width * 0.22,
-                        height: height / 18,
-                        label: 'Library',
-                        color: const Color(0xFFBFE3C0),
-                        onTap: () =>
-                            context.pushNamed(RouteNames.libraryAssociation),
-                      ),
+                      // No "Library" chip: a librarian's library can't be
+                      // changed. One without a library is sent to Choose
+                      // Library from the Database page.
                     ],
                   )
                 else
@@ -335,7 +313,7 @@ class BooksStockContainer extends ConsumerWidget {
 
 class _UserRecommendationRow extends StatelessWidget {
   final double height;
-  final Map<String, dynamic> book;
+  final UserRecommendation book;
   final String? status;
   final VoidCallback? onAdd;
 
@@ -348,8 +326,8 @@ class _UserRecommendationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = book['title']?.toString() ?? 'Unknown Title';
-    final author = book['author']?.toString() ?? 'Unknown Author';
+    final title = book.title;
+    final author = book.author ?? 'Unknown Author';
     final isAdded = status != null;
 
     return Container(
@@ -437,39 +415,26 @@ Widget _buildUserRecommendationRow(
   BuildContext context,
   WidgetRef ref,
   double height,
-  Map<String, dynamic> book,
+  UserRecommendation book,
   Map<String?, String> readingStatusByBookId,
 ) {
-  final bookId = book['book_id']?.toString() ?? '';
+  final bookId = '${book.bookId}';
   final status = readingStatusByBookId[bookId];
   return _UserRecommendationRow(
     height: height,
     book: book,
     status: status,
-    onAdd: bookId.isEmpty
-        ? null
-        : () async {
-            await ref.read(myBooksProvider.notifier).addOrUpdate(
-                  bookId: bookId,
-                  status: 'want_to_read',
-                );
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${book['title']} added to reading')),
-            );
-          },
+    onAdd: () async {
+      await ref.read(myBooksProvider.notifier).addOrUpdate(
+            bookId: bookId,
+            status: 'want_to_read',
+          );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${book.title} added to reading')),
+      );
+    },
   );
-}
-
-bool _hasMojibake(String text) => RegExp(r'[ÐÑÃ�]').hasMatch(text);
-
-bool _isDisplayableRecommendation(Map<String, dynamic> book) {
-  final title = book['title']?.toString().trim() ?? '';
-  final author = book['author']?.toString().trim() ?? '';
-
-  if (title.isEmpty) return false;
-  if (_hasMojibake(title) || _hasMojibake(author)) return false;
-  return true;
 }
 
 class _UserStatusPill extends StatelessWidget {
@@ -531,14 +496,22 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: width,
+    final chip = SizedBox(
       height: height,
       child: CrayonGenreChip(
         label: label,
         selected: false,
         onTap: onTap,
         color: color,
+      ),
+    );
+    if (width == null) return chip;
+    // At least [width] wide, but never narrower than the label needs
+    // ("Database" overflowed on ~400px-wide phones).
+    return IntrinsicWidth(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: width!),
+        child: chip,
       ),
     );
   }

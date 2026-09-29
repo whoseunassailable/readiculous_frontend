@@ -4,13 +4,11 @@ import 'package:go_router/go_router.dart';
 
 class StylishAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  final bool homepage;
   final List<Widget>? actions;
 
   const StylishAppBar({
     super.key,
     required this.title,
-    required this.homepage,
     this.actions,
   });
 
@@ -32,17 +30,16 @@ class StylishAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 4.0, // Shadow for depth
       centerTitle: true,
       actions: actions,
-      leading: homepage
+      // Only when there's a page to go back to: pop() on the first page
+      // (e.g. onboarding, reached by redirect) throws.
+      automaticallyImplyLeading: false,
+      leading: Navigator.of(context).canPop()
           ? IconButton(
-              icon:
-                  const Icon(MaterialCommunityIcons.menu, color: Colors.white),
-              onPressed: () => context.pop(),
-            )
-          : IconButton(
               icon: const Icon(MaterialCommunityIcons.arrow_left,
                   color: Colors.white),
               onPressed: () => context.pop(),
-            ),
+            )
+          : null,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(16.0), // Rounded bottom corners

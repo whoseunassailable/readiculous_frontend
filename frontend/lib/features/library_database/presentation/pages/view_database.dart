@@ -4,8 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:readiculous_frontend/core/constants/app_roles.dart';
 import 'package:readiculous_frontend/core/constants/routes.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/genres_provider.dart';
-import 'package:readiculous_frontend/features/home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/genres/presentation/state_management/genres_providers.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 import 'package:readiculous_frontend/features/library_database/presentation/state_management/library_database_provider.dart';
 import 'package:readiculous_frontend/core/network/clients/books_api_client.dart';
 import 'package:readiculous_frontend/core/network/clients/library_books_api_client.dart';
@@ -118,7 +118,10 @@ class _ViewDatabaseState extends ConsumerState<ViewDatabase> {
                         onGenreChanged: (value) =>
                             setState(() => _selectedGenre = value),
                         searchController: _searchController,
-                        availableGenres: ['All Genres', ...genres],
+                        availableGenres: [
+                          'All Genres',
+                          ...genres.map((genre) => genre.name),
+                        ],
                         inventoryAsync: inventoryAsync,
                       ),
                     );

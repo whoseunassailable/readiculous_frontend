@@ -3,7 +3,7 @@ import 'package:readiculous_frontend/core/network/clients/library_books_api_clie
 import 'package:readiculous_frontend/core/network/dio_client.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 
-import '../../../home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/shared/library/presentation/state_management/library_providers.dart';
 
 final currentLibraryInventoryProvider =
     FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
