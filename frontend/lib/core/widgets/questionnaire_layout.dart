@@ -87,7 +87,7 @@ class QuestionnaireLayout extends StatelessWidget {
                               ),
                             ),
                           );
-                        }).toList()
+                        })
 
                       // 👇 Fallback to single aesthetic input field
                       else if (controller != null &&

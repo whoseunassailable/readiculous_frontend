@@ -61,7 +61,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "deleteBooks": MessageLookupByLibrary.simpleMessage("Delete Books"),
         "didntReceiveCode":
             MessageLookupByLibrary.simpleMessage("Didnt receive code?"),
-        "dob": MessageLookupByLibrary.simpleMessage("DOB - 1999/08/15"),
+        "dob": MessageLookupByLibrary.simpleMessage("Date of birth"),
         "done": MessageLookupByLibrary.simpleMessage("Done"),
         "dontHaveAnAccount":
             MessageLookupByLibrary.simpleMessage("Dont have an account?"),
@@ -153,8 +153,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "phoneNumber": MessageLookupByLibrary.simpleMessage("Phone number"),
         "pleaseCheckYourEmail":
             MessageLookupByLibrary.simpleMessage("Please Check Your Email!"),
-        "pleaseEnterValidDOB":
-            MessageLookupByLibrary.simpleMessage("Please enter valid DOB"),
+        "pleaseEnterValidDOB": MessageLookupByLibrary.simpleMessage(
+            "Please select your date of birth"),
         "pleaseEnterValidEmail":
             MessageLookupByLibrary.simpleMessage("Please enter valid email"),
         "pleaseEnterValidLocation":

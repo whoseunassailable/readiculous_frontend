@@ -11,7 +11,7 @@ class QuestionBoxContainer extends StatelessWidget {
   final void Function()? onTapOfContainer;
 
   const QuestionBoxContainer({
-    Key? key,
+    super.key,
     required this.height,
     required this.width,
     required this.text,
@@ -19,7 +19,7 @@ class QuestionBoxContainer extends StatelessWidget {
     this.colorOfContainer,
     this.colorOfText,
     this.onTapOfContainer,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

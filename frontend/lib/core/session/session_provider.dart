@@ -6,8 +6,3 @@ import 'session_state.dart';
 
 final sessionProvider =
     NotifierProvider<SessionNotifier, SessionState>(SessionNotifier.new);
-
-// Optional helper provider to ensure init runs once
-final sessionInitProvider = FutureProvider<void>((ref) async {
-  await ref.read(sessionProvider.notifier).init();
-});

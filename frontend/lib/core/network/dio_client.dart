@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
-import 'package:readiculous_frontend/core/config/app_env.dart';
+import 'package:readiculous_frontend/config/app_env.dart';
 
 class DioClient {
   DioClient._();

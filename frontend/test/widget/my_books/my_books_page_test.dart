@@ -1,13 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/core/features/my_books/presentation/pages/my_books_page.dart';
-import 'package:readiculous_frontend/core/features/my_books/presentation/state_management/my_books_provider.dart';
-import 'package:readiculous_frontend/core/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
+import 'package:readiculous_frontend/features/my_books/presentation/pages/my_books_page.dart';
+import 'package:readiculous_frontend/features/my_books/presentation/state_management/my_books_provider.dart';
+import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
 import 'package:readiculous_frontend/core/session/session_notifier.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/session/session_state.dart';
@@ -68,9 +66,11 @@ const _loggedInSession = SessionState(
 Widget _buildTestApp({List<Map<String, dynamic>> books = const []}) {
   return ProviderScope(
     overrides: [
-      sessionProvider.overrideWith(() => _FakeSessionNotifier(_loggedInSession)),
+      sessionProvider
+          .overrideWith(() => _FakeSessionNotifier(_loggedInSession)),
       myBooksProvider.overrideWith(() => _FakeMyBooksNotifier(books)),
-      userRecommendationsProvider.overrideWith(() => _TrackingRecsController([])),
+      userRecommendationsProvider
+          .overrideWith(() => _TrackingRecsController([])),
     ],
     child: MaterialApp(
       localizationsDelegates: const [
@@ -107,7 +107,8 @@ void main() {
 
     // ── Empty states ──────────────────────────────────────────────────────
     group('empty states', () {
-      testWidgets('Reading tab shows empty-state message when no books', (tester) async {
+      testWidgets('Reading tab shows empty-state message when no books',
+          (tester) async {
         await tester.pumpWidget(_buildTestApp());
         await tester.pumpAndSettle();
 
@@ -137,7 +138,9 @@ void main() {
 
     // ── Book cards ────────────────────────────────────────────────────────
     group('book cards', () {
-      testWidgets('reading book shows title, author and Finished Reading button', (tester) async {
+      testWidgets(
+          'reading book shows title, author and Finished Reading button',
+          (tester) async {
         await tester.pumpWidget(_buildTestApp(books: [
           {
             'book_id': '1',
@@ -192,11 +195,27 @@ void main() {
         expect(find.byIcon(Icons.star_rounded), findsWidgets);
       });
 
-      testWidgets('multiple books in the same tab are all shown', (tester) async {
+      testWidgets('multiple books in the same tab are all shown',
+          (tester) async {
         await tester.pumpWidget(_buildTestApp(books: [
-          {'book_id': '1', 'title': 'Book One', 'author': 'A', 'status': 'reading'},
-          {'book_id': '2', 'title': 'Book Two', 'author': 'B', 'status': 'reading'},
-          {'book_id': '3', 'title': 'Book Three', 'author': 'C', 'status': 'reading'},
+          {
+            'book_id': '1',
+            'title': 'Book One',
+            'author': 'A',
+            'status': 'reading'
+          },
+          {
+            'book_id': '2',
+            'title': 'Book Two',
+            'author': 'B',
+            'status': 'reading'
+          },
+          {
+            'book_id': '3',
+            'title': 'Book Three',
+            'author': 'C',
+            'status': 'reading'
+          },
         ]));
         await tester.pumpAndSettle();
 
@@ -208,9 +227,15 @@ void main() {
 
     // ── Finished Reading flow ─────────────────────────────────────────────
     group('mark as finished', () {
-      testWidgets('tapping Finished Reading opens the rating sheet', (tester) async {
+      testWidgets('tapping Finished Reading opens the rating sheet',
+          (tester) async {
         await tester.pumpWidget(_buildTestApp(books: [
-          {'book_id': '1', 'title': 'Test Book', 'author': 'Author', 'status': 'reading'},
+          {
+            'book_id': '1',
+            'title': 'Test Book',
+            'author': 'Author',
+            'status': 'reading'
+          },
         ]));
         await tester.pumpAndSettle();
 
@@ -221,15 +246,22 @@ void main() {
         expect(find.text('Mark as Finished'), findsOneWidget);
       });
 
-      testWidgets('completing the flow invalidates userRecommendationsProvider', (tester) async {
+      testWidgets('completing the flow invalidates userRecommendationsProvider',
+          (tester) async {
         final buildLog = <int>[];
 
         await tester.pumpWidget(ProviderScope(
           overrides: [
-            sessionProvider.overrideWith(() => _FakeSessionNotifier(_loggedInSession)),
+            sessionProvider
+                .overrideWith(() => _FakeSessionNotifier(_loggedInSession)),
             myBooksProvider.overrideWith(() => _FakeMyBooksNotifier([
-              {'book_id': '1', 'title': 'Test Book', 'author': 'Author', 'status': 'reading'},
-            ])),
+                  {
+                    'book_id': '1',
+                    'title': 'Test Book',
+                    'author': 'Author',
+                    'status': 'reading'
+                  },
+                ])),
             userRecommendationsProvider.overrideWith(
               () => _TrackingRecsController(buildLog),
             ),
@@ -270,23 +302,32 @@ void main() {
         expect(
           buildLog.length,
           greaterThan(buildsBeforeFinish),
-          reason: 'userRecommendationsProvider should be invalidated after marking finished',
+          reason:
+              'userRecommendationsProvider should be invalidated after marking finished',
         );
       });
     });
 
     // ── Rating update ─────────────────────────────────────────────────────
     group('rating update', () {
-      testWidgets('updating rating on a finished book invalidates userRecommendationsProvider',
+      testWidgets(
+          'updating rating on a finished book invalidates userRecommendationsProvider',
           (tester) async {
         final buildLog = <int>[];
 
         await tester.pumpWidget(ProviderScope(
           overrides: [
-            sessionProvider.overrideWith(() => _FakeSessionNotifier(_loggedInSession)),
+            sessionProvider
+                .overrideWith(() => _FakeSessionNotifier(_loggedInSession)),
             myBooksProvider.overrideWith(() => _FakeMyBooksNotifier([
-              {'book_id': '2', 'title': 'Old Book', 'author': 'Author', 'status': 'read', 'rating': 3.0},
-            ])),
+                  {
+                    'book_id': '2',
+                    'title': 'Old Book',
+                    'author': 'Author',
+                    'status': 'read',
+                    'rating': 3.0
+                  },
+                ])),
             userRecommendationsProvider.overrideWith(
               () => _TrackingRecsController(buildLog),
             ),
@@ -323,7 +364,8 @@ void main() {
         expect(
           buildLog.length,
           greaterThan(buildsBeforeRating),
-          reason: 'userRecommendationsProvider should be invalidated after re-rating',
+          reason:
+              'userRecommendationsProvider should be invalidated after re-rating',
         );
       });
     });

@@ -1,6 +1,6 @@
 // lib/core/utils/app_logger.dart
 
-import 'package:readiculous_frontend/core/config/app_env.dart';
+import 'package:readiculous_frontend/config/app_env.dart';
 import 'package:logger/logger.dart';
 
 class AppLogger {

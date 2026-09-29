@@ -10,7 +10,8 @@ class AestheticInputField extends StatelessWidget {
   final IconData? prefixIcon;
   final String? Function(String?)? validator;
 
-  AestheticInputField({
+  const AestheticInputField({
+    super.key,
     required this.hintText,
     required this.controller,
     this.inputType = TextInputType.text,
@@ -42,7 +43,7 @@ class AestheticInputField extends StatelessWidget {
           filled: true,
           fillColor: Colors.grey.shade100,
           contentPadding:
-              EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+              const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
             borderSide: BorderSide.none,

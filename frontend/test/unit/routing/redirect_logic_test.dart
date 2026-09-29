@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:readiculous_frontend/core/routing/routing.dart';
+import 'package:readiculous_frontend/config/routing/routing.dart';
 import 'package:readiculous_frontend/core/session/session_state.dart';
 
 // Convenience constants used across multiple tests.

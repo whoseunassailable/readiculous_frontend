@@ -7,6 +7,7 @@
 /// We also override every data-fetching provider referenced by the landing
 /// pages (HomePage, PreferredGenre) with stubs that return empty data
 /// immediately, so pages render without a backend.
+library;
 
 import 'dart:async';
 
@@ -16,20 +17,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/core/features/authentication/presentation/pages/login_page.dart';
-import 'package:readiculous_frontend/core/features/home/presentation/pages/home_page.dart';
-import 'package:readiculous_frontend/core/features/home/presentation/state_management/genres_provider.dart';
-import 'package:readiculous_frontend/core/features/home/presentation/state_management/library_recommendations_provider.dart';
-import 'package:readiculous_frontend/core/features/home/presentation/state_management/user_library_provider.dart';
-import 'package:readiculous_frontend/core/features/my_books/presentation/state_management/my_books_provider.dart';
-import 'package:readiculous_frontend/core/features/suggested_books/presentation/preferred_genre.dart';
-import 'package:readiculous_frontend/core/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
-import 'package:readiculous_frontend/core/routing/routing.dart';
+import 'package:readiculous_frontend/features/authentication/presentation/pages/login_page.dart';
+import 'package:readiculous_frontend/features/home/presentation/pages/home_page.dart';
+import 'package:readiculous_frontend/features/home/presentation/state_management/genres_provider.dart';
+import 'package:readiculous_frontend/features/home/presentation/state_management/library_recommendations_provider.dart';
+import 'package:readiculous_frontend/features/home/presentation/state_management/user_library_provider.dart';
+import 'package:readiculous_frontend/features/my_books/presentation/state_management/my_books_provider.dart';
+import 'package:readiculous_frontend/features/suggested_books/presentation/preferred_genre.dart';
+import 'package:readiculous_frontend/features/suggested_books/presentation/state_management/user_recommendations_controller.dart';
+import 'package:readiculous_frontend/config/routing/routing.dart';
 import 'package:readiculous_frontend/core/session/session_notifier.dart';
 import 'package:readiculous_frontend/core/session/session_provider.dart';
 import 'package:readiculous_frontend/core/session/session_state.dart';
 import 'package:readiculous_frontend/generated/l10n.dart';
-import 'package:readiculous_frontend/l10n/app_localizations.dart';
 
 // ── Fake notifiers ────────────────────────────────────────────────────────────
 
@@ -44,7 +44,8 @@ class _FakeMyBooksNotifier extends MyBooksNotifier {
   @override
   Future<List<Map<String, dynamic>>> build() async => [];
   @override
-  Future<void> addOrUpdate({required String bookId, required String status, double? rating}) async {}
+  Future<void> addOrUpdate(
+      {required String bookId, required String status, double? rating}) async {}
   @override
   Future<void> remove(String bookId) async {}
 }
@@ -82,7 +83,6 @@ class _TestAppState extends ConsumerState<_TestApp> {
       theme: ThemeData(textTheme: GoogleFonts.patrickHandTextTheme()),
       localizationsDelegates: const [
         S.delegate,
-        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -101,7 +101,8 @@ Widget _testApp(SessionState session) => ProviderScope(
         userRecommendationsProvider.overrideWith(() => _FakeRecsController()),
         allGenresProvider.overrideWith((ref) async => <String>[]),
         if (session.userId != null) ...[
-          userLibraryProvider(session.userId!).overrideWith((ref) async => null),
+          userLibraryProvider(session.userId!)
+              .overrideWith((ref) async => null),
           libraryRecommendationsProvider(session.userId!)
               .overrideWith((ref) async => <dynamic>[]),
         ],
@@ -112,15 +113,15 @@ Widget _testApp(SessionState session) => ProviderScope(
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /// Suppresses RenderFlex overflow errors, which are layout issues in production
-/// widgets unrelated to the routing logic being tested.
+/// widgets unrelated to the routing logic being tested. Call once at the top
+/// of a testWidgets body — the original handler is restored via addTearDown.
 void _suppressOverflowErrors() {
   final original = FlutterError.onError;
   FlutterError.onError = (details) {
     if (details.exceptionAsString().contains('overflowed')) return;
     original?.call(details);
   };
-  // Will be restored at end of current test by the test framework teardown
-  // pattern — we register our own via addTearDown inside each test.
+  addTearDown(() => FlutterError.onError = original);
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -141,14 +142,9 @@ void main() {
       expect(find.byType(HomePage), findsNothing);
     });
 
-    testWidgets('user with genre prefs is redirected to HomePage', (tester) async {
-      // Must be set INSIDE testWidgets so we wrap the framework's own handler.
-      final originalOnError = FlutterError.onError;
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        originalOnError?.call(details);
-      };
-      addTearDown(() => FlutterError.onError = originalOnError);
+    testWidgets('user with genre prefs is redirected to HomePage',
+        (tester) async {
+      _suppressOverflowErrors();
 
       const session = SessionState(
         initialized: true,
@@ -164,14 +160,10 @@ void main() {
       expect(find.byType(HomePage), findsOneWidget);
     });
 
-    testWidgets('user without genre prefs is redirected to genre-prefs onboarding',
+    testWidgets(
+        'user without genre prefs is redirected to genre-prefs onboarding',
         (tester) async {
-      final originalOnError = FlutterError.onError;
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        originalOnError?.call(details);
-      };
-      addTearDown(() => FlutterError.onError = originalOnError);
+      _suppressOverflowErrors();
 
       const session = SessionState(
         initialized: true,
@@ -187,13 +179,9 @@ void main() {
       expect(find.byType(LoginPage), findsNothing);
     });
 
-    testWidgets('librarian is redirected to HomePage (no genre-prefs gate)', (tester) async {
-      final originalOnError = FlutterError.onError;
-      FlutterError.onError = (details) {
-        if (details.exceptionAsString().contains('overflowed')) return;
-        originalOnError?.call(details);
-      };
-      addTearDown(() => FlutterError.onError = originalOnError);
+    testWidgets('librarian is redirected to HomePage (no genre-prefs gate)',
+        (tester) async {
+      _suppressOverflowErrors();
 
       const session = SessionState(
         initialized: true,

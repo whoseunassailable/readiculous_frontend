@@ -37,6 +37,7 @@ void main() {
 
     test('init loads a persisted user session', () async {
       SharedPreferences.setMockInitialValues({
+        'is_logged_in': true,
         'user_id': 'u42',
         'role': 'user',
         'email': 'reader@readiculous.com',
@@ -59,6 +60,7 @@ void main() {
 
     test('init loads a persisted librarian session', () async {
       SharedPreferences.setMockInitialValues({
+        'is_logged_in': true,
         'user_id': 'lib1',
         'role': 'librarian',
         'email': 'lib@lib.com',
@@ -71,6 +73,40 @@ void main() {
       final s = container.read(sessionProvider);
       expect(s.userId, 'lib1');
       expect(s.role, 'librarian');
+    });
+
+    test('init ignores session keys unless is_logged_in is set', () async {
+      SharedPreferences.setMockInitialValues({
+        'user_id': 'u42',
+        'role': 'user',
+      });
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await container.read(sessionProvider.notifier).init();
+
+      final s = container.read(sessionProvider);
+      expect(s.userId, isNull);
+      expect(s.role, isNull);
+      expect(s.initialized, true);
+    });
+
+    test('init deletes the legacy plain-text password and keeps the session',
+        () async {
+      SharedPreferences.setMockInitialValues({
+        'is_logged_in': true,
+        'user_id': 'u42',
+        'role': 'user',
+        'session_password': 'hunter2',
+      });
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      await container.read(sessionProvider.notifier).init();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.containsKey('session_password'), false);
+      expect(container.read(sessionProvider).userId, 'u42');
     });
 
     test('setSession updates in-memory state', () async {

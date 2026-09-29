@@ -10,10 +10,13 @@ class SessionNotifier extends Notifier<SessionState> {
   static const _kIsLoggedInKey = 'is_logged_in';
   static const _kRoleKey = 'role';
   static const _kEmailKey = 'email';
-  static const _kPasswordKey = 'session_password';
   static const _kUserIdKey = 'user_id';
   static const _kTokenKey = 'token';
   static const _kHasGenrePrefsKey = 'has_genre_prefs';
+
+  /// Older builds cached the login password here in plain text. Nothing reads
+  /// it any more; [init] deletes it from devices that still have it.
+  static const _kLegacyPasswordKey = 'session_password';
 
   @override
   SessionState build() {
@@ -23,6 +26,7 @@ class SessionNotifier extends Notifier<SessionState> {
   Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
+    await prefs.remove(_kLegacyPasswordKey);
     final isLoggedIn = prefs.getBool(_kIsLoggedInKey) ?? false;
     final role = isLoggedIn ? prefs.getString(_kRoleKey) : null;
     final email = isLoggedIn ? prefs.getString(_kEmailKey) : null;
@@ -35,7 +39,7 @@ class SessionNotifier extends Notifier<SessionState> {
       'email=$email hasGenrePrefs=$hasGenrePrefs '
       'rawKeys={isLoggedIn:${prefs.getBool(_kIsLoggedInKey)},'
       'userId:${prefs.getString(_kUserIdKey)},role:${prefs.getString(_kRoleKey)},'
-      'email:${prefs.getString(_kEmailKey)},passwordSet:${(prefs.getString(_kPasswordKey) ?? '').isNotEmpty}}',
+      'email:${prefs.getString(_kEmailKey)}}',
     );
 
     state = state.copyWith(
@@ -51,32 +55,38 @@ class SessionNotifier extends Notifier<SessionState> {
   Future<void> setSession({
     String? role,
     String? email,
-    String? password,
     String? userId,
     String? token,
+    bool? hasGenrePrefs,
   }) async {
     final prefs = await SharedPreferences.getInstance();
 
     await prefs.setBool(_kIsLoggedInKey, true);
     if (role != null) await prefs.setString(_kRoleKey, role);
     if (email != null) await prefs.setString(_kEmailKey, email);
-    if (password != null) await prefs.setString(_kPasswordKey, password);
     if (userId != null) await prefs.setString(_kUserIdKey, userId);
     if (token != null) await prefs.setString(_kTokenKey, token);
+    if (hasGenrePrefs != null) {
+      await prefs.setBool(_kHasGenrePrefsKey, hasGenrePrefs);
+    }
     await prefs.reload();
 
     AppLogger.i(
       'Session saved: isLoggedIn=${prefs.getBool(_kIsLoggedInKey)} '
       'userId=${prefs.getString(_kUserIdKey)} role=${prefs.getString(_kRoleKey)} '
-      'email=${prefs.getString(_kEmailKey)} '
-      'hasPassword=${(prefs.getString(_kPasswordKey) ?? '').isNotEmpty}',
+      'email=${prefs.getString(_kEmailKey)}',
     );
 
+    // hasGenrePrefs is folded into this same state transition (rather than
+    // set via a later, separate call) so the router never observes a
+    // logged-in session with an unknown genre-prefs status — that
+    // intermediate state was causing a premature redirect to onboarding.
     state = state.copyWith(
       role: role ?? state.role,
       email: email ?? state.email,
       userId: userId ?? state.userId,
       token: token ?? state.token,
+      hasGenrePrefs: hasGenrePrefs ?? state.hasGenrePrefs,
       initialized: true,
     );
   }
@@ -119,7 +129,6 @@ class SessionNotifier extends Notifier<SessionState> {
     await prefs.remove(_kIsLoggedInKey);
     await prefs.remove(_kRoleKey);
     await prefs.remove(_kEmailKey);
-    await prefs.remove(_kPasswordKey);
     await prefs.remove(_kUserIdKey);
     await prefs.remove(_kTokenKey);
     await prefs.remove(_kHasGenrePrefsKey);

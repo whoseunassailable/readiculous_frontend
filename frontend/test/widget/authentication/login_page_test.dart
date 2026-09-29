@@ -5,8 +5,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:readiculous_frontend/core/features/authentication/presentation/pages/login_page.dart';
-import 'package:readiculous_frontend/core/features/authentication/presentation/state_management/login_controller.dart';
+import 'package:readiculous_frontend/features/authentication/presentation/pages/login_page.dart';
+import 'package:readiculous_frontend/features/authentication/presentation/state_management/login_controller.dart';
 import 'package:readiculous_frontend/generated/l10n.dart';
 
 // ── Fake controllers ──────────────────────────────────────────────────────────
@@ -73,7 +73,8 @@ void main() {
   });
 
   group('LoginPage widget', () {
-    testWidgets('renders two input fields and two action buttons', (tester) async {
+    testWidgets('renders two input fields and two action buttons',
+        (tester) async {
       await tester.pumpWidget(_defaultApp());
       await tester.pumpAndSettle();
 
@@ -87,31 +88,38 @@ void main() {
       await tester.pumpWidget(_defaultApp());
       await tester.pumpAndSettle();
 
-      final buttons = tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
+      final buttons =
+          tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
       for (final btn in buttons) {
-        expect(btn.onPressed, isNotNull, reason: 'Button should be enabled when idle');
+        expect(btn.onPressed, isNotNull,
+            reason: 'Button should be enabled when idle');
       }
     });
 
-    testWidgets('both buttons are disabled while a login request is in flight', (tester) async {
+    testWidgets('both buttons are disabled while a login request is in flight',
+        (tester) async {
       await tester.pumpWidget(
         _appWithController(_LoadingLoginController.new),
       );
       await tester.pumpAndSettle();
 
       // Enter credentials and tap login.
-      await tester.enterText(find.byType(TextField).first, 'test@readiculous.com');
+      await tester.enterText(
+          find.byType(TextField).first, 'test@readiculous.com');
       await tester.enterText(find.byType(TextField).last, 'secret');
       await tester.tap(find.byType(ElevatedButton).first);
       await tester.pump(); // one frame — controller is now AsyncLoading
 
-      final buttons = tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
+      final buttons =
+          tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
       for (final btn in buttons) {
-        expect(btn.onPressed, isNull, reason: 'Buttons must be disabled while loading');
+        expect(btn.onPressed, isNull,
+            reason: 'Buttons must be disabled while loading');
       }
     });
 
-    testWidgets('shows a SnackBar with the error message on login failure', (tester) async {
+    testWidgets('shows a SnackBar with the error message on login failure',
+        (tester) async {
       await tester.pumpWidget(
         _appWithController(_ErrorLoginController.new),
       );
@@ -138,9 +146,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // After error the controller is in AsyncError (not loading)
-      final buttons = tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
+      final buttons =
+          tester.widgetList<ElevatedButton>(find.byType(ElevatedButton));
       for (final btn in buttons) {
-        expect(btn.onPressed, isNotNull, reason: 'Buttons should be re-enabled after an error');
+        expect(btn.onPressed, isNotNull,
+            reason: 'Buttons should be re-enabled after an error');
       }
     });
   });

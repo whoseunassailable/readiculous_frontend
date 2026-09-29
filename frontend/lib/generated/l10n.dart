@@ -310,10 +310,10 @@ class S {
     );
   }
 
-  /// `DOB - 1999/08/15`
+  /// `Date of birth`
   String get dob {
     return Intl.message(
-      'DOB - 1999/08/15',
+      'Date of birth',
       name: 'dob',
       desc: '',
       args: [],
@@ -1510,10 +1510,10 @@ class S {
     );
   }
 
-  /// `Please enter valid DOB`
+  /// `Please select your date of birth`
   String get pleaseEnterValidDOB {
     return Intl.message(
-      'Please enter valid DOB',
+      'Please select your date of birth',
       name: 'pleaseEnterValidDOB',
       desc: '',
       args: [],
